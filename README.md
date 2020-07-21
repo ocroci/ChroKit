@@ -23,7 +23,7 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
   - ppcor
   - inline
   
-If the error "Bioconductor version X.X requires R version Y.Y" it means that the bioconductor version is not compatible with the version of R interpreter installed in the cmoputer. To solve this, change the variable **bioCversion** to a different number, representing a bioconductor version compatible with your current R interpreter. For example, R 4.0 is compatible with bioconductor version 3.11: in that case, change:\
+If the error *"Bioconductor version X.X requires R version Y.Y"* appears, it means that the bioconductor version is not compatible with the version of R interpreter installed in the cmoputer. To solve this, change the variable **bioCversion** to a different number, representing a bioconductor version compatible with your current R interpreter. For example, R 4.0 is compatible with bioconductor version 3.11: in that case, change:\
 ```bioCversion="3.8"```\
 in\
 ```bioCversion="3.11"```\
