@@ -6,9 +6,9 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
 ## Installation
 - Download and install the R interpreter on your computer or on a remote machine (>= 3.5 suggested)
 - Open the R interpreter and go into the main source directory of the program
-- run the script and wait for all dependencies to be downloaded from internet:
+- run the script and wait for all dependencies to be downloaded from internet:\
  ``` > source ("installChrokitDependencies.R")```
-- Launch the application using
+- Launch the application using\
   ``` > source("shinyapp.r")```
 - Go with your browser and open the application.
   - if you are using your computer, go to:
