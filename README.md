@@ -11,10 +11,10 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
 - Launch the application using\
   ``` > source("shinyapp.r")```
 - Go with your browser and open the application.
-  - if you are using your computer, go to:
-    > 127.0.0.1:6060
-  - if you are using a remote machine, go to:
-    > \<IP\>:6060 
+  - if you are using your computer, go to:\
+    ```127.0.0.1:6060```
+  - if you are using a remote machine, go to:\
+    ```\<IP\>:6060 ```
     where \<IP\> is the IP address of the remote machine
 
 ## Citation
