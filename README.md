@@ -9,19 +9,19 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
 - Run the script and wait for all dependencies to be downloaded from internet:\
  ``` > source ("installChrokitDependencies.R")```\
  Alternatively, make sure to the following R libraries installed:
- - shiny
- - shinyFiles
- - shinydashboard
- - shinyWidgets
- - fastcluster
- - VennDiagram
- - GenomicRanges
- - rtracklayer
- - data.table
- - RColorBrewer
- - Rsamtools
- - ppcor
- - inline
+  - shiny
+  - shinyFiles
+  - shinydashboard
+  - shinyWidgets
+  - fastcluster
+  - VennDiagram
+  - GenomicRanges
+  - rtracklayer
+  - data.table
+  - RColorBrewer
+  - Rsamtools
+  - ppcor
+  - inline
 - Launch the application using\
   ``` > source("shinyapp.r")```
 - Go with your browser and open the application.
