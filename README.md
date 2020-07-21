@@ -27,5 +27,5 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
 If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of IIT@SEMM
 
 ## License
-Copyright (c) 2020 Ottavio Croci
-[The GNU GENERAL PUBLIC LICENSE](LICENSE)
+Copyright (c) 2020 Ottavio Croci\
+[The GNU GENERAL PUBLIC LICENSE v3.0](LICENSE)
