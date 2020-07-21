@@ -59,7 +59,7 @@ Note for windows users: WIG file association is not supported and only BAM file 
 - Function to generate a number of most distinctive colors in R was taken from http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r (Megatron)
 - "distanceFromTSS3", "countOverlapsInBins", "GRbaseCoverage2" and "summitFromBaseCoverage" functions were taken (or adapted) from compEpiTools R package:\
 **Kishore K, de Pretis S, Lister R, Morelli MJ, Bianchi V, Amati B, Ecker JR, Pelizzola M (2015). “methylPipe and compEpiTools: a suite of R packages for the integrative analysis of epigenomics data.” BMC Bioinformatics. doi: 10.1186/s12859-015-0742-6.**
-- The instructions to use the program under Windows operating system were taken from https://stackoverflow.com/questions/23141982/inline-function-code-doesnt-compile (Richie Cotton)
+- The instructions to set up the environment under Windows operating system were taken from https://stackoverflow.com/questions/23141982/inline-function-code-doesnt-compile (Richie Cotton)
 
 ## Citation
 If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of IIT@SEMM
