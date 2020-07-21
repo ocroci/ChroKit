@@ -1,3 +1,18 @@
+############################################
+#General parameters
+############################################
+#select the listening port
+Port=6060
+### select the number of cores for execution
+### on windows systems, it will put nc=1
+nc=4
+#define colors for the palettes (from white)
+ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
+			"#00CC59","#00ba96","#f46036","#031d44","#138a36","#3891a6","#748386","#fff05a",
+			"#824c71","#7a306c","#04395e","#ffaa5a",
+			"#69306d","#8B0000","#595959","#4169e1","#f03a47","blue","#c8ad4d","#85cb33")
+
+
 ### command line arguments (port, USER)
 ### if multiple users are using the program inside the same machine, USER
 ### variable can be used to keep trace of the USER
@@ -7,7 +22,7 @@ print (args)
 if (!is.na(args[1])){
 	port=as.numeric(args[1])
 }else{
-	port=6060
+	port=Port
 }
 
 if(!is.na(args[2])){
@@ -16,9 +31,7 @@ if(!is.na(args[2])){
 	USER=NULL
 }
 
-### select the number of cores for execution
-### on windows systems, it will put nc=1
-nc=4
+
 #set the root directory for the shinyFiles buttons according to the OS type in use
 
 if(.Platform$OS.type=="unix"){
@@ -144,11 +157,6 @@ temporary_GMTstorage=as.list(rep(NA,length(GenesetsGMT)))
 names(temporary_GMTstorage)=bN
 
 
-#define colors for the palettes from white
-ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
-			"#00CC59","#00ba96","#f46036","#031d44","#138a36","#3891a6","#748386","#fff05a",
-			"#824c71","#7a306c","#04395e","#ffaa5a",
-			"#69306d","#8B0000","#595959","#4169e1","#f03a47","blue","#c8ad4d","#85cb33")
 
 
 #run the app
