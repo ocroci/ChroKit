@@ -35,6 +35,9 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
 
 ## Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
+- The variable **Port** specify the listeninf port of the program
+- The variable **nc** specify the number of cores that will be used for computation. The higher the number, the faster the program will be, but it will require more RAM. Windows users will always use 1 single core for operations.
+- The variable **ColsArray** specify all colors available for palettes in heatmaps (gradient from white)
 
 ## Windows users
 Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
