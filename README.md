@@ -1,5 +1,6 @@
 # ChroKit
 A Shiny-based framework to analyze and visualize interactively genomic data
+![alt text](https://github.com/ocroci/ChroKit/logo2.jpg)
 
 ## Getting started
 
