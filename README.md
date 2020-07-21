@@ -28,4 +28,4 @@ If you use this framework for your project, please acknowledge Ottavio Croci, Ph
 
 ## License
 Copyright (c) 2020 Ottavio Croci
-[The GNUv3 License](LICENSE.md)
+[The GNU GENERAL PUBLIC LICENSE](LICENSE)
