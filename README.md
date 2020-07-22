@@ -37,7 +37,7 @@ and source the *installChrokitDependencies.R* script again
     ```<IP>:6060 ```\
     where \<IP\> is the IP address of the remote machine
 
-**IMPORTANT**: to carry out egne ontology analyses, you must put gene signatures under appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Suggested: download MSigDB (Molecualr Signature Database) signatured from https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb. 
+**IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Suggested: download MSigDB (Molecular Signature Database) signatures from https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb. 
 
 ## Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
