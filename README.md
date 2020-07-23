@@ -47,17 +47,9 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 
 ## Windows users
 Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
-After installing the R interpreter, install Rtools; then, find the path in which the gcc.exe executable had been installed (usually C:\Rtools\mingw_32\bin) and the directory in which all the Rtools binaries had been installed (usually under C:\Rtools\bin). Finally, add these two directories to you Windows PATH variable.
-To temporarily set these paths only for the current R session, from the R interpreter, type the following lines of code:
-```
-rtools<-"C:\\Rtools\\bin"
-gcc<-"C:\\Rtools\\mingw_32\\bin"
-path <- strsplit(Sys.getenv("PATH"),";")[[1]]
-new_path<-c(rtools,gcc,path)
-new_path<-new_path[!duplicated(tolower(new_path))]
-Sys.setenv(PATH=paste(new_path,collapse=";"))
-```
-Where rtools is the path in which all Rtools binaries had been installed and gcc is the directory in which gcc.exe executable had been installed. 
+After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
+To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
+
 Note for windows users: WIG file association is not supported and only BAM file association is allowed; moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
 
 ## Credits
@@ -65,7 +57,7 @@ Note for windows users: WIG file association is not supported and only BAM file 
 - Function to generate a number of most distinctive colors in R was taken from http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r (Megatron)
 - "distanceFromTSS3", "countOverlapsInBins", "GRbaseCoverage2" and "summitFromBaseCoverage" functions were taken (or adapted) from compEpiTools R package:\
 **Kishore K, de Pretis S, Lister R, Morelli MJ, Bianchi V, Amati B, Ecker JR, Pelizzola M (2015). “methylPipe and compEpiTools: a suite of R packages for the integrative analysis of epigenomics data.” BMC Bioinformatics. doi: 10.1186/s12859-015-0742-6.**
-- The instructions to set up the environment under Windows operating system were taken from https://stackoverflow.com/questions/23141982/inline-function-code-doesnt-compile (Richie Cotton)
+
 
 ## Citation
 If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of IIT@SEMM
