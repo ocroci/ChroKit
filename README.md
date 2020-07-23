@@ -39,18 +39,20 @@ and source the *installChrokitDependencies.R* script again
 
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Suggested: download MSigDB (Molecular Signature Database) signatures from https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb. 
 
+### Windows users
+Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
+After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
+To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
+
+Note for windows users: WIG file association is not supported and only BAM file association is allowed; moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
+
+
 ## Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
 - The variable **Port** specify the listening port of the program
 - The variable **nc** specify the number of cores that will be used for computation. The higher the number, the faster the program will be, but it will require more RAM. Windows users will always use 1 single core for operations.
 - The variable **ColsArray** specify all colors available for palettes in heatmaps (gradient from white)
 
-## Windows users
-Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
-After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
-To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
-
-Note for windows users: WIG file association is not supported and only BAM file association is allowed; moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
 
 ## Credits
 - Function for drawing color bars was adapted from John Colby (stackoverflow) http://stackoverflow.com/questions/9314658/colorbar-from-custom-colorramppalette
@@ -61,6 +63,7 @@ Note for windows users: WIG file association is not supported and only BAM file 
 
 ## Citation
 If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of IIT@SEMM
+
 
 ## License
 Copyright (c) 2020 Ottavio Croci\
