@@ -24,11 +24,11 @@ ChroKit (The **Chro**matin Tool**kit**) is a Shiny-based framework to analyze an
   - inline
 
 If the bioconductor version is not compatible with the version of R interpreter installed (error *"Bioconductor version X.X requires R version Y.Y"*), edit the *installChrokitDependencies.R* file and change the variable **bioCversion** to insert the version number compatible with your R interpreter. 
-For example, R 4.0 is compatible with bioconductor version 3.11: in that case, change:\
+For example, R 4.0 is compatible with bioconductor version 3.11. In that case, change the default value:\
 ```bioCversion="3.8"```\
 in\
 ```bioCversion="3.11"```\
-and source the *installChrokitDependencies.R* script again
+and source the *installChrokitDependencies.R* script again.
 - Launch the application using\
   ``` > source("shinyapp.r")```
 - Open the application using your web browser.
@@ -47,7 +47,7 @@ Make sure to install the R interpreter in a directory path without spaces: when 
 After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
 To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
 
-Note for windows users: WIG file association is not supported and only BAM file association is allowed; moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
+Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
 
 
 ## Basic setup
