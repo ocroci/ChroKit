@@ -41,7 +41,7 @@ tabROI<-tabItem (tabName = "ROIblock",
                                       choices=c("Intersection of the contrast ROIs"="stringent",
                                                 #"Overlap of the contrast ROIs"="permissive",
                                                 "Union of the contrast ROIs"="allofthem"),
-                                      selected="permissive"
+                                      selected="allofthem"
               )            
             
             ),
