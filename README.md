@@ -6,6 +6,7 @@ This bioinformatics tool can help the researchers to process the data from next 
 As input, ChroKit takes aligned reads (BAM or WIG files), genomic ranges (BED or GTF/GFF formats) and list of genes and performs a several operations on them, such as the refinement of ranges boundaries, extraction of sequence patterns, gene ontologies on the annotated genes and the calculation of reads enrichment. The user can then perform logical operation on the genomic regions and unsupervised clustering to create further subsets of regions.
 The wide variety of interactive plots offered by ChroKit can be modified simply by playing with mouse cursor and downloaded as pdf files. Working sessions can be exported as RDS files, allowing data sharing and reproducibility of the analyses.
 
+
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
 ## Install dependencies and launch the program
