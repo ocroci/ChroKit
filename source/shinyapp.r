@@ -11,6 +11,9 @@ ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
 			"#00CC59","#00ba96","#f46036","#031d44","#138a36","#3891a6","#748386","#fff05a",
 			"#824c71","#7a306c","#04395e","#ffaa5a",
 			"#69306d","#8B0000","#595959","#4169e1","#f03a47","blue","#c8ad4d","#85cb33")
+#define the bioCversion version for installing packages with BiocManager
+#R 3.5 wants bioCversion="3.8", R 3.6 wants bioCversion="3.9" and so on...
+bioCversion="3.9"
 
 
 ### command line arguments (port, USER)

@@ -1,6 +1,9 @@
 ### find and, if necessary, install, required packages for Chrokit
 x=rownames(installed.packages())
-bioCversion="3.8"
+#bioCversion will define the version for installing BiocManager packages
+#change this if you have an R version that is not supported. For example, 
+#bioCversion="3.8" for R 3.5, bioCversion="3.9" for R 3.6 and so on...
+bioCversion="3.9"
 cranRepo='http://cran.us.r-project.org'
 ## IMPORTANT: on linux (tested on Ubuntu), additional libraries are rquired:
 
@@ -12,18 +15,20 @@ cranRepo='http://cran.us.r-project.org'
 # sudo apt install libssl-dev
 ## libmysqlclient-dev is required for RMySQL package; install with:
 # sudo apt install libmysqlclient-dev (or default-libmysqlclient-dev)
+## for zlib.h (package data.table) install also the following library:
+# sudo apt-get install libz-dev
 
 ## If you find problems in installing the above dependencies, try also with:
 # sudo apt install libgcrypt11-dev (libgcrypt20-dev or other versions) libgnutls-dev (libgnutls28-dev or newer) librtmp-dev
 
 
 
-#to correct undefined symbol: __atomic_fetch_add_8 error (tested on raspbian buster, raspberry pi 4)
+## to correct undefined symbol: __atomic_fetch_add_8 error (tested on raspbian buster, raspberry pi 4)
 
-#add this line to .bashrc file in home directory
-#export LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libatomic.so.1.2.0
-#...and source the file with:
-#source .bashrc
+## add this line to .bashrc file in home directory
+# export LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libatomic.so.1.2.0
+## ...and source the file with:
+# source .bashrc
 
 
 #shiny
