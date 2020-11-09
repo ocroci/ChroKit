@@ -183,7 +183,6 @@ downloadDB<-function(assembly,avail_assemblies) {
   #avail assemblies= named charactr vector with all existing Txdb and names are
   #   the relative org db
   av_packages=rownames(installed.packages())
-  bioCversion="3.8"
   if(class(assembly)!="character"){
     stop("'assembly' must be a named character")
   }  
@@ -210,8 +209,7 @@ downloadDB<-function(assembly,avail_assemblies) {
     return()
   }
   #for R versions <=3.4. For R >= 3.5 you can download the package BiocManager
-  #and use BiocManager::install("package")
-  source("https://bioconductor.org/biocLite.R")
+  #and use BiocManager::install("package")  
 
   #here, check if R>3.5 and BiocManager is installed
   Rversion=strsplit(version$version.string,split=" ")[[1]][3]
@@ -254,6 +252,7 @@ downloadDB<-function(assembly,avail_assemblies) {
       BiocManager::install(todownload_txdb, version = bioCversion,ask=FALSE)
     }  
   }else{
+    source("https://bioconductor.org/biocLite.R")
     if(is_txdb&!is_org){
       print(paste("Downloading",todownload_org,"..."))
       biocLite(todownload_org,suppressUpdates=TRUE,ask=FALSE)
