@@ -61,6 +61,7 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 - The variable **Port** specify the listening port of the program
 - The variable **nc** specify the number of cores that will be used for computation. The higher the number, the faster the program will be, but it will require more RAM. Windows users will always use 1 single core for operations because of technical issues.
 - The variable **ColsArray** specify all colors available in the palettes for heatmaps (gradient from white)
+- The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
 
 
 ## Credits
