@@ -276,7 +276,7 @@ tabROI<-tabItem (tabName = "ROIblock",
           #checkboxInput("putEnrichments", label="Put available enrichments",value = TRUE, width = NULL),
           actionButton("showdataframeROI", "Preview ROI"),
 
-          HTML("<br><br>"),
+          HTML("<br><br><br><br>"),
           uiOutput("showWindowAnnotation")
 
         ),
