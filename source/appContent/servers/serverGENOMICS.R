@@ -1905,9 +1905,9 @@ observeEvent(toListenDigitalHeat(),{
 
         trasp=t(matProc)
         if(max(dim(trasp))>30000){
-          raster=TRUE
-        }else{
           raster=FALSE
+        }else{
+          raster=TRUE
         }
         par(mar = rep(0, 4))
         image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1],axes = FALSE, xlab = "", ylab = "",col=palette
