@@ -225,11 +225,16 @@ observeEvent(input$confirmASSEMBLYforuse,{
 					print("Re-annotating existing ROIs in multi core...")
 					annotatedrois=mclapply(1:length(rois),function(i){
 						currentroi=rois[[i]]
-						currentrange=getRange(currentroi)
-						annotatedpart=suppressWarnings(distanceFromTSS3(Object=currentrange,Tss=fix_promoters,criterion="midpoint"))
-						#use setRange function to set the annotated range of the ROI
-						elementMetadata(currentrange)=annotatedpart
-						currentroi=setRange(currentroi,currentrange)
+						if (getFlag(currentroi)=="normalFlag"){
+							currentrange=getRange(currentroi)
+							annotatedpart=suppressWarnings(distanceFromTSS3(Object=currentrange,Tss=fix_promoters,criterion="midpoint"))
+							#use setRange function to set the annotated range of the ROI
+							elementMetadata(currentrange)=annotatedpart
+							currentroi=setRange(currentroi,currentrange)							
+						}else{
+							print(paste("ROI ",getName(currentroi)," not annotated because of the flag originally from another database"))
+						}
+
 						return(currentroi)
 					},mc.cores=nc)
 					ROIvariables$listROI[pos]=annotatedrois
@@ -240,7 +245,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
 			      sendSweetAlert(
 			        session = session,
 			        title = "Problems in (re)annotating ROIs",
-			        text = "Cannot (re)annotate ROIs. Try to use 1 single core",
+			        text = "Cannot (re)annotate ROIs. Try to use 1 single core, or maybe the genome is incompatible with existing ROIs",
 			        type = "error"
 			      ) 
 				},
@@ -250,7 +255,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
 			      sendSweetAlert(
 			        session = session,
 			        title = "Problems in (re)annotating ROIs",
-			        text = "Cannot (re)annotate ROIs. Try to use 1 single core",
+			        text = "Cannot (re)annotate ROIs. Try to use 1 single core, or maybe the genome is incompatible with existing ROIs",
 			        type = "error"
 			      ) 
 				})				

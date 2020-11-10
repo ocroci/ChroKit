@@ -664,7 +664,12 @@ observe({
         names(toadd_bams)=paste(bams,"enrichment")
 
         output$showROIoptionsToViewENRICHMENTS<-renderUI({
-          checkboxGroupInput("ROIoptionsToViewENRICHMENTS","Enrichments:",choices=toadd_bams)
+          list(
+            HTML("<b>Enrichments:</b>"),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; background-color: #ffffff;",
+              checkboxGroupInput("ROIoptionsToViewENRICHMENTS",NULL,choices=toadd_bams)
+            )
+          )
         })
       }else{
         output$showROIoptionsToViewENRICHMENTS<-renderText({
