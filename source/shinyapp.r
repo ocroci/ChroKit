@@ -16,6 +16,10 @@ ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
 bioCversion="3.9"
 
 
+############################################
+# Parameters (port, user, bioCversion and number of cores) can be 
+# introduced also as command line arguments
+############################################
 ### command line arguments (port, USER)
 ### if multiple users are using the program inside the same machine, USER
 ### variable can be used to keep trace of the USER
@@ -34,8 +38,23 @@ if(!is.na(args[2])){
 	USER=NULL
 }
 
+if(!is.na(as.character(args[3]))){
+	bioCversion=args[3]
+
+if(!is.na(args[4])){
+	nc=args[4]
+}
+
+
+
+
+
+
+
+
 
 #set the root directory for the shinyFiles buttons according to the OS type in use
+#if windows, nc will be forced to 1
 
 if(.Platform$OS.type=="unix"){
 	separation=rootdir=rootsavedir="/"
@@ -46,7 +65,9 @@ if(.Platform$OS.type=="unix"){
 	nc=1
 }
 
-### load requird libraries
+############################################
+# Loading required libraries
+############################################
 
 #shiny, shinyFiles, shinydashboard and shinyWidgets for the GUI
 library(shiny)
@@ -78,8 +99,6 @@ library(inline)
 #DEFINE all possible loadable or downloadable databases: GLOBAL variables
 #define downloadable and available databases from current session
 x=rownames(installed.packages())
-
-
 ##define TxDb transcripts packages of bioconductor for each genome assembly (KnownGene, refGene or ensGene)
 ##and name each element with the corresponding annotation libraries of the same organism
 all_avail_assemblies=c(
