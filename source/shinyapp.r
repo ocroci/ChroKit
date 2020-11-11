@@ -40,6 +40,7 @@ if(!is.na(args[2])){
 
 if(!is.na(as.character(args[3]))){
 	bioCversion=args[3]
+}
 
 if(!is.na(args[4])){
 	nc=args[4]
