@@ -10,6 +10,8 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
 ## Install dependencies and launch the program
+
+### From source
 - Download and install the R interpreter (suggested version 3.5 or higher) on your computer or on a remote machine 
 - Open the R interpreter and go to the main source directory of the program
 - Run the script and wait for all dependencies to be downloaded from internet:\
@@ -48,12 +50,35 @@ and source the *installChrokitDependencies.R* script again.
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. It is suggested to download MSigDB (Molecular Signature Database) signatures from https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb. 
 
 
-### Windows users
+#### Windows users
 Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
 After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
 To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
 
 Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
+
+### With Docker
+Docker images are available with pre-installed libraries of human and mouse genome assemblies. Be sure to have Docker installed on your system.
+
+To pull the image, use the following command from the command line:\
+```$ docker pull ocroci/chrokit:<tagname>```\
+
+Where 'tagname' depends on the genome assembly and the version of the program. For example, to pull the image for mm10 genome assembly and version 1.0, type the following command in the command line:\
+```$ docker pull ocroci/chrokit:mm10.1.0```\
+
+To run the program using the image with mm10 genome assembly libraries, type this command from command line:\
+```$ sudo docker run -v /home/:/mnt/ -p 6060:6060 -it ocroci/chrokit:mm10.1.0```\
+
+In this case the /mnt folder inside the container will mount the /home folder of the host system; change these folders according to your needs.
+
+To use the application, open a web browser and
+  - if you are using a personal computer, go to:\
+    ```127.0.0.1:6060```
+  - if you are using a remote machine, go to:\
+    ```<IP>:6060 ```\
+    where \<IP\> is the IP address of the remote machine
+
+
 
 
 ## Basic setup
