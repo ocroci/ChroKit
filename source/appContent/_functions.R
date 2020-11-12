@@ -1659,8 +1659,9 @@ cleanChromosomes<-function(range){
   chrs=as.character(seqnames(range))
   pos_random=grepl("_random$",chrs)
   pos_alt=grepl("_alt$",chrs)
+  pos_fix=grepl("_fix$",chrs)
   pos_ChrUn=grepl("^chrUn_",chrs)
-  tokeep=!(pos_random | pos_alt |pos_ChrUn)
+  tokeep=!(pos_random | pos_alt |pos_ChrUn |pos_fix)
   return(range[tokeep])
 }
 
@@ -1752,7 +1753,11 @@ extractPattern<-function(Subject,BSgenomeDB,pattern,bothstrands=TRUE){
 
     
     chromosome_names=as.character(seqnames(Subject))
-    
+
+    #to avoid errors, keep only the seqnames in common between the two (BSgenomeDB,Subject)
+    #For hg38, Subject seqnames are much more!
+
+
     yseq=getSeq(BSgenomeDB,Subject) # if - strand, reverse complement is done by default
     starts=start(Subject)
     ends=end(Subject)
