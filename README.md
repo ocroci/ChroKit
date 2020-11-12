@@ -76,7 +76,7 @@ To use the application, open a web browser and
     ```127.0.0.1:6060```
   - if you are using a remote machine, go to:\
     ```<IP>:6060 ```\
-    where \<IP\> is the IP address of the remote machine
+    where \<IP\> is the IP address of the remote machine in which the Docker container is running
 
 
 
