@@ -61,10 +61,10 @@ Note for windows users: only BAM file association is allowed (WIG files not supp
 Docker images are available with pre-installed libraries of human and mouse genome assemblies. Be sure to have Docker installed on your system.
 
 To pull the image, use the following command from the command line:\
-```docker pull ocroci/chrokit:<tagname>```
+```sudo docker pull ocroci/chrokit:<tagname>```
 
 Where 'tagname' depends on the genome assembly and the version of the program. For example, to pull the image for mm10 genome assembly and version 1.0, type the following command in the command line:\
-```docker pull ocroci/chrokit:mm10.1.0```
+```sudo docker pull ocroci/chrokit:mm10.1.0```
 
 To run the program using the image with mm10 genome assembly libraries, type this command from command line:\
 ```sudo docker run -v /home/:/mnt/ -p 6060:6060 -it ocroci/chrokit:mm10.1.0```
