@@ -136,6 +136,7 @@ if(Rversion_main==3){
 #BiocManager if R version> 3.5
 if(! ("BiocManager" %in% x) & R35){
 	print("Installing BiocManager package for R > 3.5.0 ...")
+	install.packages("BiocManager")
 	BiocManager::install(version=bioCversion)
 }else{
 	print("BiocManager package already installed...")
