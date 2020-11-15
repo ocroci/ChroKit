@@ -274,7 +274,28 @@ observeEvent(input$confirmASSEMBLYfordownload,{
 	if (!is.null(input$searchASSEMBLYfordownload) & input$searchASSEMBLYfordownload!="" & length(input$searchASSEMBLYfordownload)>0){
 		#from assembly string (ex:"mm9") to download of the correct database from bioconductor
 		#and upadte of DATABASEvariables$avail/missing database
-		downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
+		tryCatch({
+			downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
+	    },
+	    warning = function( w ){
+		  sendSweetAlert(
+	          session = session,
+	          title = "Problems in downloading database",
+	          text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+	          type = "error"
+	      )
+	      return()
+	    },
+	    error = function( err ){
+	        sendSweetAlert(
+	          session = session,
+	          title = "Problems in downloading database",
+	          text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+	          type = "error"
+	        )
+	       	return()
+	    })
+		
 		updateExistingDB=getExistingDB(avail_assemblies=all_avail_assemblies)
 		DATABASEvariables$availASSEMBLIES=updateExistingDB$assemblies_we_have
 		DATABASEvariables$missingASSEMBLIES=updateExistingDB$assemblies_we_donthave

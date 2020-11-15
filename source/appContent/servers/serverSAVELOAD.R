@@ -76,15 +76,36 @@ observeEvent(input$saveWork,{
 			"BAMvariables_listBAM",
 			"logvariables_msg")
       	#logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="blue">Wainting for the session to be saved...<br></font>',sep="")
-      	saveRDS(listOfPeakTimeVariables, as.character(fileinfo$datapath) )
-      	logvariables$msg[[length(logvariables$msg)+1]]= paste('Session ',basename(as.character(fileinfo$datapath)),' saved<br>',sep="")
-      	print(paste('Session ',as.character(fileinfo$datapath),' saved',sep=""))
-        sendSweetAlert(
-          session = session,
-          title = "Session saved!",
-          text = paste("The session '",basename(as.character(fileinfo$datapath)),"' has been saved",sep=""),
-          type = "success"
-        )       
+      	
+        tryCatch({
+	      	saveRDS(listOfPeakTimeVariables, as.character(fileinfo$datapath) )
+	      	logvariables$msg[[length(logvariables$msg)+1]]= paste('Session ',basename(as.character(fileinfo$datapath)),' saved<br>',sep="")
+	      	print(paste('Session ',as.character(fileinfo$datapath),' saved',sep=""))
+	        sendSweetAlert(
+	          session = session,
+	          title = "Session saved!",
+	          text = paste("The session '",basename(as.character(fileinfo$datapath)),"' has been saved",sep=""),
+	          type = "success"
+	        ) 
+        
+        },
+        warning = function( w ){
+	        sendSweetAlert(
+	          session = session,
+	          title = "Cannot save the session",
+	          text = "Cannot save the session in the specified directory. Maybe you don't have the write permission.",
+	          type = "error"
+	        ) 
+        },
+        error = function( err ){
+	        sendSweetAlert(
+	          session = session,
+	          title = "Cannot save the session",
+	          text = "Cannot save the session in the specified directory. Maybe you don't have the write permission.",
+	          type = "error"
+	        ) 
+        })
+      
     }
 },ignoreInit=TRUE)
 
