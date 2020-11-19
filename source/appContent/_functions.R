@@ -1527,6 +1527,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
 
   #starting point strand: consider or not for the overlap? (strandSpecific?)
   #if starting point is already * this will not change anything
+  tokeep_strand=strand(startingpoint)
   if(!strandSpecific){
     #make * everywhere, we want all overlaps, regardless of the strand:
     #startingpointprovv=startingpoint
@@ -1547,6 +1548,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
         finalbam=lapply(finalbam,function(k) {k[positiveov>0]})
       }
       selectedfix=selectedfix[positiveov>0]
+      tokeep_strand=tokeep_strand[positiveov>0]
     }
 
     if (criterion1=="permissive"){
@@ -1554,6 +1556,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
         ov=countOverlaps(startingpoint,overlaplist[[i]],minoverlap=minbp)
         startingpoint=startingpoint[ov>0]
         selectedfix=selectedfix[ov>0]
+        tokeep_strand=tokeep_strand[ov>0]
         finalbam=lapply(finalbam,function(k) {k[ov>0]})
       }
     }
@@ -1563,6 +1566,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
       positiveov= countOverlaps(startingpoint,overlapwith,minoverlap=minbp)
       startingpoint=startingpoint[positiveov>0]
       selectedfix=selectedfix[positiveov>0]
+      tokeep_strand=tokeep_strand[positiveov>0]
       finalbam=lapply(finalbam,function(k) {k[positiveov>0]})
     }
 
@@ -1587,16 +1591,19 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
       negativeov= countOverlaps(startingpoint,notoverlapwith,minoverlap=minbp)
       startingpoint=startingpoint[negativeov==0]
       selectedfix=selectedfix[negativeov==0]
+      tokeep_strand=tokeep_strand[negativeov==0]
       finalbam=lapply(finalbam,function(k) {k[negativeov==0]})    
     }else{
       notoverlapwith=Reduce(intersect,notoverlaplist)   
       negativeov= countOverlaps(startingpoint,notoverlapwith,minoverlap=minbp)
       startingpoint=startingpoint[negativeov==0]  
       selectedfix=selectedfix[negativeov==0]
+      tokeep_strand=tokeep_strand[negativeov==0]
       finalbam=lapply(finalbam,function(k) {k[negativeov==0]})          
     }
  
   }
+  strand(startingpoint)=tokeep_strand
 
   return(list(startingpoint,finalbam,selectedfix))
 }
