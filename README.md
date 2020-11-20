@@ -58,7 +58,7 @@ To install Rtools and modify the PATH variable, follow the instructions at the l
 Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel” library, which works only on UNIX operating systems.
 
 ### With Docker
-Docker images are available with pre-installed libraries of human and mouse genome assemblies. Be sure to have Docker installed on your system.
+Docker images are available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
 
 To pull the image, use the following command from the command line:\
 ```sudo docker pull ocroci/chrokit:<tagname>```
