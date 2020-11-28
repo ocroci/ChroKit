@@ -949,7 +949,7 @@ msg_singleEvaluation_widthDistribution<-list(
 		by class of annotated regions (promoters, genebodies, intergenic regions)",
 		tags$br(),
 		tags$br(),
-		Warning("To avoid outlayers, only 0-95% of the distribution is shown")		
+		Warning("To avoid outliers, only 0-95% of the distribution is shown")		
 	)
 )
 #Enrichment boxplot
@@ -1533,7 +1533,7 @@ msg_dynamicsOnGenes_parameters<-list(
 		Field("Choose normalization","Choose the normalization method for the enrichments:<br>
 		 		<li><b>Total reads (rpm)</b>: The number of library-normalized reads</li>
 				<li><b>Read density (rpm/bp)</b>: The number of library-normalized reads, normalized also by the length of the genomic ranges</li>"),
-		Field("Fraction of outlayers to exclude in cumulative plots:","The fraction of outlayers (both lower and higher values) to exclude in cumulative plots"),
+		Field("Fraction of outliers to exclude in cumulative plots:","The fraction of outliers (both lower and higher values) to exclude in cumulative plots"),
 		tags$br(),
 		Tip("Increase this value to emphasize the differences between the curves in the cumulative plots")			
 
