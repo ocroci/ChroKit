@@ -5310,7 +5310,7 @@ observeEvent(input$plotDynamics,{
         content_transcripts_mod=c(content_transcripts_mod_plus,content_transcripts_mod_minus)
 
         #BOXPLOTS
-        #for boxplots, sum verything inside TSS,TES and the part of the transcripts cut before
+        #for boxplots, sum everything inside TSS,TES and the part of the transcripts cut before
 
         totallist_boxplot[[1]][[i]][[k]]=sapply(content_promoters[tokeep],sum)
         totallist_boxplot[[2]][[i]][[k]]=content_transcripts_mod
@@ -5336,7 +5336,12 @@ observeEvent(input$plotDynamics,{
         }
 
         totallist_SI[[1]][[i]][[k]]=totallist_boxplot[[1]][[i]][[k]]
-        totallist_SI[[3]][[i]][[k]]=totallist_SI[[1]][[i]][[k]]/(totallist_SI[[2]][[i]][[k]]+0.01)#calculate stalling index
+        
+        #calculate good pseudocount: the first percentile of non-zero totallist_SI[[2]] values
+        pseudocount=totallist_SI[[2]][[i]][[k]]
+        pseudocount=pseudocount[pseudocount!=0]
+        pseudocount=quantile(pseudocount,0.0001)
+        totallist_SI[[3]][[i]][[k]]=totallist_SI[[1]][[i]][[k]]/(totallist_SI[[2]][[i]][[k]]+pseudocount)#calculate stalling index
 
       }
     }
@@ -5546,19 +5551,34 @@ observeEvent(input$plotDynamics,{
       for(i in 1:length(currentlist)){
         list2=c(list2,currentlist[[i]])
       }
+
+
+
+      outlayer_thresh=input$percentageOutlayerCumulPlots
       for(i in 1:length(list2)){
-        minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-        maxvals=c(minvals,max(log2(list2[[i]])))
+        mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+        maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+        minvals=c(minvals,mincurrent)
+        maxvals=c(maxvals,maxcurrent)
       }
+
+
+      
       maxvals=max(maxvals)
-      minvals=min(minvals[!is.infinite(minvals)])
+      minvals=min(minvals)
 
       lengths=sapply(list2,length)
       par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, max(lengths)), xlim=c(minvals, maxvals))
+      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
       for(i in 1:length(list2)){
-        lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+        #remove a fraction of outlayers
+        #celan -Inf
+        vals=sort(log2(list2[[i]]))
+        vals=vals[!is.infinite(vals)]
+        vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
       }
+
 
       legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
 
@@ -5579,23 +5599,40 @@ observeEvent(input$plotDynamics,{
       for(i in 1:length(currentlist)){
         list2=c(list2,currentlist[[i]])
       }
+
+
+
+      outlayer_thresh=input$percentageOutlayerCumulPlots
       for(i in 1:length(list2)){
-        minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-        maxvals=c(minvals,max(log2(list2[[i]])))
+      	mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+      	maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+        minvals=c(minvals,mincurrent)
+        maxvals=c(maxvals,maxcurrent)
       }
+      
       maxvals=max(maxvals)
-      minvals=min(minvals[!is.infinite(minvals)])
+      minvals=min(minvals)
 
       lengths=sapply(list2,length)
+      
       par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, max(lengths)), xlim=c(minvals, maxvals))
+      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
       for(i in 1:length(list2)){
-        lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+      	#remove a fraction of outlayers
+      	#celan -Inf
+      	vals=sort(log2(list2[[i]]))
+      	vals=vals[!is.infinite(vals)]
+      	vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
       }
 
       legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
 
     })
+
+
+
+
 
     output$plotSISIDynamics<-renderPlot({
       currentlist=totallist_SI[[3]]
@@ -5612,21 +5649,32 @@ observeEvent(input$plotDynamics,{
       for(i in 1:length(currentlist)){
         list2=c(list2,currentlist[[i]])
       }
-      for(i in 1:length(list2)){
-        minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-        maxvals=c(minvals,max(log2(list2[[i]])))
-      }
-      maxvals=max(maxvals)
-      minvals=min(minvals[!is.infinite(minvals)])
 
+
+      outlayer_thresh=input$percentageOutlayerCumulPlots
+      for(i in 1:length(list2)){
+        mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+        maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+        minvals=c(minvals,mincurrent)
+        maxvals=c(maxvals,maxcurrent)
+      }
+
+ 
+      maxvals=max(maxvals)
+      minvals=min(minvals)
+      
       lengths=sapply(list2,length)
 
       par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, max(lengths)), xlim=c(minvals, maxvals))
+      plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
       for(i in 1:length(list2)){
-        lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+        #remove a fraction of outlayers
+        #celan -Inf
+        vals=sort(log2(list2[[i]]))
+        vals=vals[!is.infinite(vals)]
+        vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
       }
-
       legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
     })
 
@@ -5975,7 +6023,6 @@ output$saveSITSSDynamicsbutton<- downloadHandler(
       paste('TSS_SI_dynamics.pdf', sep='')
   },
   content=function(file) {
-    pdf(file)
     
     currentlist=toplot$dynamics$totallist_SI[[1]]
 
@@ -5986,18 +6033,28 @@ output$saveSITSSDynamicsbutton<- downloadHandler(
     for(i in 1:length(currentlist)){
       list2=c(list2,currentlist[[i]])
     }
+
+	outlayer_thresh=input$percentageOutlayerCumulPlots
     for(i in 1:length(list2)){
-      minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-      maxvals=c(minvals,max(log2(list2[[i]])))
-    }
-    maxvals=max(maxvals)
-    minvals=min(minvals[!is.infinite(minvals)])
+	  mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+	  maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+	  minvals=c(minvals,mincurrent)
+	  maxvals=c(maxvals,maxcurrent)
+	}
+	  
+	maxvals=max(maxvals)
+	minvals=min(minvals)
 
     lengths=sapply(list2,length)
+
+    pdf(file)
     par(mar=c(10,4,1,1))
-    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, max(lengths)), xlim=c(minvals, maxvals))
+    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
     for(i in 1:length(list2)){
-      lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+      vals=sort(log2(list2[[i]]))
+      vals=vals[!is.infinite(vals)]
+      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
     }
 
     legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
@@ -6016,7 +6073,7 @@ output$saveSIGBDynamicsbutton<- downloadHandler(
       paste('GB_SI_dynamics.pdf', sep='')
   },
   content=function(file) {
-    pdf(file)
+    
     
     currentlist=toplot$dynamics$totallist_SI[[2]]
 
@@ -6027,19 +6084,30 @@ output$saveSIGBDynamicsbutton<- downloadHandler(
     for(i in 1:length(currentlist)){
       list2=c(list2,currentlist[[i]])
     }
+
+
+
+    outlayer_thresh=input$percentageOutlayerCumulPlots
     for(i in 1:length(list2)){
-      minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-      maxvals=c(minvals,max(log2(list2[[i]])))
+      mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+      maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+      minvals=c(minvals,mincurrent)
+      maxvals=c(maxvals,maxcurrent)
     }
     maxvals=max(maxvals)
-    minvals=min(minvals[!is.infinite(minvals)])
+    minvals=min(minvals)
 
     lengths=sapply(list2,length)
+
+    pdf(file)
     par(mar=c(10,4,1,1))
 
-    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, max(lengths)), xlim=c(minvals, maxvals))
+    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh)) ), xlim=c(minvals, maxvals))
     for(i in 1:length(list2)){
-      lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+      vals=sort(log2(list2[[i]]))
+      vals=vals[!is.infinite(vals)]
+      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
     }
 
     legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
@@ -6068,18 +6136,30 @@ output$saveSISIDynamicsbutton<- downloadHandler(
     for(i in 1:length(currentlist)){
       list2=c(list2,currentlist[[i]])
     }
+
+
+    outlayer_thresh=input$percentageOutlayerCumulPlots
     for(i in 1:length(list2)){
-      minvals=c(minvals,min(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))] )  )
-      maxvals=c(minvals,max(log2(list2[[i]])))
+      mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
+      maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
+      minvals=c(minvals,mincurrent)
+      maxvals=c(maxvals,maxcurrent)
     }
+
+
     maxvals=max(maxvals)
-    minvals=min(minvals[!is.infinite(minvals)])
+    minvals=min(minvals)
 
     lengths=sapply(list2,length)
     par(mar=c(10,4,1,1))
-    plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, max(lengths)),xlim=c(minvals, maxvals))
+    plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
     for(i in 1:length(list2)){
-      lines(sort(log2(list2[[i]])),1:length(list2[[i]]),col=toplot$dynamics$cols[i],lwd=2)
+      #remove a fraction of outlayers
+      #celan -Inf
+      vals=sort(log2(list2[[i]]))
+      vals=vals[!is.infinite(vals)]
+      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
+      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
     }
     legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
 
