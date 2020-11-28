@@ -634,6 +634,9 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                                                 "Read density (rpm/bp)"="readdensity"
                                                       ),selected="readdensity"),
             HTML("<br>"),
+            HTML("<b>Fraction of outliers to exclude in cumulative plots:</b>"),
+            sliderInput('percentageOutlayerCumulPlots',label=NULL,min = 0, max = 0.3, value = 0.05,step=0.01),
+            HTML("<br>"),
             actionButton("plotDynamics","Update plot")
           )
 
