@@ -5337,10 +5337,10 @@ observeEvent(input$plotDynamics,{
 
         totallist_SI[[1]][[i]][[k]]=totallist_boxplot[[1]][[i]][[k]]
         
-        #calculate good pseudocount: the first percentile of non-zero totallist_SI[[2]] values
+        #calculate good pseudocount: one tenth of the first percentile of non-zero totallist_SI[[2]] values
         pseudocount=totallist_SI[[2]][[i]][[k]]
         pseudocount=pseudocount[pseudocount!=0]
-        pseudocount=quantile(pseudocount,0.0001)
+        pseudocount=quantile(pseudocount,0.0001)/10
         totallist_SI[[3]][[i]][[k]]=totallist_SI[[1]][[i]][[k]]/(totallist_SI[[2]][[i]][[k]]+pseudocount)#calculate stalling index
 
       }
