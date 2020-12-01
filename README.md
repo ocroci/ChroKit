@@ -50,6 +50,10 @@ and source the *installChrokitDependencies.R* script again.
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. It is suggested to download MSigDB (Molecular Signature Database) signatures from https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb. 
 
 
+#### Linux users
+If some needed system libraries are not present, follow the suggestions at the beginning of the *installChrokitDependencies.R* to install them.
+
+
 #### Windows users
 Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
 After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
@@ -78,7 +82,7 @@ To use the application, open a web browser and
     ```<IP>:6060 ```\
     where \<IP\> is the IP address of the remote machine in which the Docker container is running
 
-
+Be sure that port 6060 is free to use on the system.
 
 
 ## Basic setup
