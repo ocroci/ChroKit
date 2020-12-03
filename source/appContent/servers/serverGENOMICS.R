@@ -2695,26 +2695,6 @@ observeEvent(toListenAnalogHeat(),{
   ##here, if reorder BAM, act here to change the order of enrichments in toplot$analogic$BAMsForAnalogHeat variable
   getbam=toplot$analogic$BAMsForAnalogHeat
   allnumbers=as.character(1:length(getbam))
-  listprovv=list()
-  for (i in 1:length(getbam)){
-    stringval=grep(paste("reorderBAManalogHeat",i,"$",sep=""),names(input),value=TRUE)
-    #extract what is contained inside each cell
-    listprovv[[i]]=input[[ stringval ]]
-  }
-  listprovv=as.numeric(unlist(listprovv))
-  #check if new order comprises all the possible positions
-  if (identical(unique(sort(listprovv)),unique(sort(as.numeric(allnumbers)))) ){
-    #reorder BAM 
-    toplot$analogic$BAMsForAnalogHeat=getbam[order(listprovv)]
-  }else{
-    sendSweetAlert(
-      session = session,
-      title = "Ordering problem",
-      text = "You didn't put all the ranking positions correct in the new ordering",
-      type = "error"
-    ) 
-    return()     
-  } 
   ################################################################################################
 
 
@@ -2725,6 +2705,27 @@ observeEvent(toListenAnalogHeat(),{
 
 
   if (length(ROIvariables$listROI)>0 & length(input$ROIsForAnalogHeat)>0 & length(toplot$analogic$BAMsForAnalogHeat)>0 & input$binsAnalogHeat>0 & samplerandom>0 & isvalid(input$sampleRandomAnalogHeat) & isvalid(input$binsAnalogHeat)){
+   
+    listprovv=list()
+    for (i in 1:length(getbam)){
+      stringval=grep(paste("reorderBAManalogHeat",i,"$",sep=""),names(input),value=TRUE)
+      #extract what is contained inside each cell
+      listprovv[[i]]=input[[ stringval ]]
+    }
+    listprovv=as.numeric(unlist(listprovv))
+    #check if new order comprises all the possible positions
+    if (identical(unique(sort(listprovv)),unique(sort(as.numeric(allnumbers)))) ){
+      #reorder BAM 
+      toplot$analogic$BAMsForAnalogHeat=getbam[order(listprovv)]
+    }else{
+      sendSweetAlert(
+        session = session,
+        title = "Ordering problem",
+        text = "You didn't put all the ranking positions correct in the new ordering",
+        type = "error"
+      ) 
+      return()     
+    } 
 
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$ROIsForAnalogHeat,nomi)
