@@ -106,7 +106,7 @@ observeEvent(input$maketheROI, {
 
           roigeneration=suppressWarnings(generateROI(selectedranges,selectedfix,overlapregions,notoverlapregions,
                         input$choiceROI,input$choiceoverlapROI, input$choicenotoverlapROI,bamlist=selectedbam,minbp=input$minOverlapNEWROI,strandSpecific=input$StrandSpecOverlapNEWROI))
-          
+         
           ROI=roigeneration[[1]]
 
           if(length(ROI)>0){
@@ -1756,14 +1756,27 @@ observeEvent(input$confirmBAMassociate,{
     if(input$selectMethodForNorm=="librarysize"){
       Normmethod="lib"
       normalizer=NULL
+      normCtrl=NULL
+      normCtrlSpike=NULL      
     }else if(input$selectMethodForNorm=="customnorm"){
       if(length(input$customNormalizer)>0){
         Normmethod="custom"
         normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
-      }else{
-        Normmethod="lib"
-        normalizer=NULL
+        normCtrl=NULL
+        normCtrlSpike=NULL
       }
+    }else if(input$selectMethodForNorm=="spikein") {
+      if(length(input$customNormalizer)>0 & length(input$ctrlNormalizer)>0 & input$ctrlSpikeinNormalizer>0){
+        Normmethod="spikein"
+        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
+        normCtrl=BAMvariables$listBAM[match(input$ctrlNormalizer,names(BAMvariables$listBAM))]
+        normCtrlSpike=BAMvariables$listBAM[match(input$ctrlSpikeinNormalizer,names(BAMvariables$listBAM))]
+      }
+    }else if(input$selectMethodForNorm=="nonorm"){
+      Normmethod="no"
+      normalizer=NULL
+      normCtrl=NULL
+      normCtrlSpike=NULL
     }else{
       print("something wrong, no normalization existing...")
     }
@@ -1771,23 +1784,21 @@ observeEvent(input$confirmBAMassociate,{
 
     ##here use totallist to parallelize the code. Each iteration has path to enrichment and a ROI
     tryCatch({
-      
+
       #parallelize only if system RAM is very high
       if(input$coresCoverage==1 | length(totallist)==1){
         print ("Computation in single core")
         
         finallist=lapply(1:length(totallist),function(i) {
-          
+          if(Normmethod=="lib"){
+            tonorm=names(totallist)[i]
+          }else{
+          	#if no normaliz., custom or spikein, normalizers were defined as normalizer,normCtrl,normCtrlSpikein
+            tonorm=normalizer
+          }          
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
-
-            if(Normmethod=="lib"){
-              tonorm=names(totallist)[i]
-            }else{
-              tonorm=normalizer
-            }
-
-            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm)
+            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }else{
@@ -1798,13 +1809,8 @@ observeEvent(input$confirmBAMassociate,{
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
 
-            if(Normmethod=="lib"){
-              tonorm=names(totallist)[i]
-            }else{
-              tonorm=normalizer
-            }
-
-            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm, Nnorm = TRUE)
+            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }
@@ -1818,16 +1824,16 @@ observeEvent(input$confirmBAMassociate,{
         }
         print (paste("parallel computation with ",newnc," cores",sep=""))
         finallist=mclapply(1:length(totallist),function(i) {
-          
+          if(Normmethod=="lib"){
+            tonorm=names(totallist)[i]
+          }else{
+          	#if no normaliz., custom or spikein, normalizers were defined as normalizer,normCtrl,normCtrlSpikein
+            tonorm=normalizer
+          }  
+       
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
-            if(Normmethod=="lib"){
-              tonorm=names(totallist)[i]
-            }else{
-              tonorm=normalizer
-            }
-
-            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm)
+            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }else{
@@ -1837,12 +1843,8 @@ observeEvent(input$confirmBAMassociate,{
             #this could cause problems in the future...
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
-            if(Normmethod=="lib"){
-              tonorm=names(totallist)[i]
-            }else{
-              tonorm=normalizer
-            }
-            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm, Nnorm = TRUE)
+
+            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }
@@ -1853,9 +1855,14 @@ observeEvent(input$confirmBAMassociate,{
 
       if(Normmethod=="lib"){
         msg="library-size normalized"
-      }else{
+      }else if (Normmethod=="custom"){
         msg=paste("normalized for ",input$customNormalizer,sep="")
-      }  
+      }else if (Normmethod=="no"){
+      	msg="not normalized"
+      }else if (Normmethod=="spikein"){
+      	msg=paste("normalized for ",input$customNormalizer," as sample spike-in, ",
+      		input$ctrlNormalizer," as control and ",input$ctrlSpikeinNormalizer," as control spike-in",sep="")
+      }
 
 
       ##now attrib to each ROI the correct enrichments just calculated

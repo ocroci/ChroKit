@@ -829,11 +829,23 @@ observe({
 #observer for the menu to choose how to normalize (react to BAM selected for association)
 observe({
   input$selectBAMtoassociate
-  if(length(input$selectBAMtoassociate)>0){
+  if(length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)<3){
     output$radioForNorm<-renderUI({
       radioButtons("selectMethodForNorm",label="Normalization method:" ,
-                                   choices=c("library-size"="librarysize",
+                                   choices=c("no normalization"="nonorm",
+                                             "library-size"="librarysize",
                                              "custom normalizer"="customnorm"),
+                                   selected="librarysize"
+                      )
+    })
+  #spike in normalization only if we have more than 3 bam file (current and input+spikeInput)
+  }else if (length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)>=3){
+    output$radioForNorm<-renderUI({
+      radioButtons("selectMethodForNorm",label="Normalization method:" ,
+                                   choices=c("no normalization"="nonorm",
+                                             "library-size"="librarysize",
+                                             "custom normalizer"="customnorm",
+                                             "spike-in"="spikein"),
                                    selected="librarysize"
                       )
     })
@@ -847,21 +859,33 @@ observe({
 observe({
   input$selectMethodForNorm
   if(length(input$selectMethodForNorm)>0){
-    if(input$selectMethodForNorm=="customnorm"){
-      if(length(input$selectBAMtoassociate)>0){
-        #find, among all enrichment files, the BAM files
-        allbams=BAMvariables$listBAM
-        #find .bam at the end of file path
-        pos=grepl("\\.bam$",allbams)
-        namestoshow=names(allbams)[pos]
+    
+    if(length(input$selectBAMtoassociate)>0){
+      #find, among all enrichment files, the BAM files
+      allbams=BAMvariables$listBAM
+      #find .bam at the end of file path
+      pos=grepl("\\.bam$",allbams)
+      namestoshow=names(allbams)[pos]
+
+
+      if(input$selectMethodForNorm=="customnorm"){
         output$menuForNorm<-renderUI({
-          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 180px; max-width: 300px; background-color: #ffffff;",
-            radioButtons("customNormalizer",NULL,choices=namestoshow)
+          selectInput("customNormalizer",choices=namestoshow,label="Choose the normalizer reads:",NULL)
+        })              
+      }else if (input$selectMethodForNorm=="spikein"){
+        #3 menus with bam file
+        output$menuForNorm<-renderUI({ list (
+          selectInput("customNormalizer",choices=namestoshow,label="Choose the spike-in reads:",NULL),
+          selectInput("ctrlNormalizer",choices=namestoshow,label="Choose the control reads:",NULL),
+          selectInput("ctrlSpikeinNormalizer",choices=namestoshow,label="Choose the control spike-in reads:",NULL)
           )
-        })        
+
+        })
+        
       }else{
         output$menuForNorm<-renderUI({NULL})
       }
+      
     }else{
       output$menuForNorm<-renderUI({NULL})
     }
