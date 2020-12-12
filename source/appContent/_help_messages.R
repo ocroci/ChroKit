@@ -693,20 +693,30 @@ msg_associateEnrichments_associateRemove<-list(
 		tags$br(),
 		tags$br(),
 		Field("Normalization method","Select how to normalize the reads:
-				<li>library-size normalization: the reads will be normalized by the size of their library</li>
-				<li>custom normalizer: the reads will be normalized by the library size of a user defined enrichment file present in the list</li>"),
+				<li>no normalization: the reads will not be normalized (raw pileup for each base pair)</li>
+				<li>library-size: the number of reads will be divided by the size of their library and multiplied by 1 million</li>
+				<li>custom normalizer: the number of reads will be divided by the library size of a user-defined enrichment file present in the list and multiplied by 1 million</li>
+				<li>spike-in: the number of reads will be normalized by the library size of a user-defined enrichment file present in the list (spike-in);
+						this number will be divided by the number of reads of control and multiplied by the number of 
+						reads of the spike-in of control. Finally, the number will be multiplied by 1 million</li>"),
+		tags$br(),
+		Comment("The normalizing factor in spike-in normalization will be:<br><br> (&ltspike-in reads in control&gt*1000000)/(&ltspike-in reads&gt*&ltcontrol reads&gt)<br><br>
+				This normalization is particularly useful for ChIP-Seq experiments."),
+		tags$br(),
+		tags$br(),
 						
 		
-		tags$p(
-			tags$b("Enrichment files (BAM/WIG) to associate to selected ROI(s):"),
-			tags$br(),
-			"Select one or more enrichments to associate to selected ROI(s). To import those files go to 'Enrichment files'
-			in the 'Import data' section"
-		),		
+		# tags$p(
+		# 	tags$b("Enrichment files (BAM/WIG) to associate to selected ROI(s):"),
+		# 	tags$br(),
+		# 	"Select one or more enrichments to associate to selected ROI(s). To import those files go to 'Enrichment files'
+		# 	in the 'Import data' section"
+		# ),
+		Comment(		
 		"This operation will calculate the pileup of the reads for each base of each range of each ROI selected.
  		The information of the reads come from the enrichment files (either BAM or WIG) selected.
  		This is a computationally intensive task, it may require time (from several seconds to few minutes, depending on the size of the ROIs, 
- 		of the enrichment files and on the number of ROIs)",
+ 		of the enrichment files and on the number of ROIs)"),
 		tags$br(),
 		tags$br(),
 		tags$p(

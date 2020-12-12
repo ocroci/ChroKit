@@ -832,19 +832,61 @@ checkMaxBins<-function(roiobject){
 
 #this function calculate the pileup for each base pair for each range of the ROI
 #is a little improvement of the GRbaseCoverage function from compEpiTools (lapply intead of for)
-GRbaseCoverage2<-function(Object, signalfile,signalfileNorm, Nnorm = FALSE)
+GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06)
 {
     #Object: genomic range in which calculate the base coverage
     # signalfile= path to the signal file file (the associated signal file index must be present in the same directory if bam file)
     #      or the bw/bigwig file 
-    #signalfileNorm= path to the signal file (BAM) for which normalize the signalfile
-    # Nnorm= whether to normalize for library size (TRUE/FALSE). Only if signalfile is a bam file (?)
-    if (!is.character(signalfile)) 
-        stop("signalfile has to be a file path of class character ..")
+    #signalfileNorm= path to the signal file (BAM) for which normalize the signalfile (can be the same file for library normalization,
+    #             or the spike in bam, for spike in normalization)
+    #signalControl=path to the signal file (BAM) of the input for spike-in normalization (ChIP-Seq). If this option
+    #         is provided, signalControlSpike must be also provided
+    #signalControlSpike=path to the signal file (BAM) of the spike-in in the input (ChIP-Seq). If this option is
+    #         provided, also signalControl must be provided
+    #multiplFactor= constant factor to multiply the final normalization coefficient, usually 1 million
+    if (!is.character(signalfile)) {
+      stop("signalfile has to be a file path of class character...")
+    }
+    if(!file.exists(signalfile)){
+      stop("'signalfile' doesn't exist...")
+    }
 
-    if (!is.logical(Nnorm)) 
-        stop("Nnorm has to be of class logical ..")
-    #find basename of file is useless, the slicing of the string is from the end... (extension)
+    if(!is.null(signalfileNorm)){
+      if(!is.character(signalfileNorm)){
+        stop("'signalfileNorm' has to be a file path of class character...")
+      }
+      if(!file.exists(signalfileNorm)){
+        stop("'signalfileNorm' doesn't exist...")
+      }
+    }
+
+    #check the existence of control and spikein
+    if(!is.null(signalControl)){
+      if(!is.character(signalControl)){
+        stop("'signalControl' has to be a file path of class character...")
+      }
+      if(!file.exists(signalControl)){
+        stop("'signalControl' doesn't exist...")
+      }
+    }
+
+    if(!is.null(signalControlSpike)){
+      if(!is.character(signalControlSpike)){
+        stop("'signalControlSpike' has to be a file path of class character...")
+      }
+      if(!file.exists(signalControlSpike)){
+        stop("'signalControlSpike' doesn't exist...")
+      }
+    }   
+    #if provide signalControl you must provide also signalControlSpike
+    if (xor(is.null(signalControl),is.null(signalControlSpike))){
+      stop("If 'signalControl' is provided, also 'signalControlSpike' must be provided, and vice versa...")
+    }
+
+    #if you provide signalControlSpike and signalControl you must also have provided signalfileNorm
+    if(!is.null(signalControl) & is.null(signalfileNorm)){
+      stop("If 'signalControl' and 'signalControlSpike' are provided, also 'signalfileNorm' must be provided")
+    }
 
 
     #select if bam:
@@ -871,11 +913,28 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm, Nnorm = FALSE)
           return(cvec)
       })
 
-      if (Nnorm) {
+
+      ####################################################################
+      # normalization
+      ####################################################################
+
+      if(!is.null(signalfileNorm)){
           param <- ScanBamParam(flag = scanBamFlag(isUnmappedQuery = FALSE))
-          nreads <- (countBam(signalfileNorm, param = param)$records)/1e+06
-          covList <- lapply(covList, function(x) x/nreads)
+          nreads <- countBam(signalfileNorm, param = param)$records
+          norm_factor=multiplFactor/nreads
+
+          if(!is.null(signalControl)) {
+            nreadCtr=countBam(signalControl, param = param)$records
+            nreadCtrSpike=countBam(signalControlSpike, param = param)$records
+            norm_factor=norm_factor* nreadCtrSpike/  nreadCtr         
+          }
+          print (paste("Norm. factor=",norm_factor))  
+          covList <- lapply(covList, function(x) (x*norm_factor    )    )
       }
+
+      
+
+
       if (length(matchingSeqs) < length(Object)) {
           coverageTot <- sapply(width(Object), function(x) list(rep(0, 
               x)))
@@ -920,8 +979,114 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm, Nnorm = FALSE)
       stop("Error in retrieving file/extension...")
     }
 
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# oldfunction<-function(Object, signalfile,signalfileNorm, Nnorm = FALSE)
+# {
+#     #Object: genomic range in which calculate the base coverage
+#     # signalfile= path to the signal file file (the associated signal file index must be present in the same directory if bam file)
+#     #      or the bw/bigwig file 
+#     #signalfileNorm= path to the signal file (BAM) for which normalize the signalfile
+#     # Nnorm= whether to normalize for library size (TRUE/FALSE). Only if signalfile is a bam file (?)
+#     if (!is.character(signalfile)) 
+#         stop("signalfile has to be a file path of class character ..")
+
+#     if (!is.logical(Nnorm)) 
+#         stop("Nnorm has to be of class logical ..")
+#     #find basename of file is useless, the slicing of the string is from the end... (extension)
+
+
+#     #select if bam:
+#     if(substring(signalfile,nchar(signalfile)-3,nchar(signalfile))==".bam"){
+#       BAMseqs <- names(scanBamHeader(signalfile)[[1]]$targets)
+#       matchingSeqs <- which(as.character(seqnames(Object)) %in% 
+#           BAMseqs)
+#       if (length(matchingSeqs) == 0) 
+#           return(sapply(width(Object), function(x) rep(0, x)))
+#       param <- ApplyPileupsParam(which = Object[matchingSeqs], 
+#           what = "seq")
+#       coverage <- applyPileups(PileupFiles(signalfile), FUN = function(x) x, 
+#           param = param)
+#       widths <- width(Object[matchingSeqs])
+#       covList <- list()
+#       starts <- start(Object[matchingSeqs])
+
+#       covList=lapply(1:length(Object[matchingSeqs]), function(i) {
+#           covx <- coverage[[i]]
+#           cvec <- rep(0, widths[i])
+#           inds <- covx$pos - starts[i] + 1
+#           #sometims max(inds) is > than length of cvec. => NAs in some positions. Why?
+#           cvec[inds] <- colSums(covx$seq)
+#           return(cvec)
+#       })
+
+#       if (Nnorm) {
+#           param <- ScanBamParam(flag = scanBamFlag(isUnmappedQuery = FALSE))
+#           nreads <- (countBam(signalfileNorm, param = param)$records)/1e+06
+#           covList <- lapply(covList, function(x) x/nreads)
+#       }
+#       if (length(matchingSeqs) < length(Object)) {
+#           coverageTot <- sapply(width(Object), function(x) list(rep(0, 
+#               x)))
+#           coverageTot[matchingSeqs] <- covList
+#       }
+#       else coverageTot <- covList
+#       return(coverageTot)
+
+
+#     #select if wig:
+#     }else if (substring(signalfile,nchar(signalfile)-2,nchar(signalfile))==".bw" | tolower(substring(signalfile,nchar(signalfile)-6,nchar(signalfile)))==".bigwig"){
+
+#       print ("    importing WIG file...")
+#       wig=import(signalfile,as = 'RleList')
+#       #find base coverage on the grange in input, FOR EACH CHROMOSOME
+#       #be careful to have matched chromosomes!!
+#       print ("    Coverage of WIG file...")
+#       chromosomes=seqlevelsInUse(Object)
+#       common_chromosomes=intersect(chromosomes,names(wig))
+#       #initialize 0s for all ranges (if wig do not have a chr, the remaining are 0s)
+#       widths=width(Object)
+#       coverageTot=lapply(1:length(Object),function(i){integer(widths[i])})
+#       for (i in 1:length(common_chromosomes)){
+#         #length(as.character(seqnames(Object))) should be equal to length(Object) =>
+#         #find positions of Object that have that chromosome
+#         pos=as.character(seqnames(Object))==common_chromosomes[i]
+#         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
+#         counts=Views(unlist(wig[[common_chromosomes[i]]]),ranges(Object[pos]))
+#         #extract the base coverage for all those ranges for ith chromosome
+#         tmp=viewApply(counts, as.vector)
+#         if(length(counts)==1){
+#           tmp=list(as.vector(tmp))
+#         }
+#         if(class(tmp)=="matrix"){
+#           ##check whether the order is correct
+#           tmp=lapply(seq_len(ncol(tmp)), function(i) tmp[,i])
+#         }
+#         coverageTot[pos] <- tmp
+#       }
+#       return(coverageTot)      
+#     }else{
+#       stop("Error in retrieving file/extension...")
+#     }
+
+
+# }
 
 GRbaseCoverageWIG<-function(Object,WIG){
   #follow the scheme:
@@ -2122,20 +2287,18 @@ setMethod(f="setBAMlist",signature="RegionOfInterest",def=function(object,bamlis
 
 ##obsolete, we use the function directly 
 #add new list (using GRbasecoverage2 function) in the BAMlist of the range
-setGeneric(name="cover",def=function(Object,signalfile,signalfileNorm) {standardGeneric("cover")} )
-setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,signalfileNorm){
+setGeneric(name="cover",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike) {standardGeneric("cover")} )
+setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike){
   #name is the basename(signalfile). signalfile is the complete path of the enrichment file
   if (!file.exists(signalfile)){
     stop("signalfile file doesn't exist...")
   }
-  if (!file.exists(signalfileNorm)){
-    stop("signalfileNorm file doesn't exist...")
-  }  
+
   if (class(Object)!="RegionOfInterest"){
     stop("'Object' must be of class 'RegionOfInterest'...")
   }
   rang=getRange(Object)
-  cov=GRbaseCoverage2(Object=rang, signalfile=signalfile,signalfileNorm=signalfileNorm, Nnorm = TRUE)
+  cov=GRbaseCoverage2(Object=rang, signalfile=signalfile,signalfileNorm=signalfileNorm,signalControl=signalControl,signalControlSpike=signalControlSpike, multiplFactor=1e+06)
   return(cov)
 
 })
