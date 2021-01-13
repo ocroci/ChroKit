@@ -160,20 +160,20 @@ observeEvent(input$plotSingleEval,{
 
 
 
-      			getbam=names(getBAMlist(roi))
+      		getbam=names(getBAMlist(roi))
 
             toplot$viewDistributionPieSingleEval$getbam=getbam
             toplot$viewDistributionPieSingleEval$chooseNormalizationSingleEval=input$chooseNormalizationSingleEval
 
-      			if (!is.null(getbam)){
-      				pos2=match(input$BAMchooseSingleEval,getbam)
-  					  bam_orig=getBAMlist(roi)[[pos2]]
+      		if (!is.null(getbam)& length(getbam)>0){
+      		  pos2=match(input$BAMchooseSingleEval,getbam)
+  			  bam_orig=getBAMlist(roi)[[pos2]]
               #bam=unlist(lapply(bam,sum))
-  					  #calculate enrichments for boxplots
-  					  bam_promo_orig=bam_orig[ov_range>0]
-  					  bam_ws_orig=bam_orig[ov_range==0]
-  					  bam_intra_orig=bam_ws_orig[ov_transcripts>0]
-  					  bam_inter_orig=bam_ws_orig[ov_transcripts==0]
+  			  #calculate enrichments for boxplots
+  			  bam_promo_orig=bam_orig[ov_range>0]
+  			  bam_ws_orig=bam_orig[ov_range==0]
+  			  bam_intra_orig=bam_ws_orig[ov_transcripts>0]
+  			  bam_inter_orig=bam_ws_orig[ov_transcripts==0]
 
               bam=unlist(lapply(bam_orig,sum))
               bam_promo=unlist(lapply(bam_promo_orig,sum))
