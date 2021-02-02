@@ -3084,7 +3084,8 @@ observeEvent(input$PrepareROIpredefPipeline,{
   if(input$choiceSummitPredefPipeline=="Yes"){
     if(!input$selectBAMsummitPredefPipeline%in%bams_names){
       #associate BAM/WIG
-      singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=paths_summit)
+      singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=paths_summit,
+      						signalControl=NULL,signalControlSpike=NULL)
     }else{
       #do nothing, enrichment already in ROI. Use BAM already present to center on summit
       pos2=match(input$selectBAMsummitPredefPipeline,bams_names)
@@ -3294,7 +3295,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
     if(ncores==1 | length(enrichments_toAssociate)==1 | length(paths)==1){
       #single core (lapply)
       finallist=lapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i])
+        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
         print(paste("Associating ",paths[i]," in single core",sep=""))
         return(singlecover)
       })
@@ -3302,7 +3303,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
     }else{
       #multicore (mclapply)
       finallist=mclapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i])
+        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
         print(paste("Associating ",paths[i]," in multi core",sep=""))
         return(singlecover)
       },mc.cores=ncores)
