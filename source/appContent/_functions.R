@@ -113,7 +113,20 @@ readBEDGTFF<-function(bedpath,Header=TRUE,Skip=0){
     }
     #check col 2 and 3.
     numeric2=any(is.na(suppressWarnings(as.numeric(as.character(rt[,2])))))
-    numeric3=any(is.na(suppressWarnings(as.numeric(as.character(rt[,3])))))     
+    numeric3=any(is.na(suppressWarnings(as.numeric(as.character(rt[,3])))))   
+    #here check if column1 (seqnames / chr names) are in the correct UCSC format.
+    #must start with "chr...", otherwise format is not valid
+    seqnamecheck=as.character(rt[,1])
+    startseqnames=substr(seqnamecheck,start=1,stop=3)
+    if (all(startseqnames=="chr")){
+      print("All senames starts correctly with chr")
+    }else if (!all(startseqnames=="chr")&"chr"%in% startseqnames){
+      print("Warning: some of the seqnames do not start with chr")
+    }else if (!"chr"%in% startseqnames){
+      print("None of the seqnames start with chr. Check the format.")
+      stop("None of the seqnames start with chr. Check the format.")
+    }
+
     if (ncl <8){
       if (!numeric2&!numeric3){
         if (ncl>=4){
@@ -141,8 +154,8 @@ readBEDGTFF<-function(bedpath,Header=TRUE,Skip=0){
       numeric4=any(is.na(suppressWarnings(as.numeric(as.character(rt[,4])))))
       numeric5=any(is.na(suppressWarnings(as.numeric(as.character(rt[,5])))))  
       sign=as.character(rt[,7])
-    logic=  sign=="+" | sign=="-" | sign=="*" | sign =="."
-    logicneg=!logic
+      logic=  sign=="+" | sign=="-" | sign=="*" | sign =="."
+      logicneg=!logic
       if (!numeric4&!numeric5 & !any(logicneg)){
         #if both numeric, and 7th is strand, => GTF
         df=data.frame(rt[,1],rt[,4],rt[,5],rt[,7])
@@ -1911,6 +1924,19 @@ extractPattern<-function(Subject,BSgenomeDB,pattern,bothstrands=TRUE){
     
     #clean Subjcet from strange chromosome range
     Subject=cleanChromosomes(Subject)
+    #########
+    #should extract seq only for seqnames of GRange (Subject) found in DB
+    ourseq=names(table(seqnames(Subject)))
+    totalseq=seqnames(BSgenomeDB)
+    tosave=ourseq[ourseq%in%totalseq]
+    Subject=Subject[seqnames(Subject)%in%tosave]
+    if (length(Subject)==0){
+      return(NULL)
+    }
+    #if (length(Subject)==0){
+    # 
+    #}
+    #########
     if( unique(as.character(strand(Subject)))[1]=="*" | bothstrands){
       #check both strands
       pos_pos=rep(TRUE,length(Subject))
@@ -1928,7 +1954,6 @@ extractPattern<-function(Subject,BSgenomeDB,pattern,bothstrands=TRUE){
 
     #to avoid errors, keep only the seqnames in common between the two (BSgenomeDB,Subject)
     #For hg38, Subject seqnames are much more!
-
 
     yseq=getSeq(BSgenomeDB,Subject) # if - strand, reverse complement is done by default
     starts=start(Subject)
