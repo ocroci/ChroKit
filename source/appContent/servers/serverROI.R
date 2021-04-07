@@ -1093,19 +1093,28 @@ observeEvent(input$ExtractPatternROI,{
                                                       flag="Pattern",
                                                       source=newSource)
                       if(input$choiceWherePattern=="fromGenome"){
-                        print(paste(input$ROInamePattern,"ROI created, ",toadd," from entire genome",sep=""))
+                        print(paste(input$ROInamePattern," ROI created, ",toadd," from entire genome",sep=""))
                       }else{
-                        print(paste(input$ROInamePattern,"ROI created, ",toadd," from ",input$selectROItoExtractPattern," ROI",sep=""))
+                        print(paste(input$ROInamePattern," ROI created, ",toadd," from ",input$selectROItoExtractPattern," ROI",sep=""))
                       }
                       
                       
-                    }else{
+                    }else if (length(extracted)==0 & !is.null(extracted)){
                       sendSweetAlert(
                         session = session,
                         title = "Empty ROI produced",
                         text = paste("pattern '",pattern,"' is not present in any range of ROI ",input$selectROItoExtractPattern,sep=""),
                         type = "error"
-                      )                     
+                      ) 
+                    #if it's NULL, it means that any chromosome format is not recognised in BSgenome DB                    
+                    }else if (length(extracted)==0 & is.null(extracted)){
+                      sendSweetAlert(
+                        session = session,
+                        title = "chromosome names format not ok",
+                        text = paste("Chromosome names of the ROI does not match those within BSgenome database. Check the format of the
+                                    ROI, using 'get ROI' tab, looking at the correct chromosome names",sep=""),
+                        type = "error"
+                      )  
                     }
 
                   }else{
