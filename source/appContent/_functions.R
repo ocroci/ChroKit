@@ -114,18 +114,18 @@ readBEDGTFF<-function(bedpath,Header=TRUE,Skip=0){
     #check col 2 and 3.
     numeric2=any(is.na(suppressWarnings(as.numeric(as.character(rt[,2])))))
     numeric3=any(is.na(suppressWarnings(as.numeric(as.character(rt[,3])))))   
-    #here check if column1 (seqnames / chr names) are in the correct UCSC format.
-    #must start with "chr...", otherwise format is not valid
-    seqnamecheck=as.character(rt[,1])
-    startseqnames=substr(seqnamecheck,start=1,stop=3)
-    if (all(startseqnames=="chr")){
-      print("All senames starts correctly with chr")
-    }else if (!all(startseqnames=="chr")&"chr"%in% startseqnames){
-      print("Warning: some of the seqnames do not start with chr")
-    }else if (!"chr"%in% startseqnames){
-      print("None of the seqnames start with chr. Check the format.")
-      stop("None of the seqnames start with chr. Check the format.")
-    }
+    # #here check if column1 (seqnames / chr names) are in the correct UCSC format.
+    # #must start with "chr...", otherwise format is not valid
+    # seqnamecheck=as.character(rt[,1])
+    # startseqnames=substr(seqnamecheck,start=1,stop=3)
+    # if (all(startseqnames=="chr")){
+    #   print("All seqnames starts correctly with chr")
+    # }else if (!all(startseqnames=="chr")&"chr"%in% startseqnames){
+    #   print("Warning: some of the seqnames do not start with chr")
+    # }else if (!"chr"%in% startseqnames){
+    #   print("None of the seqnames start with chr. Check the format.")
+    #   stop("None of the seqnames start with chr. Check the format.")
+    # }
 
     if (ncl <8){
       if (!numeric2&!numeric3){
@@ -1836,23 +1836,67 @@ plotpcor<-function (mat,idx) {
 
 #clean chromosomes (_random, _alt, ChrUn...)
 #this function will return the same starting GRange without _random, _alt, ChrUn
-cleanChromosomes<-function(range){
+
+# cleanChromosomes<-function(range){
+#   #range is the GenomicRange in input
+#   if (class(range)!="GRanges"){
+#     stop("'range' must be of class GRange...")
+#   }
+#   chrs=as.character(seqnames(range))
+#   pos_random=grepl("_random$",chrs)
+#   pos_alt=grepl("_alt$",chrs)
+#   pos_fix=grepl("_fix$",chrs)
+#   pos_ChrUn=grepl("^chrUn_",chrs)
+#   tokeep=!(pos_random | pos_alt |pos_ChrUn |pos_fix)
+#   return(range[tokeep])
+# }
+
+
+#translation nomenclature GRanges: use them in specific sections:
+#when open a BED/GTF/GFF, clean chromosomes and keep standard. Convert to UCSC
+# (promoters, BSgenome and other DBs work using UCSC)
+
+#when associating WIG/BAM. If all are zeroes, it means that BAM/WIG are in ENCODE format.
+# in that case, temporary convert to ENCODE the ROI to be associated! Here the lentgh
+# should be the same, because chromosomes have been cleaned when opening the input from
+# the beginning
+#output can be smaller than the input
+convertNomenclatureGR <-function(range, to="UCSC") {
   #range is the GenomicRange in input
   if (class(range)!="GRanges"){
     stop("'range' must be of class GRange...")
   }
-  chrs=as.character(seqnames(range))
-  pos_random=grepl("_random$",chrs)
-  pos_alt=grepl("_alt$",chrs)
-  pos_fix=grepl("_fix$",chrs)
-  pos_ChrUn=grepl("^chrUn_",chrs)
-  tokeep=!(pos_random | pos_alt |pos_ChrUn |pos_fix)
-  return(range[tokeep])
+  if(to !="UCSC" & to != "NCBI"){
+  	stop("'to' must be either 'UCSC' or 'NCBI'...")
+  }
+  #remove non-standard chromosomes:
+  gr=keepStandardChromosomes(range,pruning.mode="coarse")
+  newStyle <- mapSeqlevels(seqlevels(gr), to)
+  gr <- renameSeqlevels(gr, newStyle)
+  return(gr)
 }
 
 
-
-
+#verify that the output of coverage functions from ROIs (can be either a list or a matrix,
+#if ranges are fixed length) are all zeroes
+verifyzerocov<-function(covresult) {
+  if (class(covresult)=="matrix"){
+    if(all(covresult==0)){
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
+  }else if (class(covresult)=="list"){
+    covresult2=unlist(covresult)
+    if(all(covresult2==0)){
+      return(TRUE)
+    }else{
+      return(FALSE)
+    }
+  }else{
+    stop("'covresult' must be a matrix or a list...")
+  }
+}
 
 
 
@@ -1922,8 +1966,9 @@ extractPattern<-function(Subject,BSgenomeDB,pattern,bothstrands=TRUE){
     #if strand *, + and -, if + only +, if - only -
     #sometimes, resulting motifs spans contiguous regions. Treat them separately
     
-    #clean Subjcet from strange chromosome range
-    Subject=cleanChromosomes(Subject)
+    #clean Subjcet from strange chromosome range (_alt,_fix_random.....)
+    #Subject=cleanChromosomes(Subject)
+    Subject=keepStandardChromosomes(Subject,pruning.mode="coarse")
     #########
     #should extract seq only for seqnames of GRange (Subject) found in DB
     ourseq=names(table(seqnames(Subject)))
@@ -2418,6 +2463,26 @@ setMethod(f="uniqueROI",signature="RegionOfInterest",def=function(object){
   
   return(object)
 
+})
+
+
+
+
+
+#convert from/to UCSC/NCBI nomenclature for GRanges of a ROI
+setGeneric(name="convertNomenclatureROI",def=function(Object,To) {standardGeneric("convertNomenclatureROI")} )
+setMethod(f="convertNomenclatureROI",signature="RegionOfInterest",def=function(Object,To){
+  if(To !="UCSC" & To != "NCBI"){
+  	stop("'To' must be either 'UCSC' or 'NCBI'...")
+  }
+  if (class(Object)!="RegionOfInterest"){
+    stop("'Object' must be of class 'RegionOfInterest'...")
+  }
+  rang=getRange(object)
+  #call the convertNomenclatureGR function to convert GRange nomenclature
+  newgr=convertNomenclatureGR(range=rang,to=To)
+  Object@range <- newgr
+  return(Object)
 })
 
 
