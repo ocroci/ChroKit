@@ -34,6 +34,9 @@ observeEvent(input$confirmASSEMBLYforuse,{
 		#defining transcripts with all annotation using extractfromDB function	
 		transc=extractFromDB(assembly=input$searchASSEMBLYforuse,avail_assemblies=all_avail_assemblies)$transcripts
 		
+		#remove not conventional chromosomes
+		transc=convertNomenclatureGR(transc,to="UCSC")
+
 		#define promoters and TES from the transcripts
 		promo=suppressWarnings(resize(transc,width=1,fix="start"))
 		fixed_promo=promo
@@ -136,6 +139,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
 		pos_promoters=!is.na(match(nomi,"promoters"))
 		pos_transcripts=!is.na(match(nomi,"transcripts"))
 		pos_TES=!is.na(match(nomi,"TES"))
+
 
 
 		newROIpromoter=new("RegionOfInterest",

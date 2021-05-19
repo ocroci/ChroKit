@@ -224,6 +224,9 @@ observeEvent(input$confirmation, {
           range=GRanges(Rle(BEDvariables$tempBED[,1]),IRanges(BEDvariables$tempBED[,2],BEDvariables$tempBED[,3]),strand(BEDvariables$tempBED[,4]))
         }
 
+        #here, force UCSC nomenclature (chr1, chr2,...chrM.... etc)
+        range=convertNomenclatureGR(range,to="UCSC")
+
         ##this ROI is not a subset, but is a new ROI. Re-annotate if DB present (not FALSE, not null)
         if(length(DATABASEvariables$currentASSEMBLY)>0){
           if(DATABASEvariables$currentASSEMBLY!=FALSE){

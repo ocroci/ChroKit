@@ -1808,6 +1808,14 @@ observeEvent(input$confirmBAMassociate,{
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
             singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            #if all(singlecover==0) -> change nomenclature
+            if(verifyzerocov(singlecover)){
+              print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+              temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
+              temproi=setRange(totallist[[i]],temprange)
+              singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            }
+
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }else{
@@ -1817,9 +1825,16 @@ observeEvent(input$confirmBAMassociate,{
             #this could cause problems in the future...
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
-
             singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
             												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+            
+            #if all(singlecover==0) -> change nomenclature
+            if(verifyzerocov(singlecover)){
+              print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+              temprange=convertNomenclatureGR(rangetransc,to="NCBI")
+              singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+            }
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }
@@ -1843,6 +1858,14 @@ observeEvent(input$confirmBAMassociate,{
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
             singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            #if all(singlecover==0) -> change nomenclature
+            if(verifyzerocov(singlecover)){
+              print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+              temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
+              temproi=setRange(totallist[[i]],temprange)
+              singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            }
+
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }else{
@@ -1852,8 +1875,14 @@ observeEvent(input$confirmBAMassociate,{
             #this could cause problems in the future...
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
-
             singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+            #if all(singlecover==0) -> change nomenclature
+            if(verifyzerocov(singlecover)){
+              print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+              temprange=convertNomenclatureGR(rangetransc,to="NCBI")
+              singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+            }
             print (paste("coverage",names(totallist)[i]))
             return(singlecover)
           }
