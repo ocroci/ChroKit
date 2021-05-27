@@ -3124,6 +3124,12 @@ observeEvent(input$PrepareROIpredefPipeline,{
       #associate BAM/WIG
       singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=paths_summit,
       						signalControl=NULL,signalControlSpike=NULL)
+      if(verifyzerocov(singlecover)){
+        print ("cov is 0s... converting nomelclature to NCBI for summit cov detection...")
+        temprange=convertNomenclatureGR(getRange(ROI_after_sample),to="NCBI")
+        temproi=setRange(ROI_after_sample,temprange)
+        singlecover=cover(Object=temproi,signalfile=paths_summit,signalfileNorm=paths_summit,signalControl=NULL,signalControlSpike=NULL)
+      }
     }else{
       #do nothing, enrichment already in ROI. Use BAM already present to center on summit
       pos2=match(input$selectBAMsummitPredefPipeline,bams_names)
@@ -3335,6 +3341,12 @@ observeEvent(input$PrepareROIpredefPipeline,{
       finallist=lapply(1:length(paths),function(i) {
         singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
         print(paste("Associating ",paths[i]," in single core",sep=""))
+        if(verifyzerocov(singlecover)){
+        	print ("cov is 0s... converting nomelclature to NCBI for cov...")
+        	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
+        	temproi=setRange(ROI_after_resize,temprange)
+        	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        }
         return(singlecover)
       })
 
@@ -3343,6 +3355,12 @@ observeEvent(input$PrepareROIpredefPipeline,{
       finallist=mclapply(1:length(paths),function(i) {
         singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
         print(paste("Associating ",paths[i]," in multi core",sep=""))
+        if(verifyzerocov(singlecover)){
+        	print ("cov is 0s... converting nomelclature to NCBI for cov...")
+        	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
+        	temproi=setRange(ROI_after_resize,temprange)
+        	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        }
         return(singlecover)
       },mc.cores=ncores)
     }
