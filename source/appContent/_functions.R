@@ -1430,7 +1430,7 @@ countOverlapsInBins<-function (query, subject, nbins,strandspecific=FALSE)
         else endPos <- startPos + binsize - 1
         queryBin <- GRanges(seqnames = seqnames(query), ranges = IRanges(start = startPos, 
             end = endPos),strand=strands)
-        countMat[, bin] <- countOverlaps(queryBin, subject, maxgap = 0L, 
+        countMat[, bin] <- countOverlaps(queryBin, subject, maxgap = -1L, 
              type = "any")
     }
     countMat[countMat > 1] <- 1
