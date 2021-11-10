@@ -845,6 +845,9 @@ checkMaxBins<-function(roiobject){
 
 #this function calculate the pileup for each base pair for each range of the ROI
 #is a little improvement of the GRbaseCoverage function from compEpiTools (lapply intead of for)
+#a better strategy to save RAM could be to keep the norm. factor associated to each BAM, and use it when needed.
+#in that case it is possible to store everything as integer, more than 2 billions values 
+#https://stackoverflow.com/questions/23660094/whats-the-difference-between-integer-class-and-numeric-class-in-r
 GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06)
 {
     #Object: genomic range in which calculate the base coverage
@@ -954,19 +957,22 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           coverageTot[matchingSeqs] <- covList
       }
       else coverageTot <- covList
+      rm(covList)
       return(coverageTot)
 
 
     #select if wig:
     }else if (substring(signalfile,nchar(signalfile)-2,nchar(signalfile))==".bw" | tolower(substring(signalfile,nchar(signalfile)-6,nchar(signalfile)))==".bigwig"){
-
-      print ("    importing WIG file...")
-      wig=import(signalfile,as = 'RleList')
-      #find base coverage on the grange in input, FOR EACH CHROMOSOME
-      #be careful to have matched chromosomes!!
+    
+      #open wig file only for names and lengths of chromosomes, to find
+      #those matching with "Object"
       print ("    Coverage of WIG file...")
       chromosomes=seqlevelsInUse(Object)
-      common_chromosomes=intersect(chromosomes,names(wig))
+      grfake=GRanges(Rle(chromosomes[1]),IRanges(1,1))
+      wig=import(signalfile,which=grfake,as = 'Rle')
+      chrswig=lengths(wig)
+      rm(wig)
+      common_chromosomes=intersect(chromosomes,names(chrswig))
       #initialize 0s for all ranges (if wig do not have a chr, the remaining are 0s)
       widths=width(Object)
       coverageTot=lapply(1:length(Object),function(i){integer(widths[i])})
@@ -974,8 +980,12 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         #length(as.character(seqnames(Object))) should be equal to length(Object) =>
         #find positions of Object that have that chromosome
         pos=as.character(seqnames(Object))==common_chromosomes[i]
+        chrsize=chrswig[common_chromosomes[i]]
+        grcurrentchr=GRanges(Rle(common_chromosomes[i]),IRanges(1,chrsize))
+        wigtempchr=import(signalfile,which=grcurrentchr,as = 'Rle')
         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
-        counts=Views(unlist(wig[[common_chromosomes[i]]]),ranges(Object[pos]))
+        counts=Views(unlist(wigtempchr[[common_chromosomes[i]]]),ranges(Object[pos]))
+        rm(wigtempchr)
         #extract the base coverage for all those ranges for ith chromosome
         tmp=viewApply(counts, as.vector)
         if(length(counts)==1){
@@ -985,6 +995,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           ##check whether the order is correct
           tmp=lapply(seq_len(ncol(tmp)), function(i) tmp[,i])
         }
+        rm(counts)
         coverageTot[pos] <- tmp
       }
       return(coverageTot)      
@@ -1430,7 +1441,7 @@ countOverlapsInBins<-function (query, subject, nbins,strandspecific=FALSE)
         else endPos <- startPos + binsize - 1
         queryBin <- GRanges(seqnames = seqnames(query), ranges = IRanges(start = startPos, 
             end = endPos),strand=strands)
-        countMat[, bin] <- countOverlaps(queryBin, subject, maxgap = -1L, 
+        countMat[, bin] <- countOverlaps(queryBin, subject, maxgap = 0L, 
              type = "any")
     }
     countMat[countMat > 1] <- 1
