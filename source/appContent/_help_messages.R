@@ -692,7 +692,7 @@ msg_associateEnrichments_associateRemove<-list(
 		Tip("Increase the number of cores to speed up this operation"),
 		tags$br(),
 		tags$br(),
-		Field("Normalization method","Select how to normalize the reads:
+		Field("Normalization method","Select how to normalize the reads (only for BAM files):
 				<li>no normalization: the reads will not be normalized (raw pileup for each base pair)</li>
 				<li>library-size: the number of reads will be divided by the size of their library and multiplied by 1 million</li>
 				<li>custom normalizer: the number of reads will be divided by the library size of a user-defined enrichment file present in the list and multiplied by 1 million</li>
@@ -716,7 +716,7 @@ msg_associateEnrichments_associateRemove<-list(
 		"This operation will calculate the pileup of the reads for each base of each range of each ROI selected.
  		The information of the reads come from the enrichment files (either BAM or WIG) selected.
  		This is a computationally intensive task, it may require time (from several seconds to few minutes, depending on the size of the ROIs, 
- 		of the enrichment files and on the number of ROIs)"),
+ 		of the enrichment files and on the number of ROIs). Signals will be normalized only for BAM files: for WIG files the normalization coefficient will be 1."),
 		tags$br(),
 		tags$br(),
 		tags$p(
@@ -1035,7 +1035,7 @@ msg_pairwiseOverlaps_parameters<-list(
 msg_pairwiseOverlaps_overlap<-list(
 	title="Displays the overlap of the two ROIs",
 	text=list(
-		"he overlap of the two ROIs can be displayed as a barplot or with a Venn diagram",
+		"The overlap of the two ROIs can be displayed as a barplot or with a Venn diagram",
 		tags$br(),
 		tags$br(),
 		Field("Barplot","It displays the fraction of the genomic ranges of the ROI-1 that overlap 
