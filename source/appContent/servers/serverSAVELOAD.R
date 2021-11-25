@@ -34,6 +34,9 @@ observeEvent(input$saveWork,{
 		
 		logvariables_msg=logvariables$msg
 
+		Enrichlistvariables_rawcoverage=Enrichlist$rawcoverage
+		Enrichlistvariables_normfactlist=Enrichlist$normfactlist
+
 
 		listOfPeakTimeVariables=list(
 			ROIvariables_listROI,
@@ -52,7 +55,9 @@ observeEvent(input$saveWork,{
 			#DATABASEvariables_availASSEMBLIES,
 			#DATABASEvariables_missingASSEMBLIES,
 			BAMvariables_listBAM,
-			logvariables_msg
+			logvariables_msg,
+			Enrichlistvariables_rawcoverage,
+			Enrichlistvariables_normfactlist
 		)
 
 
@@ -74,7 +79,9 @@ observeEvent(input$saveWork,{
 			#"DATABASEvariables_availASSEMBLIES",
 			#"DATABASEvariables_missingASSEMBLIES",
 			"BAMvariables_listBAM",
-			"logvariables_msg")
+			"logvariables_msg",
+			"Enrichlistvariables_rawcoverage",
+			"Enrichlistvariables_normfactlist")
       	#logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="blue">Wainting for the session to be saved...<br></font>',sep="")
       	
         tryCatch({
@@ -167,6 +174,10 @@ observeEvent(input$loadenv, {
 			#logs=totalENV$logvariables
 			logvariables$msg=totalENV$logvariables_msg
 			#load the clustvariables
+
+			Enrichlist$rawcoverage=totalENV$Enrichlistvariables_rawcoverage
+			Enrichlist$normfactlist=totalENV$Enrichlistvariables_normfactlist
+
 
             logvariables$msg[[length(logvariables$msg)+1]]= paste('Session ',sessiontoload,' loaded<br>',sep="")
             print(paste('Session ',shinyFilePath(input$loadenv),' loaded',sep="" ))

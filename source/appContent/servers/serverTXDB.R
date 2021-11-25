@@ -140,20 +140,33 @@ observeEvent(input$confirmASSEMBLYforuse,{
 		pos_transcripts=!is.na(match(nomi,"transcripts"))
 		pos_TES=!is.na(match(nomi,"TES"))
 
-
-
+        ####newenrichimplementation####
+        #new ROI imported has no list of enrichments at the beginning! => initialization
+        Enrichlist$rawcoverage[["promoters"]]=list()
+        Enrichlist$normfactlist[["promoters"]]=list()
+        ################################  
 		newROIpromoter=new("RegionOfInterest",
 							name="promoters",
 							range=promo,
 							fixed=fixed_promo,
 							flag="promoterFlag",
 							source=list(paste("promoters",toadd,"(with",upstreamTSS,"bp upstream and",input$absoluteFilterDownstreamTSS,"downstream TSS)")))
+        ####newenrichimplementation####
+        #new ROI imported has no list of enrichments at the beginning! => initialization
+        Enrichlist$rawcoverage[["transcripts"]]=list()
+        Enrichlist$normfactlist[["transcripts"]]=list()
+        ################################		
 		newROItranscripts=new("RegionOfInterest",
 							name="transcripts",
 							range=transc,
 							fixed=resize(transc,width=1,fix="start"),
 							flag="transcriptFlag",
 							source=list(paste("transcripts",toadd)))
+        ####newenrichimplementation####
+        #new ROI imported has no list of enrichments at the beginning! => initialization
+        Enrichlist$rawcoverage[["TES"]]=list()
+        Enrichlist$normfactlist[["TES"]]=list()
+        ################################
 		newROItes=new("RegionOfInterest",
 							name="TES",
 							range=tes,

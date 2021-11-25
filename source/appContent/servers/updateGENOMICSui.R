@@ -48,7 +48,8 @@ observe({
       pos=match(input$ROIchooseSingleEval,nomi)
       roi=ROIvariables$listROI[[pos]]
       if (!is.null(roi)){
-        getbam=names(getBAMlist(roi))
+        getbam=names(Enrichlist$rawcoverage[[pos]])
+        #getbam=names(getBAMlist(roi))
         if (is.null(getbam)){
           updateSelectInput(session,"BAMchooseSingleEval",NULL,choices=character(0))
         }else{
@@ -127,12 +128,13 @@ observe({
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos1=match(input$ROI1chooseCmp,nomi)
     roi1=ROIvariables$listROI[[pos1]]
-
     pos2=match(input$ROI2chooseCmp,nomi)
     roi2=ROIvariables$listROI[[pos2]]
-    
+
+    rawvals1=Enrichlist$rawcoverage[[pos1]]
+    rawvals2=Enrichlist$rawcoverage[[pos2]]
     if (!is.null(roi1)){
-      getbam1=names(getBAMlist(roi1))
+      getbam1=names(rawvals1)
       
       if (is.null(getbam1)){
         output$BAMmenuchooseCmp1<-renderUI({NULL})
@@ -151,7 +153,7 @@ observe({
 
 
     if (!is.null(roi2)){
-      getbam2=names(getBAMlist(roi2))
+      getbam2=names(rawvals2)
       
       if (is.null(getbam2)){   
         output$BAMmenuchooseCmp2<-renderUI({NULL})    
@@ -177,18 +179,6 @@ observe({
 })
 
 
-
-
-# observe({
-#   input$ROI1chooseCmp
-#   input$ROI2chooseCmp
-#   input$BAM2chooseCmp
-#   input$BAM1chooseCmp
-#   print("changed1")
-#   print(input$BAM1chooseCmp)
-#   print("changed2")
-#   print(input$BAM2chooseCmp)
-# })
 
 
 
@@ -651,12 +641,14 @@ observe({
     pos=match(input$ROIsForAnalogHeat,nomi)
     #all rois selected
     roi=ROIvariables$listROI[pos]
+    rawvals=Enrichlist$rawcoverage[pos]
     if (!is.null(roi)){
       #for loop, intersection of bam files
       getbam_current=list()
       for (i in 1:length(roi)){
         if(!is.null(roi[[i]])){
-          nms=names(getBAMlist(roi[[i]]))
+
+          nms=names(rawvals[[i]])
           if (length(nms)>0){
             getbam_current[[i]]=nms
           }else{
@@ -1889,12 +1881,13 @@ observe({
     pos=match(input$ROIsForProfilesAndBox,nomi)
     #all rois selected
     roi=ROIvariables$listROI[pos]
+    rawvals=Enrichlist$rawcoverage[pos]
     if (!is.null(roi)){
       #for loop, intersection of bam files
       getbam_current=list()
       for (i in 1:length(roi)){
         if(!is.null(roi[[i]])){
-          nms=names(getBAMlist(roi[[i]]))
+          nms=names(rawvals[[i]])
           if (length(nms)>0){
             getbam_current[[i]]=nms
           }else{
@@ -2203,9 +2196,13 @@ observe({
 
         #get BAM for this genelist, checking if the BAM is associated to all 
         #promoters,transcripts,TES
-        BAM_promoters=names(getBAMlist(promoters_roi))
-        BAM_transcripts=names(getBAMlist(transcripts_roi))      
-        BAM_TES=names(getBAMlist(TES_roi)) 
+        rawvals_promoters=Enrichlist$rawcoverage[[pos_promoters]]  
+        rawvals_transcripts=Enrichlist$rawcoverage[[pos_transcripts]]   
+        rawvals_TES=Enrichlist$rawcoverage[[pos_TES]]
+              
+        BAM_promoters=names(rawvals_promoters)
+        BAM_transcripts=names(rawvals_transcripts)      
+        BAM_TES=names(rawvals_TES) 
         commonBAMgenelist=intersect(BAM_promoters,BAM_transcripts) 
         commonBAMgenelist=intersect(commonBAMgenelist,BAM_TES)
         if(!is.null(commonBAMgenelist)){

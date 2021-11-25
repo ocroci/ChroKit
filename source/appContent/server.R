@@ -79,8 +79,8 @@ shinyServer(function(input, output,session) {
 
   #temporary variables for saving
   tosave<-reactiveValues(datatableROI=NULL,genelistROI=NULL,genelistROIwindow=NULL)
-
-
+  #variables to store raw read counts of base coverage (to be stored as int 4 bytes) and corresponding normalization factors
+  Enrichlist<-reactiveValues(rawcoverage=NULL,normfactlist=NULL)
 
   ################################################################################
   ################################################################################

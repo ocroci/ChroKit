@@ -89,7 +89,7 @@ observe({
     pos=match(input$selectROItoCenterSummit,nomi)
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
-      getbam=names(getBAMlist(roi))
+      getbam=names(Enrichlist$rawcoverage[[pos]])
       if (!is.null(getbam)){
         updateSelectInput(session,"selectBAMtoCenterSummit", "Enrichment to use for summit:",choices=getbam)
       }else{
@@ -124,7 +124,7 @@ observe({
     pos=match(input$selectROItoFilter,nomi)
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
-      getbam=names(getBAMlist(roi))
+      getbam=names(Enrichlist$rawcoverage[[pos]])
       if (!is.null(getbam)){
         updateSelectInput(session,"selectBAMtoFilter", "Enrichment to use for filtering:",choices=getbam)
       }else{
@@ -153,12 +153,16 @@ observe({
     pos=match(input$selectROItoFilter,nomi)
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
-      getbam=names(getBAMlist(roi))
+      rawcovs=Enrichlist$rawcoverage[[pos]]
+      normfacts=Enrichlist$normfactlist[[pos]]
+      getbam=names(rawcovs)
       pos2=match(input$selectBAMtoFilter,getbam)
-      bamselected=getBAMlist(roi)[[pos2]]
+      bamselected=rawcovs[[pos2]]
+      normfactselected=normfacts[[pos2]]
       if (!is.null(bamselected)){
         #bamselected is the baseCoverageOutput selected
         sums=unlist(lapply(bamselected,sum))
+        sums=sums*normfactselected
         maxx=max(sapply(sums,max))
         quant1=round(quantile(sums,0.9))
         quant2=round(quantile(sums,0))
@@ -193,12 +197,17 @@ observe({
     pos=match(input$selectROItoFilter,nomi)
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
-      getbam=names(getBAMlist(roi))
+      rawcovs=Enrichlist$rawcoverage[[pos]]
+      normfacts=Enrichlist$normfactlist[[pos]]
+
+      getbam=names(rawcovs)
       pos2=match(input$selectBAMtoFilter,getbam)
-      bamselected=getBAMlist(roi)[[pos2]]
+      bamselected=rawcovs[[pos2]]
+      normfactselected=normfacts[[pos2]]
       if (!is.null(bamselected)){
         #bamselected is the baseCoverageOutput selected
         sums=unlist(lapply(bamselected,sum))
+        sums=sums*normfactselected
         maxx=max(sapply(sums,max))
         quant1=round(quantile(sums,input$quantileThreshFilter[1]))
         quant2=round(quantile(sums,input$quantileThreshFilter[2]))
@@ -657,7 +666,11 @@ observe({
         output$showWindowAnnotation<-renderUI({NULL})     
       }
 
-      bams=names(getBAMlist(roi))
+      ####newenrichimplementation####
+      rawvals=Enrichlist$rawcoverage[[pos]]
+      ###############################
+
+      bams=names(rawvals)
       if(length(bams)>0){
         #add bam file enrichment to the options to provide
         toadd_bams=bams
@@ -787,17 +800,19 @@ observe({
 observe({
   
   input$selectROItoBAMassociate
-  if(isvalid(input$selectROItoBAMassociate)){
+  if(isvalid(input$selectROItoBAMassociate) & length(ROIvariables$listROI)>0){
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$selectROItoBAMassociate,nomi)
     rois=ROIvariables$listROI[pos] 
     allBAMavailable=c()
     allBAMmissing=c()
-    
+    bamblock=Enrichlist$rawcoverage[pos]
     #in the bampresent=names(getBAMlist(rois[[i]])) can raise an error, not always
     #it tells that unable to find an inherited method for function ‘getBAMlist’ for signature ‘"NULL"’
     for (i in 1:length(rois)){
-      bampresent=names(getBAMlist(rois[[i]]))
+
+      bampresent=names(bamblock[[i]])
+
       allbams=names(BAMvariables$listBAM)
       remainingbams=setdiff(allbams,bampresent)
       allBAMmissing=c(allBAMmissing,remainingbams)
@@ -829,30 +844,41 @@ observe({
 #observer for the menu to choose how to normalize (react to BAM selected for association)
 observe({
   input$selectBAMtoassociate
-  if(length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)<3){
-    output$radioForNorm<-renderUI({
-      radioButtons("selectMethodForNorm",label="Normalization method:" ,
-                                   choices=c("no normalization"="nonorm",
-                                             "library-size"="librarysize",
-                                             "custom normalizer"="customnorm"),
-                                   selected="librarysize"
-                      )
-    })
-  #spike in normalization only if we have more than 3 bam file (current and input+spikeInput)
-  }else if (length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)>=3){
-    output$radioForNorm<-renderUI({
-      radioButtons("selectMethodForNorm",label="Normalization method:" ,
-                                   choices=c("no normalization"="nonorm",
-                                             "library-size"="librarysize",
-                                             "custom normalizer"="customnorm",
-                                             "spike-in"="spikein"),
-                                   selected="librarysize"
-                      )
-    })
-  }else{
-    #null menu
+
+  listbams=isolate(BAMvariables$listBAM)
+  pos2=match(input$selectBAMtoassociate,names(listbams))
+  paths=listbams[pos2]
+
+  #if selected are all wig files, do not show normalization menu
+  if (all(substring(paths,nchar(paths)-2,nchar(paths))==".bw" | tolower(substring(paths,nchar(paths)-6,nchar(paths)))==".bigwig")){
     output$radioForNorm<-renderUI({NULL})
+  }else{
+    if(length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)<3){
+      output$radioForNorm<-renderUI({
+        radioButtons("selectMethodForNorm",label="Normalization method:" ,
+                                     choices=c("no normalization"="nonorm",
+                                               "library-size"="librarysize",
+                                               "custom normalizer"="customnorm"),
+                                     selected="librarysize"
+                        )
+      })
+    #spike in normalization only if we have more than 3 bam file (current and input+spikeInput)
+    }else if (length(input$selectBAMtoassociate)>0 & length(BAMvariables$listBAM)>=3){
+      output$radioForNorm<-renderUI({
+        radioButtons("selectMethodForNorm",label="Normalization method:" ,
+                                     choices=c("no normalization"="nonorm",
+                                               "library-size"="librarysize",
+                                               "custom normalizer"="customnorm",
+                                               "spike-in"="spikein"),
+                                     selected="librarysize"
+                        )
+      })
+    }else{
+      #null menu
+      output$radioForNorm<-renderUI({NULL})
+    }    
   }
+  
 })
 
 #observer for normalizer selection(react to radiobutton, list only BAM available (not wig if possible))
@@ -914,7 +940,7 @@ observe({
     pos=match(input$selectROIforBAMrename,nomi)
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi) & length(BAMvariables$listBAM)>0){
-      getbam=names(getBAMlist(roi))
+      getbam=names(Enrichlist$rawcoverage[[pos]])
       if (is.null(getbam)){
           updateSelectInput(session,"selectedBAMtoRename",NULL,choices=character(0))
         }else{
@@ -946,7 +972,7 @@ observe({
         pos=match(input$selectROIforBAMrename,nomi)
         roi=ROIvariables$listROI[[pos]]
         if (!is.null(roi) ){
-          getbam=names(getBAMlist(roi))
+          getbam=names(Enrichlist$rawcoverage[[pos]])
           if (length(getbam)>0){
             choicelist=as.list(1:length(getbam))
             names(choicelist)=as.character(1:length(getbam))

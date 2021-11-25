@@ -97,9 +97,16 @@ observeEvent(input$maketheROI, {
 
         #if one ROI selected, keep the BAM files associated
         if (length(input$selectedROIs)==1){
-          selectedbam=getBAMlist(ROIvariables$listROI[[pos]])
+          #selectedbam=getBAMlist(ROIvariables$listROI[[pos]])
+          ####newenrichimplementation####
+          selectedbam=Enrichlist$rawcoverage[[pos]]
+          selectednormfact=Enrichlist$normfactlist[[pos]]
+          ################################
         }else{
           selectedbam=list()
+          ####newenrichimplementation####
+          selectednormfact=list()
+          ################################
         }
 
         if (nchar(input$ROIname)>=1){
@@ -129,13 +136,15 @@ observeEvent(input$maketheROI, {
                 }
               }              
             }
-
-
+            ####newenrichimplementation####
+            Enrichlist$rawcoverage[[input$ROIname]]=BAMlist
+            Enrichlist$normfactlist[[input$ROIname]]=selectednormfact
+            ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                         name=input$ROIname,
                                         range=ROI,
                                         fixed=newfix,
-                                        BAMlist=BAMlist,
+                                        BAMlist=list(),
                                         flag=newflag,
                                         source=list(toadd))     
             logvariables$msg[[length(logvariables$msg)+1]]= paste("Created ROI named ",input$ROIname,"<br>",sep="")      
@@ -254,7 +263,14 @@ observeEvent(input$resizeROI,{
               roi=getRange(ROIvariables$listROI[[pos]])
               oldSource=getSource(ROIvariables$listROI[[pos]])
               fix=start(getFixed(ROIvariables$listROI[[pos]]))
-              bamlist=getBAMlist(ROIvariables$listROI[[pos]])
+              
+              #bamlist=getBAMlist(ROIvariables$listROI[[pos]])
+              ####newenrichimplementation####
+              bamlist=Enrichlist$rawcoverage[[pos]]
+              normvals=Enrichlist$normfactlist[[pos]]
+              ################################
+
+
 
               #split positive or undetermined strand from negative strand
               pos_positive=as.logical(!strand(roi)=="-")
@@ -314,6 +330,9 @@ observeEvent(input$resizeROI,{
                   #ROIvariables$listROI[[pos]]=resetBAMlist(ROIvariables$listROI[[pos]])
                   logvariables$msg[[length(logvariables$msg)+1]]= paste('Removed ',input$selectROItoresize,' associated BAMs, because new size > old size...<br>',sep="")
                   newBAMlist=list()
+                  ####newenrichimplementation####
+                  normvals=list()
+                  ################################
                 }else{
                   toadd=paste(toadd,"(kept associated BAMs)")
                   #split - and + for BAM resize 
@@ -370,18 +389,24 @@ observeEvent(input$resizeROI,{
 
                   #x is single list of baseCoverage (BAM)
                   logvariables$msg[[length(logvariables$msg)+1]]= paste('Conserved ',input$selectROItoresize,' associated BAMs, because new size < old size...<br>',sep="")
-
                 }
               }else{
                 newBAMlist=list()
+                ####newenrichimplementation####
+                normvals=list()
+                ################################
               }
 
               newSource=c(oldSource,list(toadd))
+              ####newenrichimplementation####
+              Enrichlist$rawcoverage[[input$ROInameResize]]=newBAMlist
+              Enrichlist$normfactlist[[input$ROInameResize]]=normvals
+              ################################
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                             name=input$ROInameResize,
                                             range=newrange,
                                             fixed=newfix,
-                                            BAMlist=newBAMlist,
+                                            BAMlist=list(),
                                             flag=newflag,
                                             source=newSource) 
 
@@ -472,11 +497,17 @@ observeEvent(input$SummitROI,{
           nomi=unlist(lapply(ROIvariables$listROI,getName))
           pos=match(input$selectROItoCenterSummit,nomi)
           roi=ROIvariables$listROI[[pos]]
+          ####newenrichimplementation####
+          #we have to find maximum enrichment point. Raw cov w/o normalization is ok
+          bam=Enrichlist$rawcoverage[[pos]]
+          #normvals=Enrichlist$normfactlist[[pos]]
+          ################################
           oldSource=getSource(roi)
-          getbam=names(getBAMlist(roi))
+          #getbam=names(getBAMlist(roi))
+          getbam=names(bam)
           #if there is at least one BAM
           if (!is.null(getbam)){
-            bam=getBAMlist(roi)
+            #bam=getBAMlist(roi)
             pos2=match(input$selectBAMtoCenterSummit,getbam)
             bamselected=bam[[pos2]]
             toadd=paste("Centered on summit using",input$selectBAMtoCenterSummit,"enrichment (range width=1)")
@@ -496,7 +527,10 @@ observeEvent(input$SummitROI,{
                 elementMetadata(newrange)=annotatedpart
               }
             }
-
+            ####newenrichimplementation####
+            Enrichlist$rawcoverage[[input$ROInameSummit]]=list()
+            Enrichlist$normfactlist[[input$ROInameSummit]]=list()
+            ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                             name=input$ROInameSummit,
                                             range=newrange,
@@ -566,9 +600,17 @@ observeEvent(input$FilterROI,{
           pos=match(input$selectROItoFilter,nomi)
           roi=ROIvariables$listROI[[pos]]
           oldSource=getSource(roi)
-          getbam=names(getBAMlist(roi))
+          #getbam=names(getBAMlist(roi))
+          ####newenrichimplementation####
+          #we have to find maximum enrichment point. Raw cov w/o normalization is ok
+          bam=Enrichlist$rawcoverage[[pos]]
+          normvals=Enrichlist$normfactlist[[pos]]
+          ################################
+          getbam=names(bam)
           if (!is.null(getbam)){
-            bam=getBAMlist(roi)
+
+            #filter based not normalized coverage should be ok (it's a fraction, not abs number)
+            #bam=getBAMlist(roi)
             pos2=match(input$selectBAMtoFilter,getbam)
             bamselected=bam[[pos2]]  
             sums=unlist(lapply(bamselected,sum))
@@ -598,11 +640,17 @@ observeEvent(input$FilterROI,{
               perc=round(tabForMessage["TRUE"]/length(selectedPositions)*100,2)
               toadd=paste("Filtered on",input$selectBAMtoFilter,"BAM file enrichment (kept ",tabForMessage["TRUE"],"/",length(selectedPositions),"ranges,",perc,"%), excluding",excludedlow,"% low and",excludedhigh,"% high")
               newSource=c(oldSource,list(toadd))
+
+              ####newenrichimplementation####
+              Enrichlist$rawcoverage[[input$ROInameFilter]]=newBAMlist
+              Enrichlist$normfactlist[[input$ROInameFilter]]=normvals
+              ################################ 
+
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                               name=input$ROInameFilter,
                                               range=newrange,
                                               fixed=newfix,
-                                              BAMlist=newBAMlist,
+                                              BAMlist=list(),
                                               flag=newflag,
                                               source=newSource)
               logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameFilter,' ROI after filtering of ',input$selectROItoFilter,' ROI using ',input$selectBAMtoFilter,' bam (kept ',tabForMessage["TRUE"],'/',length(selectedPositions),' ranges)<br>',sep="")    
@@ -698,7 +746,14 @@ observeEvent(input$FilterROIWIDTH,{
             newrange=getRange(roi)[selectedPositions]
 
             if(length(newrange)>0){
-              bams=getBAMlist(roi)
+              #bams=getBAMlist(roi)
+
+              ####newenrichimplementation####
+              #we have to find maximum enrichment point. Raw cov w/o normalization is ok
+              bams=Enrichlist$rawcoverage[[pos]]
+              normvals=Enrichlist$normfactlist[[pos]]
+              ################################
+
               if(length(bams)>0){
                 newBAMlist=list()
                 for(i in 1:length(bams)){
@@ -714,11 +769,17 @@ observeEvent(input$FilterROIWIDTH,{
               perc=round(tabForMessage["TRUE"]/length(selectedPositions)*100,2)
               toadd=paste("Filtered on width (kept ",tabForMessage["TRUE"],"/",length(selectedPositions),"ranges,",perc,"%), excluding",excludedlow,"% low and",excludedhigh,"% high")
               newSource=c(oldSource,list(toadd))
+
+              ####newenrichimplementation####
+              Enrichlist$rawcoverage[[input$ROInameFilterWIDTH]]=newBAMlist
+              Enrichlist$normfactlist[[input$ROInameFilterWIDTH]]=normvals
+              ################################ 
+
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                               name=input$ROInameFilterWIDTH,
                                               range=newrange,
                                               fixed=newfix,
-                                              BAMlist=newBAMlist,
+                                              BAMlist=list(),
                                               flag=newflag,
                                               source=newSource)
               logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameFilterWIDTH,' ROI after filtering of ',input$selectROItoFilter,' ROI by length (kept ',tabForMessage["TRUE"],'/',length(selectedPositions),' ranges)<br>',sep="")   
@@ -812,7 +873,12 @@ observeEvent(input$SampleROI,{
           newrange=rangefromROI[selectedPositions]
 
           if(length(newrange)>0){
-            bams=getBAMlist(roi)
+            #bams=getBAMlist(roi)
+            ####newenrichimplementation####
+            #we have to find maximum enrichment point. Raw cov w/o normalization is ok
+            bams=Enrichlist$rawcoverage[[pos]]
+            normvals=Enrichlist$normfactlist[[pos]]
+            ################################
             if(length(bams)>0){
               newBAMlist=list()
               for(i in 1:length(bams)){
@@ -829,11 +895,15 @@ observeEvent(input$SampleROI,{
 
             toadd=paste("ROI sampled (kept ",input$numberSample,"/",length(rangefromROI),"ranges,",perc,"%)")
             newSource=c(oldSource,list(toadd))
+            ####newenrichimplementation####
+            Enrichlist$rawcoverage[[input$ROInameSample]]=newBAMlist
+            Enrichlist$normfactlist[[input$ROInameSample]]=normvals
+            ################################ 
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                             name=input$ROInameSample,
                                             range=newrange,
                                             fixed=newfix,
-                                            BAMlist=newBAMlist,
+                                            BAMlist=list(),
                                             flag=newflag,
                                             source=newSource)
 
@@ -1085,6 +1155,11 @@ observeEvent(input$ExtractPatternROI,{
                       fix_promoters=getFixed(promo)
                       annotatedpart=suppressWarnings(distanceFromTSS3(Object=extracted,Tss=fix_promoters,criterion="midpoint"))
                       elementMetadata(extracted)=annotatedpart
+                      ####newenrichimplementation####
+                      #new ROI imported has no list of enrichments at the beginning! => initialization
+                      Enrichlist$rawcoverage[[input$ROInamePattern]]=list()
+                      Enrichlist$normfactlist[[input$ROInamePattern]]=list()
+                      ################################
                       ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                       name=input$ROInamePattern,
                                                       range=extracted,
@@ -1393,7 +1468,11 @@ observeEvent(input$showdataframeROI,{
     pos=match(input$listgetROI,nomi)
     ROI=ROIvariables$listROI[[pos]]
     range=getRange(ROI)
-
+    ####newenrichimplementation####
+    #we have to find maximum enrichment point. Raw cov w/o normalization is ok
+    bams=Enrichlist$rawcoverage[[pos]]
+    normvals=Enrichlist$normfactlist[[pos]]
+    ################################
     #build the dataframe (df) to show according to the various checks in the input
     #contained in the input$ROIoptionsToView (set in the updateROI.R)
     
@@ -1417,15 +1496,19 @@ observeEvent(input$showdataframeROI,{
       #no metadata
     }
     
-    if(!is.null(input$ROIoptionsToViewENRICHMENTS)){
+    if(!is.null(input$ROIoptionsToViewENRICHMENTS)&length(bams)>0){
       #append selected enrichments to dataframe
-      bams=getBAMlist(ROI)
-      bamnames=names(getBAMlist(ROI))
+
+      #bams=getBAMlist(ROI)
+      bamnames=names(bams)
       pos=match(input$ROIoptionsToViewENRICHMENTS,bamnames)
       bams_selected=bams[pos]
+      #summed values must be normalized for the normalization factor
+      normvals_selected=normvals[pos]
       if(nc==1){
         megalist=lapply(1:length(bams_selected),function(i) {
           summ=sapply(bams_selected[[i]],sum)
+          summ=sum*normvals_selected[[i]]
           return(summ)          
         })
       }else{
@@ -1433,6 +1516,7 @@ observeEvent(input$showdataframeROI,{
         tryCatch({
           megalist=mclapply(1:length(bams_selected),function(i) {
             summ=sapply(bams_selected[[i]],sum)
+            summ=summ*normvals_selected[[i]]
             return(summ)          
           },mc.cores=nc)
 
@@ -1448,6 +1532,7 @@ observeEvent(input$showdataframeROI,{
         if(decision==0){
           megalist=lapply(1:length(bams_selected),function(i) {
             summ=sapply(bams_selected[[i]],sum)
+            summ=summ*normvals_selected[[i]]
             return(summ)          
           })            
         }
@@ -1694,17 +1779,45 @@ observeEvent(input$confirmBAMDeassociate,{
 
     #for each ROI selected, get BAMlist and remove, if present, the selected enrichment files
     for(i in 1:length(pos)){
-      bams=getBAMlist(ROIvariables$listROI[[pos[i]]])
+      #bams=getBAMlist(ROIvariables$listROI[[pos[i]]])
+
+      ####newenrichimplementation####
+      tempbam=Enrichlist$rawcoverage
+      tempnorm=Enrichlist$normfactlist
+      bams=tempbam[[pos[i]]]
+      normvals=tempnorm[[pos[i]]]
+      ###############################  
+
       bamnames=names(bams)  
       pos2=match(input$selectBAMtoDeassociate,bamnames)
       #remove NA (not all selected BAMs are present in all ROIs)
       pos2=pos2[!is.na(pos2)]
+
+      ####newenrichimplementation####
       bams[pos2]<-NULL
-      #if NULL, recreate empty BAMlist
-      if (is.null(bams)){
+      normvals[pos2]<-NULL
+      if(is.null(bams)){
         bams=list()
-      }   
-      ROIvariables$listROI[[pos[i]]]=setBAMlist(ROIvariables$listROI[[pos[i]]],bams)   
+        normvals=list()
+      }
+      tempbam[[pos[i]]]=bams
+      tempnorm[[pos[i]]]=normvals
+      ###############################
+
+      #if NULL, recreate empty BAMlist
+      # if (is.null(bams)){
+      #   bams=list()
+      # } 
+      ####newenrichimplementation####
+      Enrichlist$rawcoverage<-NULL
+      Enrichlist$normfactlist<-NULL
+
+      Enrichlist$rawcoverage=tempbam
+      Enrichlist$normfactlist=tempnorm
+
+
+      ###############################  
+      #ROIvariables$listROI[[pos[i]]]=setBAMlist(ROIvariables$listROI[[pos[i]]],bams)   
       for (i in input$selectBAMtoDeassociate){
         print(paste("Removed",i,"from ROI",input$selectROItoBAMassociate))
       }
@@ -1736,12 +1849,18 @@ observeEvent(input$confirmBAMassociate,{
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$selectROItoBAMassociate,nomi)
     ROIs=ROIvariables$listROI[pos] 
-
+    ####newenrichimplementation####
+    rawvals=Enrichlist$rawcoverage[pos]
+    normvals=Enrichlist$normfactlist[pos]
+    ###############################
     totallist=list()   
      
     #now for each of these ROIs selected,find BAM (among all those selected) to associate with:
     for(i in 1:length(ROIs)){
-      bampresent=names(getBAMlist(ROIs[[i]]))
+      bampresent=names(rawvals)
+      ####newenrichimplementation####
+      enrichpresent=names(rawvals[[i]])
+      ###############################     
       allbams=names(BAMvariables$listBAM)
       remaining=setdiff(allbams,bampresent)
       #find the requested enrichment over the remaining enrichments
@@ -1759,36 +1878,45 @@ observeEvent(input$confirmBAMassociate,{
 
       }
     }
+    rm(rawvals)
 
-
-
-    if(input$selectMethodForNorm=="librarysize"){
-      Normmethod="lib"
-      normalizer=NULL
-      normCtrl=NULL
-      normCtrlSpike=NULL      
-    }else if(input$selectMethodForNorm=="customnorm"){
-      if(length(input$customNormalizer)>0){
-        Normmethod="custom"
-        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
-        normCtrl=NULL
-        normCtrlSpike=NULL
-      }
-    }else if(input$selectMethodForNorm=="spikein") {
-      if(length(input$customNormalizer)>0 & length(input$ctrlNormalizer)>0 & input$ctrlSpikeinNormalizer>0){
-        Normmethod="spikein"
-        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
-        normCtrl=BAMvariables$listBAM[match(input$ctrlNormalizer,names(BAMvariables$listBAM))]
-        normCtrlSpike=BAMvariables$listBAM[match(input$ctrlSpikeinNormalizer,names(BAMvariables$listBAM))]
-      }
-    }else if(input$selectMethodForNorm=="nonorm"){
-      Normmethod="no"
-      normalizer=NULL
-      normCtrl=NULL
-      normCtrlSpike=NULL
+    if(!is.null(input$selectMethodForNorm)){
+	    if(input$selectMethodForNorm=="librarysize"){
+	      Normmethod="lib"
+	      normalizer=NULL
+	      normCtrl=NULL
+	      normCtrlSpike=NULL      
+	    }else if(input$selectMethodForNorm=="customnorm"){
+	      if(length(input$customNormalizer)>0){
+	        Normmethod="custom"
+	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
+	        normCtrl=NULL
+	        normCtrlSpike=NULL
+	      }
+	    }else if(input$selectMethodForNorm=="spikein") {
+	      if(length(input$customNormalizer)>0 & length(input$ctrlNormalizer)>0 & input$ctrlSpikeinNormalizer>0){
+	        Normmethod="spikein"
+	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
+	        normCtrl=BAMvariables$listBAM[match(input$ctrlNormalizer,names(BAMvariables$listBAM))]
+	        normCtrlSpike=BAMvariables$listBAM[match(input$ctrlSpikeinNormalizer,names(BAMvariables$listBAM))]
+	      }
+	    }else if(input$selectMethodForNorm=="nonorm"){
+	      Normmethod="no"
+	      normalizer=NULL
+	      normCtrl=NULL
+	      normCtrlSpike=NULL
+	    }else{
+	      print("something wrong, no normalization existing...")
+	    }		    	
     }else{
-      print("something wrong, no normalization existing...")
+    	#no norm. menu, => wig file => no normalization
+	    Normmethod="no"
+	    normalizer=NULL
+	    normCtrl=NULL
+	    normCtrlSpike=NULL    	
     }
+
+
 
 
     ##here use totallist to parallelize the code. Each iteration has path to enrichment and a ROI
@@ -1797,7 +1925,6 @@ observeEvent(input$confirmBAMassociate,{
       #parallelize only if system RAM is very high
       if(input$coresCoverage==1 | length(totallist)==1){
         print ("Computation in single core")
-        
         finallist=lapply(1:length(totallist),function(i) {
           if(Normmethod=="lib"){
             tonorm=names(totallist)[i]
@@ -1807,17 +1934,22 @@ observeEvent(input$confirmBAMassociate,{
           }          
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
+
             singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            nfact=singlecover[[2]]
+            singlecover=singlecover[[1]]
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
               temproi=setRange(totallist[[i]],temprange)
               singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+              nfact=singlecover[[2]]
+              singlecover=singlecover[[1]]              
             }
 
             print (paste("coverage",names(totallist)[i]))
-            return(singlecover)
+            return(list(singlecover,nfact))
           }else{
             rangetransc=getRange(totallist[[i]])
             thirtypercent=round((width(rangetransc)/10)*3)
@@ -1827,16 +1959,19 @@ observeEvent(input$confirmBAMassociate,{
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
             singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
             												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
-            
+            nfact=singlecover[[2]]
+            singlecover=singlecover[[1]]
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(rangetransc,to="NCBI")
               singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
             												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+              nfact=singlecover[[2]]
+              singlecover=singlecover[[1]]
             }
             print (paste("coverage",names(totallist)[i]))
-            return(singlecover)
+            return(list(singlecover,nfact))
           }
         })#,mc.cores=nc)  
 
@@ -1858,16 +1993,20 @@ observeEvent(input$confirmBAMassociate,{
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
             singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+            nfact=singlecover[[2]]
+            singlecover=singlecover[[1]]            
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
               temproi=setRange(totallist[[i]],temprange)
               singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
+              nfact=singlecover[[2]]
+              singlecover=singlecover[[1]]            
             }
 
             print (paste("coverage",names(totallist)[i]))
-            return(singlecover)
+            return(list(singlecover,nfact))
           }else{
             rangetransc=getRange(totallist[[i]])
             thirtypercent=round((width(rangetransc)/10)*3)
@@ -1876,15 +2015,19 @@ observeEvent(input$confirmBAMassociate,{
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
             singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+            nfact=singlecover[[2]]
+            singlecover=singlecover[[1]]            
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(rangetransc,to="NCBI")
               singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
             												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
+              nfact=singlecover[[2]]
+              singlecover=singlecover[[1]]
             }
             print (paste("coverage",names(totallist)[i]))
-            return(singlecover)
+            return(list(singlecover,nfact))
           }
         },mc.cores=newnc)  
 
@@ -1905,16 +2048,28 @@ observeEvent(input$confirmBAMassociate,{
 
       ##now attrib to each ROI the correct enrichments just calculated
       nameROIs=sapply(totallist,getName)
-      splittedresultlist=split(finallist,nameROIs)
+      finallist2=lapply(finallist,"[[",1)
+      normfinallist=lapply(finallist,"[[",2)
+      splittedresultlist=split(finallist2,nameROIs)
+      rm(finallist2)
       splittedtotallist=split(totallist,nameROIs)
+      #"for each ROI selected for enrich. computation..."
       for(i in 1:length(splittedresultlist)){
-        previouslist=getBAMlist(splittedtotallist[[i]][[1]])
+        #previouslist=getBAMlist(splittedtotallist[[i]][[1]])
+
+        ####newenrichimplementation####
+        nme=getName(splittedtotallist[[i]][[1]])
+        roilocation=match(nme,names(Enrichlist$rawcoverage))
+        previousrawvals=Enrichlist$rawcoverage[[roilocation]]
+        previousnormvals=Enrichlist$normfactlist[[roilocation]]
+        ###############################
+
         realnames=names(splittedtotallist[[i]])
         #get from bamlist the name
         pos=match(realnames,BAMvariables$listBAM)
         toname=names(BAMvariables$listBAM)[pos]
         names(splittedresultlist[[i]])=toname
-        #here, check if some finallist was NULL.
+        #here, check if some finallist2 was NULL.
         notnulls=!(sapply(splittedresultlist[[i]],is.null))
         #print message of something is NULL
         if(sum(notnulls)<length(toname)){
@@ -1928,17 +2083,38 @@ observeEvent(input$confirmBAMassociate,{
 
 
         splittedresultlist_notnull=splittedresultlist[[i]][notnulls]
-        finalfinallist=c(previouslist,splittedresultlist_notnull)
+        #finalfinallist=c(previouslist,splittedresultlist_notnull)
+
+
+        ####newenrichimplementation####
+        #to be modified
+        finalrawvals=c(previousrawvals,splittedresultlist_notnull)
+        names(normfinallist)=names(splittedresultlist_notnull)
+        finalnormvals=c(previousnormvals,normfinallist)
+        rm(previousrawvals)
+        rm(previousnormvals)
+        ###############################
         #which ROI?
         posROI=match(names(splittedresultlist)[i],nomi)
-        ROIvariables$listROI[[posROI]]=setBAMlist(ROIvariables$listROI[[posROI]],finalfinallist)
+
+        # ROIvariables$listROI[[posROI]]=setBAMlist(ROIvariables$listROI[[posROI]],finalfinallist)
+        ####newenrichimplementation####
+        #fill enrichlist
+        Enrichlist$rawcoverage[[posROI]]=finalrawvals
+        Enrichlist$normfactlist[[posROI]]=finalnormvals
+        ################################
+
+        rm(finalrawvals)
+        rm(finalnormvals)
+        #rm(finalfinallist)
+        rm(splittedresultlist_notnull)
+        
         for(k in toname){
           logvariables$msg[[length(logvariables$msg)+1]]=paste('Associated ',k,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,'<br>',sep="")
         }
         print(paste('Associated ',toname,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,sep=""))
       }
-
-
+      rm(splittedresultlist)
       print("forcing gc...")
       print(gc())  
       #alert the user that the block of files has been associated corectly to ROIs
@@ -1948,7 +2124,7 @@ observeEvent(input$confirmBAMassociate,{
         text = paste("Selected enrichment files has been associated to selected ROIs",sep=""),
         type = "success"
       ) 
-
+      return()
 
     },warning = function( w ){
       #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Warning: Problems in associating BAM or WIG. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1...<br></font>',sep="")
@@ -2012,20 +2188,26 @@ observeEvent(input$renameBAM,{
       nomi=unlist(lapply(ROIvariables$listROI,getName))
       pos=match(input$selectROIforBAMrename,nomi)
       roi=ROIvariables$listROI[[pos]]
-      getbam=names(getBAMlist(roi))  
+      ####newenrichimplementation####
+      rawvals=Enrichlist$rawcoverage[[pos]]
+      normvals=Enrichlist$normfactlist[[pos]]
+      ###############################
+      getbam=names(rawvals)  
       #check if name does not match with another existing BAM and at this ROI have at least one BAM
       if (!input$newBAMname %in% getbam & length(getbam)>0 ){
 
         for (i in 1:length(ROIvariables$listROI)){
-          getbam=names(getBAMlist(ROIvariables$listROI[[i]]))
+          bamselected=Enrichlist$rawcoverage[[i]]
+          getbam=names(bamselected)
           if(!input$newBAMname %in% getbam & length(getbam)>0){
             pos2=match(input$selectedBAMtoRename,getbam)
             #if BAM found in the current ROI in the loop
             if(!is.na(pos2)){
-              bamselected=getBAMlist(ROIvariables$listROI[[i]])
-              oldname=names(bamselected)[pos2]
+              oldname=getbam[pos2]
               names(bamselected)[pos2]=input$newBAMname
-              ROIvariables$listROI[[i]]=setBAMlist(ROIvariables$listROI[[i]],bamselected)
+              names(Enrichlist$rawcoverage[[i]])=names(bamselected)
+              names(Enrichlist$normfactlist[[i]])=  names(bamselected)            
+              #ROIvariables$listROI[[i]]=setBAMlist(ROIvariables$listROI[[i]],bamselected)
             }
           }
         }
@@ -2055,9 +2237,12 @@ observeEvent(input$reorderBAM,{
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$selectROIforBAMrename,nomi)
     roi=ROIvariables$listROI[[pos]]
-    getbam=names(getBAMlist(roi))  
-    bamsl=getBAMlist(roi)
-    
+    ####newenrichimplementation####
+    rawvals=Enrichlist$rawcoverage[[pos]]
+    normvals=Enrichlist$normfactlist[[pos]]
+    ###############################
+    getbam=names(rawvals)  
+
     if (length(getbam)>1 ){
       allnumbers=as.character(1:length(getbam))
       listprovv=list()
@@ -2073,12 +2258,17 @@ observeEvent(input$reorderBAM,{
         # ord=order(listprovv)
         ord=listprovv
         #reorder BAM 
-        bamsl=bamsl[order(ord)]
+        rawvals=rawvals[order(ord)]
+        normvals=normvals[order(ord)]
 
-        ROIvariables$listROI[[pos]]=setBAMlist(ROIvariables$listROI[[pos]],bamsl)
+
+        Enrichlist$rawcoverage[[pos]]=rawvals
+        Enrichlist$normfactlist[[pos]]=normvals
+        #ROIvariables$listROI[[pos]]=setBAMlist(ROIvariables$listROI[[pos]],rawvals)
+        
         if (!identical(unique(listprovv),unique(allnumbers))){
-          logvariables$msg[[length(logvariables$msg)+1]]= paste('BAM files reordered...<br>',sep="")
-          print("BAM files reordered")
+          logvariables$msg[[length(logvariables$msg)+1]]= paste('enrichment files reordered...<br>',sep="")
+          print("enrichment files reordered")
         }  
       }else{
         #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red"> There arent\' all possible position in new ranking...<br></font>',sep="")
@@ -3083,7 +3273,11 @@ observeEvent(input$PrepareROIpredefPipeline,{
   }
 
 
-  bams=getBAMlist(roi)
+  #bams=getBAMlist(roi)
+  ####newenrichimplementation####
+  bams=Enrichlist$rawcoverage[[pos]]
+  normvals=Enrichlist$normfactlist[[pos]]
+  ################################
   if(length(bams)>0){
     newBAMlist=list()
     for(i in 1:length(bams)){
@@ -3095,16 +3289,20 @@ observeEvent(input$PrepareROIpredefPipeline,{
   }
             
   newfix=getFixed(roi)[selectedPositions]
-  
+
   perc=round(quant/length(rangefromROI)*100,2)
   toadd=paste("ROI sampled (kept ",quant,"/",length(rangefromROI),"ranges,",perc,"%)")
   newSource=c(oldSource,list(toadd))
 
+  ####newenrichimplementation####
+  Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=newBAMlist
+  Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=normvals
+  ################################  
   ROI_after_sample=new("RegionOfInterest",
                                             name=input$ROInamePredefPipeline,
                                             range=newrange,
                                             fixed=newfix,
-                                            BAMlist=newBAMlist,
+                                            BAMlist=list(),
                                             flag=newflag,
                                             source=newSource)
 
@@ -3121,14 +3319,17 @@ observeEvent(input$PrepareROIpredefPipeline,{
   bams_names=names(newBAMlist)
   if(input$choiceSummitPredefPipeline=="Yes"){
     if(!input$selectBAMsummitPredefPipeline%in%bams_names){
-      #associate BAM/WIG
-      singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=paths_summit,
+      #associate BAM/WIG, no need to normalize, it's just summit. Useless for the same enrich. file
+      singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=NULL,
       						signalControl=NULL,signalControlSpike=NULL)
+      #we don't need to keep any norm fact here, it's just the summit
+      singlecover=singlecover[[1]]
       if(verifyzerocov(singlecover)){
         print ("cov is 0s... converting nomelclature to NCBI for summit cov detection...")
         temprange=convertNomenclatureGR(getRange(ROI_after_sample),to="NCBI")
         temproi=setRange(ROI_after_sample,temprange)
-        singlecover=cover(Object=temproi,signalfile=paths_summit,signalfileNorm=paths_summit,signalControl=NULL,signalControlSpike=NULL)
+        singlecover=cover(Object=temproi,signalfile=paths_summit,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL)
+        singlecover=singlecover[[1]]
       }
     }else{
       #do nothing, enrichment already in ROI. Use BAM already present to center on summit
@@ -3153,7 +3354,10 @@ observeEvent(input$PrepareROIpredefPipeline,{
         elementMetadata(newrange)=annotatedpart
       }
     }    
-
+    ####newenrichimplementation####
+    Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=list()
+    Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=list()
+    ################################ 
     ROI_after_summit=new("RegionOfInterest",
                                             name=input$ROInamePredefPipeline,
                                             range=newrange,
@@ -3178,8 +3382,9 @@ observeEvent(input$PrepareROIpredefPipeline,{
   roi=getRange(ROI_after_summit)
   oldSource=getSource(ROI_after_summit)
   fix=start(getFixed(ROI_after_summit))
-  bamlist=getBAMlist(ROI_after_summit)
-
+  #bamlist=getBAMlist(ROI_after_summit)
+  bamlist=Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]
+  normfact=Enrichlist$normfactlist[[input$ROInamePredefPipeline]]
   #split positive or undetermined strand from negative strand
   pos_positive=as.logical(!strand(roi)=="-")
   pos_negative=as.logical(strand(roi)=="-")
@@ -3229,7 +3434,8 @@ observeEvent(input$PrepareROIpredefPipeline,{
   #ROI_after_summit=setFix(ROI_after_summit,newfix)
   newrange=roi
 
-  #to be checked when BAM files will be available
+  #to be checked when BAM files will be available. If not, also norm fact are not, so 
+  #no need to update norm facts
   if (length(bamlist)>0){
     #if not everything is less than the old size in any position, reset BAMlist!
     if (! (all((fix_positive-oldstarts_positive) >= newstart) & all((oldends_positive-fix_positive)>= newend) )
@@ -3298,14 +3504,19 @@ observeEvent(input$PrepareROIpredefPipeline,{
     }
   }else{
     newBAMlist=list()
+    normfact=list()
   }
 
   newSource=c(oldSource,list(toadd))
+  ####newenrichimplementation####
+  Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=newBAMlist
+  Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=normfact
+  ################################   
   ROI_after_resize=new("RegionOfInterest",
                                 name=input$ROInamePredefPipeline,
                                 range=newrange,
                                 fixed=newfix,
-                                BAMlist=newBAMlist,
+                                BAMlist=list(),
                                 flag=newflag,
                                 source=newSource) 
 
@@ -3325,7 +3536,9 @@ observeEvent(input$PrepareROIpredefPipeline,{
   ##################################################################################
   ncores=input$coresPredefPipeline
   enrichments_selected=input$enrichAllPredefPipeline
-  enrichments_alreadyAssociated=getBAMlist(ROI_after_resize)
+  #enrichments_alreadyAssociated=getBAMlist(ROI_after_resize)
+  enrichments_alreadyAssociated=Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]
+  previousnormvals =Enrichlist$normfactlist[[input$ROInamePredefPipeline]]
   
   #determine which enrichments are already associated
   enrichments_toAssociate=setdiff(enrichments_selected,names(enrichments_alreadyAssociated))
@@ -3334,41 +3547,62 @@ observeEvent(input$PrepareROIpredefPipeline,{
 
 
   #depending if only one operation, lapply or mclapply with n cores
+  #by default, simple library-size normalization (except WIGs)
   #IMPORTANT: NEVER TANSCRIPT FLAG
   if(length(enrichments_selected)>=1){
     if(ncores==1 | length(enrichments_toAssociate)==1 | length(paths)==1){
       #single core (lapply)
       finallist=lapply(1:length(paths),function(i) {
         singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        normfacts=singlecover[[2]]
+        singlecover=singlecover[[1]]
         print(paste("Associating ",paths[i]," in single core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
         	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
         	temproi=setRange(ROI_after_resize,temprange)
         	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+          normfacts=singlecover[[2]]
+          singlecover=singlecover[[1]]
         }
-        return(singlecover)
+        return(list(singlecover,normfacts))
       })
 
     }else{
       #multicore (mclapply)
       finallist=mclapply(1:length(paths),function(i) {
         singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        normfacts=singlecover[[2]]
+        singlecover=singlecover[[1]]        
         print(paste("Associating ",paths[i]," in multi core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
         	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
         	temproi=setRange(ROI_after_resize,temprange)
         	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+          normfacts=singlecover[[2]]
+          singlecover=singlecover[[1]]        
         }
-        return(singlecover)
+        return(list(singlecover,normfacts))
       },mc.cores=ncores)
     }
 
     #put names to new enrichments
-    names(finallist)=names(paths)
-    finalfinallist=c(enrichments_alreadyAssociated,finallist)
-    ROI_after_associate=setBAMlist(ROI_after_resize,finalfinallist)
+    finallist2=lapply(finallist,"[[",1)
+    normfinallist=lapply(finallist,"[[",2)
+    names(finallist2)=names(normfinallist)=names(paths)
+    finalfinallist=c(enrichments_alreadyAssociated,finallist2)
+
+    
+    finalnormvals=c(previousnormvals,normfinallist)
+
+    ####newenrichimplementation####
+    #fill enrichlist
+    Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=finalfinallist
+    Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=finalnormvals
+
+    ROI_after_associate=ROI_after_resize
+    #ROI_after_associate=setBAMlist(ROI_after_resize,finalfinallist)
   }else{
     ROI_after_associate=ROI_after_resize
   }

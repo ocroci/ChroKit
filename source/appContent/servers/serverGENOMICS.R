@@ -158,27 +158,31 @@ observeEvent(input$plotSingleEval,{
               output$savewidthDistributionSingleEval=renderUI({NULL})
             }
 
+            #extract enrichment from correct position of the ROI selected
+            rawvals=Enrichlist$rawcoverage[[pos]]
+            normvals=Enrichlist$normfactlist[[pos]]
 
-
-      		getbam=names(getBAMlist(roi))
+      		  getbam=names(rawvals)
 
             toplot$viewDistributionPieSingleEval$getbam=getbam
             toplot$viewDistributionPieSingleEval$chooseNormalizationSingleEval=input$chooseNormalizationSingleEval
 
-      		if (!is.null(getbam)& length(getbam)>0){
-      		  pos2=match(input$BAMchooseSingleEval,getbam)
-  			  bam_orig=getBAMlist(roi)[[pos2]]
-              #bam=unlist(lapply(bam,sum))
-  			  #calculate enrichments for boxplots
-  			  bam_promo_orig=bam_orig[ov_range>0]
-  			  bam_ws_orig=bam_orig[ov_range==0]
-  			  bam_intra_orig=bam_ws_orig[ov_transcripts>0]
-  			  bam_inter_orig=bam_ws_orig[ov_transcripts==0]
+        		if (!is.null(getbam)& length(getbam)>0){
+        		  pos2=match(input$BAMchooseSingleEval,getbam)
+      			  bam_orig=rawvals[[pos2]]
+              norm_orig=normvals[[pos]]
+                  #bam=unlist(lapply(bam,sum))
+      			  #calculate enrichments for boxplots
+      			  bam_promo_orig=bam_orig[ov_range>0]
+      			  bam_ws_orig=bam_orig[ov_range==0]
+      			  bam_intra_orig=bam_ws_orig[ov_transcripts>0]
+      			  bam_inter_orig=bam_ws_orig[ov_transcripts==0]
+ 
 
-              bam=unlist(lapply(bam_orig,sum))
-              bam_promo=unlist(lapply(bam_promo_orig,sum))
-              bam_intra=unlist(lapply(bam_intra_orig,sum))
-              bam_inter=unlist(lapply(bam_inter_orig,sum))
+              bam=unlist(lapply(bam_orig,sum))*norm_orig
+              bam_promo=unlist(lapply(bam_promo_orig,sum))*norm_orig
+              bam_intra=unlist(lapply(bam_intra_orig,sum))*norm_orig
+              bam_inter=unlist(lapply(bam_inter_orig,sum))*norm_orig
 
               toplot$viewDistributionPieSingleEval$bam=bam
               toplot$viewDistributionPieSingleEval$bam_promo=bam_promo
@@ -227,7 +231,7 @@ observeEvent(input$plotSingleEval,{
               toplot$viewDistributionPieSingleEval$ylabprofile=ylab
               for(i in 1:length(listtoprofile)){
                 if(length(listtoprofile[[i]])>0){
-                  matrixes[[i]]=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=listtoprofile[[i]],Nbins=50,Snorm=normmethod)
+                  matrixes[[i]]=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=listtoprofile[[i]],Nbins=50,Snorm=normmethod,norm_factor=norm_orig)
                 }else{
                   matrixes[[i]]=matrix(rep(0,50),nrow=1)
                 }
@@ -673,8 +677,13 @@ observeEvent(input$plotCmp,{
 
 
     #now, check BAMlists of the 2 ROIs selected
-    getbam1=names(getBAMlist(roi1))  
-    getbam2=names(getBAMlist(roi2))   
+    rawvals1=Enrichlist$rawcoverage[[pos1]]
+    normvals1=Enrichlist$normfactlist[[pos1]]
+    rawvals2=Enrichlist$rawcoverage[[pos2]]
+    normvals2=Enrichlist$normfactlist[[pos2]]
+    
+    getbam1=names(rawvals1)  
+    getbam2=names(rawvals2)   
 
     toplot$cmp$getbam1=getbam1
     toplot$cmp$getbam2=getbam2
@@ -695,8 +704,9 @@ observeEvent(input$plotCmp,{
       #if BAM1 is present and selected, proceed
       if(nchar(BAM1_choose)>0){
         pos_bam1_1=match(BAM1_choose,getbam1)
-        bam1_1=getBAMlist(roi1)[[pos_bam1_1]]
-        bam1_1=unlist(lapply(bam1_1,sum))
+        bam1_1=rawvals1[[pos_bam1_1]]
+        norm1_1=normvals1[[pos_bam1_1]]
+        bam1_1=unlist(lapply(bam1_1,sum))*norm1_1
         if(!is.null(bam1_1)){
           range1only_bam1=bam1_1[-qh]
           if (input$chooseNormalizationCmp=="readdensity"){
@@ -723,8 +733,9 @@ observeEvent(input$plotCmp,{
           #but in the exclusive regions of ROI2!!
           pos_bam1_2=match(BAM1_choose,getbam2)
           if(!is.na(pos_bam1_2) & length(pos_bam1_2)>0){
-            bam1_2=getBAMlist(roi2)[[pos_bam1_2]]
-            bam1_2=unlist(lapply(bam1_2,sum)) 
+            bam1_2=rawvals2[[pos_bam1_2]]
+            norm1_2=normvals2[[pos_bam1_2]]
+            bam1_2=unlist(lapply(bam1_2,sum))*norm1_2
             range2only_bam1=bam1_2[-sh]       
             if(input$chooseNormalizationCmp=="readdensity") {
               range2only_bam1=range2only_bam1/width(range2_notov)
@@ -749,8 +760,9 @@ observeEvent(input$plotCmp,{
       #if BAM2 is present and selected, proceed
       if(nchar(BAM2_choose)>0){
         pos_bam2_2=match(BAM2_choose,getbam2)
-        bam2_2=getBAMlist(roi2)[[pos_bam2_2]]
-        bam2_2=unlist(lapply(bam2_2,sum))
+        bam2_2=rawvals2[[pos_bam2_2]]
+        norm2_2=normvals2[[pos_bam2_2]]
+        bam2_2=unlist(lapply(bam2_2,sum))*norm2_2
 
         if(!is.null(bam2_2)){
           range2only_bam2=bam2_2[-sh]
@@ -768,8 +780,9 @@ observeEvent(input$plotCmp,{
           #if BAM2 is associated also with ROI 1,
           pos_bam2_1=match(BAM2_choose,getbam1)
           if(!is.na(pos_bam2_1) & length(pos_bam2_1)>0){
-            bam2_1=getBAMlist(roi1)[[pos_bam2_1]]
-            bam2_1=unlist(lapply(bam2_1,sum))
+            bam2_1=rawvals1[[pos_bam2_1]]
+            norm2_1=normvals1[[pos_bam2_1]]
+            bam2_1=unlist(lapply(bam2_1,sum))*norm2_1
             range1only_bam2=bam2_1[-qh]
             if(input$chooseNormalizationCmp=="readdensity"){
               range1only_bam2=range1only_bam2/width(range1_notov)
@@ -1329,6 +1342,8 @@ observeEvent(toListenDigitalHeat(),{
     pos=match(input$ROImaster,nomi)
     #all master rois selected
     roi=ROIvariables$listROI[pos]
+    rawvals=Enrichlist$rawcoverage[pos]
+    normvals=Enrichlist$normfactlist[pos]
     maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
     
     toplot$digital$maxbinstohave=maxbinstohave
@@ -1366,6 +1381,7 @@ observeEvent(toListenDigitalHeat(),{
       nbin=input$binsDigitalHeat
       bigrange=list()
       bigbamlist=list()
+      bignormlist=list()
       fixes=list()
       ranges_forclick=list()
       #loop through all master ROIs selected
@@ -1376,7 +1392,9 @@ observeEvent(toListenDigitalHeat(),{
         bigrange[[i]]$label=nameROI[i]
 
         ranges_forclick[[i]]=rangeroi
-        bigbamlist[[i]]=getBAMlist(unifROI)
+
+        bigbamlist[[i]]=rawvals[[i]]
+        bignormlist[[i]]=normvals[[i]]
         fixes[[i]]=granges(getFixed(unifROI))
 
       }
@@ -1962,9 +1980,11 @@ observeEvent(toListenDigitalHeat(),{
             #if custering will be drown, it means that we have 1 master ROI and clustering is ok.
             #therefore, keep info for subsequent subselection based on the click on cluster            
             #remember that this ROI must be re-annotated
-            #1-define the starting "material", obtained at the beginning of the heat button:
+            #1-define the starting "material", obtained at the beginning of the heat button (for the first
+            #and the only master ROI selected):
             range_tokeep=ranges_forclick[[1]]
             bams_tokeep=bigbamlist[[1]]
+            normfact_tokeep=bignormlist[[1]]
             fix_tokeep=fixes[[1]]
             #2-subsample them (1 single ROI)
             range_tokeep=range_tokeep[Digital_sample_pos]
@@ -1978,7 +1998,8 @@ observeEvent(toListenDigitalHeat(),{
             toplot$digital$range_tokeep=range_tokeep
             toplot$digital$bams_tokeep=bams_tokeep
             toplot$digital$fix_tokeep=fix_tokeep
-
+            #add also norm factors (not subsampled nor reordered, but keep them)
+            toplot$digital$normfact_tokeep=normfact_tokeep
 
             if (clusterTypeDigitalHeat=="hierarchical"){
               # use  toplot$digital$clustering from clusterMatrix function
@@ -2007,6 +2028,7 @@ observeEvent(toListenDigitalHeat(),{
             toplot$digital$clusternumbermatrix=NULL
             toplot$digital$range_tokeep=NULL
             toplot$digital$bams_tokeep=NULL
+            toplot$digital$normfact_tokeep=NULL
             toplot$digital$fix_tokeep=NULL
           }
         }else{
@@ -2015,6 +2037,7 @@ observeEvent(toListenDigitalHeat(),{
           toplot$digital$clusternumbermatrix=NULL
           toplot$digital$range_tokeep=NULL
           toplot$digital$bams_tokeep=NULL
+          toplot$digital$normfact_tokeep=NULL
           toplot$digital$fix_tokeep=NULL
         }
 
@@ -2024,6 +2047,7 @@ observeEvent(toListenDigitalHeat(),{
         toplot$digital$color_distinct_cluster=NULL
         toplot$digital$range_tokeep=NULL
         toplot$digital$bams_tokeep=NULL
+        toplot$digital$normfact_tokeep=NULL
         toplot$digital$fix_tokeep=NULL
       }
 
@@ -2264,6 +2288,7 @@ observeEvent(toListenDigitalHeat(),{
       output$clustersImageLeftDigital<-renderPlot({NULL})
       toplot$digital$range_tokeep=NULL
       toplot$digital$bams_tokeep=NULL
+      toplot$digital$normfact_tokeep=NULL
       toplot$digital$fix_tokeep=NULL
       output$newROIfromDigitalHeat_out<-renderUI({NULL})
       output$textfractionelementsDigitalHeat<-renderText({NULL})
@@ -2292,6 +2317,7 @@ observeEvent(toListenDigitalHeat(),{
     output$clustersImageLeftDigital<-renderPlot({NULL})
     toplot$digital$range_tokeep=NULL
     toplot$digital$bams_tokeep=NULL
+    toplot$digital$normfact_tokeep=NULL
     toplot$digital$fix_tokeep=NULL
     output$newROIfromDigitalHeat_out<-renderUI({NULL})
     output$textfractionelementsDigitalHeat<-renderText({NULL})
@@ -2576,14 +2602,16 @@ observeEvent(input$confirmImportROIfromDigitalHeat,{
           flag=getFlag(originalROI)
           toadd=paste("extracted ",length(range_sel)," ranges from digital heatmap",sep="")
           newSource=c(oldSource,list(toadd))    
-
+          Enrichlist$rawcoverage[[input$newROIfromDigitalHeat]]=bams_sel
+          Enrichlist$normfactlist[[input$newROIfromDigitalHeat]]=toplot$digital$normfact_tokeep
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                 name=input$newROIfromDigitalHeat,
                                 range=range_sel,
                                 fixed=fix_sel,
-                                BAMlist=bams_sel,
+                                BAMlist=list(),
                                 flag=flag,
-                                source=newSource)      
+                                source=newSource) 
+     
           logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$newROIfromDigitalHeat,' ROI, extracting ',length(fix_sel),' elements from digital heatmap<br>',sep="")
           print(paste('Created ',input$newROIfromDigitalHeat,' ROI, extracting ',length(fix_sel),' elements from a cluster of digital heatmap',sep=""))
           sendSweetAlert(
@@ -2731,8 +2759,11 @@ observeEvent(toListenAnalogHeat(),{
     pos=match(input$ROIsForAnalogHeat,nomi)
     #all rois selected
     roi=ROIvariables$listROI[pos]
-    maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
 
+    rawvals=Enrichlist$rawcoverage[pos]
+    normvals=Enrichlist$normfactlist[pos]
+
+    maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
     toplot$analogic$maxbinstohave=maxbinstohave
 
     if(input$binsAnalogHeat<=maxbinstohave){
@@ -2743,6 +2774,8 @@ observeEvent(toListenAnalogHeat(),{
       fixes=list()
       BAMs=list()
       bamnames=list()
+      normlisttouse=list() #for usage, same as bigbamlist
+      normlisttostore=list() #for extraction, same as BAMs
       completerange=list()
       for(i in 1:length(roi)){
         #may cause problems: slow and when re-build ROI from heatmap selection,
@@ -2755,13 +2788,16 @@ observeEvent(toListenAnalogHeat(),{
         #we have to collapse => all ranges must have the same columns
         bigrange[[i]]=granges(completerange[[i]])
         bigrange[[i]]$label=nameROI[i]      
-        totbams=getBAMlist(unifROI)
+        
+        totbams=rawvals[[i]]
         BAMs[[i]]=totbams
+        normlisttostore[[i]]=normvals[[i]]
+
         #order even if BAM reordered, should be fine
         bamnames[[i]]=names(totbams)
         pos2=match(toplot$analogic$BAMsForAnalogHeat,bamnames[[i]])
         bigbamlist[[i]]=totbams[pos2]
-        
+        normlisttouse[[i]]=normvals[[i]][pos2]
       }
 
       #collapse all selected ranges into a single, big range list
@@ -2852,6 +2888,8 @@ observeEvent(toListenAnalogHeat(),{
                 cumulatesum=cumulatesum+length(BAMs[[i]][[1]])
               }
               names(finalbam)=input$ROIsForAnalogHeat
+              #here, the normalizations should keep the same as before: normlisttostore, because they 
+              #do not undergo random sample (one single value for each enrichment!)
               #split also finalrange_sampled and fixes according to "labelstosplit"
               # finalrange_sampled_split=split( finalrange_sampled ,factor(labelstosplit,levels=unique(labelstosplit)))
               # fixes_sampled_split=split( fixes ,factor(labelstosplit,levels=unique(labelstosplit)))          
@@ -2871,10 +2909,6 @@ observeEvent(toListenAnalogHeat(),{
                 subselectedBAMlist[[i]]=provv
               }
 
-
-
-              #print("subselect")
-
               #use only finalBAMs_sample_pos positions sample. This is because the "random" sample
               #number refers to the total number of rows plotted, and not for each range.
               #this means that we have to merge matrixes first and then subsample. This will keep 
@@ -2885,8 +2919,6 @@ observeEvent(toListenAnalogHeat(),{
               #ROIs must be in the higher order hierarchy of list 
               slicedbamlist=as.list(rep(NA,length(toplot$analogic$BAMsForAnalogHeat)))
               slicedbamlist=rep(list(slicedbamlist),length(input$ROIsForAnalogHeat))
-              
-              #print("prepping BAM pieces to process")
               for(i in 1:length(subselectedBAMlist)){
                 slicedbamlist2=split(subselectedBAMlist[[i]],factor(labelstosplit,levels=unique(labelstosplit)))
                 #for each ROI obtained after split
@@ -2894,6 +2926,7 @@ observeEvent(toListenAnalogHeat(),{
                   slicedbamlist[[k]][[i]]=slicedbamlist2[[k]]
                 }      
               }
+              #here, check if normlisttouse follows the same hierarchy of slicedbamlist (ROI/enrich)
               
               #transform the lists of baseCoverage output in binned matrixes lists
               #check if ROI have fixed size: if so, create the matrixes without bins, then bin
@@ -2907,21 +2940,18 @@ observeEvent(toListenAnalogHeat(),{
 
               if(length(slicedbamlist)<length(slicedbamlist[[1]])){
                 #if BAMs>ROIs, paralllize at BAM level
-
                 matlists=lapply(1:length(slicedbamlist),function(i) {
                   #in case, filter for transcript flag if mem problems
 
                   if(nc==1){
                     matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                       })
                   }else{
-
                     decision=0
                     tryCatch({
                       matlist=mclapply(1:length(slicedbamlist[[i]]),function(k) {
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                       },mc.cores=nc) 
                       #if multicore returned correctly, decision==1, following if won't be calculated..
                       decision=1
@@ -2936,7 +2966,7 @@ observeEvent(toListenAnalogHeat(),{
                     if(decision==0){
                       print("Detected problems, maybe memory limits...")
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                       })
                     }
                   }
@@ -2964,9 +2994,8 @@ observeEvent(toListenAnalogHeat(),{
                 if(nc==1){
                   matlists=lapply(1:length(slicedbamlist),function(i) {
                     #in case, filter for transcript flag if mem problems
-
                     matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                          return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                          return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                         }) 
                     ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                     ###is a ROI. 
@@ -2985,9 +3014,8 @@ observeEvent(toListenAnalogHeat(),{
                   tryCatch({
                     matlists=mclapply(1:length(slicedbamlist),function(i) {
                       #in case, filter for transcript flag if mem problems
-
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                       ###is a ROI. 
@@ -3017,7 +3045,7 @@ observeEvent(toListenAnalogHeat(),{
                       #in case, filter for transcript flag if mem problems
 
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE))
+                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                       ###is a ROI. 
@@ -3027,7 +3055,6 @@ observeEvent(toListenAnalogHeat(),{
                       for(k in 1:length(matlist)){
                         #for each of the BAM file in this current ROI;
                         matprovv=matlist[[k]]
-
                         if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
                           matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
                         }
@@ -3043,9 +3070,6 @@ observeEvent(toListenAnalogHeat(),{
 
 
               #return matlists in any case. If fixed size is the same for all, return complete matrix
-              #print("matrixes from basecov done...")
-              
-
 
               #transform the matrixlists using clustering or ordering. Keep the order
               #find cluster inds
@@ -3196,6 +3220,7 @@ observeEvent(toListenAnalogHeat(),{
               
               toplot$analogic$finalrange=completerange
               toplot$analogic$finalbam=finalbam
+              toplot$analogic$finalnorm=normlisttostore
               toplot$analogic$finalfixes=fixes
 
 
@@ -3551,6 +3576,7 @@ observeEvent(toListenAnalogHeat(),{
               output$textNameAnalogHeat <- renderPlot({NULL})
               toplot$analogic$finalrange=NULL
               toplot$analogic$finalbam=NULL
+              toplot$analogic$finalnorm=NULL
               toplot$analogic$finalfixes=NULL
               heatvariables$matlist=NULL   
               output$clustersImageLeft<-renderPlot({NULL})    
@@ -3578,6 +3604,7 @@ observeEvent(toListenAnalogHeat(),{
             output$textNameAnalogHeat <- renderPlot({NULL})
             toplot$analogic$finalrange=NULL
             toplot$analogic$finalbam=NULL
+            toplot$analogic$finalnorm=NULL
             toplot$analogic$finalfixes=NULL
             heatvariables$matlist=NULL   
             output$clustersImageLeft<-renderPlot({NULL})    
@@ -3609,6 +3636,7 @@ observeEvent(toListenAnalogHeat(),{
           output$textNameAnalogHeat <- renderPlot({NULL})
           toplot$analogic$finalrange=NULL
           toplot$analogic$finalbam=NULL
+          toplot$analogic$finalnorm=NULL
           toplot$analogic$finalfixes=NULL
           heatvariables$matlist=NULL   
           output$clustersImageLeft<-renderPlot({NULL})    
@@ -3638,6 +3666,7 @@ observeEvent(toListenAnalogHeat(),{
         output$textNameAnalogHeat <- renderPlot({NULL})
         toplot$analogic$finalrange=NULL
         toplot$analogic$finalbam=NULL
+        toplot$analogic$finalnorm=NULL
         toplot$analogic$finalfixes=NULL
         heatvariables$matlist=NULL
         output$clustersImageLeft<-renderPlot({NULL})
@@ -3661,6 +3690,7 @@ observeEvent(toListenAnalogHeat(),{
       output$textNameAnalogHeat <- renderPlot({NULL})
       toplot$analogic$finalrange=NULL
       toplot$analogic$finalbam=NULL
+      toplot$analogic$finalnorm=NULL
       toplot$analogic$finalfixes=NULL
       heatvariables$matlist=NULL
       #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">Number of bins is > than width of smallest range. Decrease number of bins or filter range based on width<br></font>'
@@ -3685,6 +3715,7 @@ observeEvent(toListenAnalogHeat(),{
     output$textNameAnalogHeat <- renderPlot({NULL})
     toplot$analogic$finalrange=NULL
     toplot$analogic$finalbam=NULL
+    toplot$analogic$finalnorm=NULL
     toplot$analogic$finalfixes=NULL
     heatvariables$matlist=NULL
     output$clustersImageLeft<-renderPlot({NULL})
@@ -4193,6 +4224,7 @@ observeEvent(input$confirmImportROIfromAnalogHeat,{
             correct_range=toplot$analogic$finalrange[[pos]][newstart:newstop]
             correct_fix=toplot$analogic$finalfixes[[pos]][newstart:newstop]
             correct_bams=toplot$analogic$finalbam[[pos]]
+            correct_norm=toplot$analogic$finalnorm[[pos]]
             newBAMlist=as.list(rep(NA,length(correct_bams)))
             for(i in 1:length(newBAMlist)){
               newBAMlist[[i]]=correct_bams[[i]][newstart:newstop]
@@ -4210,11 +4242,13 @@ observeEvent(input$confirmImportROIfromAnalogHeat,{
               toadd=paste("extracted ",length(correct_range)," ranges from analogic heatmap",sep="")
               newSource=c(oldSource,list(toadd))
               #we should have all the elements... create ROI!
+              Enrichlist$rawcoverage[[input$newROIfromAnalogHeat]]=newBAMlist
+              Enrichlist$normfactlist[[input$newROIfromAnalogHeat]]=correct_norm
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                               name=input$newROIfromAnalogHeat,
                                               range=correct_range,
                                               fixed=correct_fix,
-                                              BAMlist=newBAMlist,
+                                              BAMlist=list(),
                                               flag=flag,
                                               source=newSource)
               logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$newROIfromAnalogHeat,' ROI, extracting ',length(correct_fix),' elements from analogic heatmap<br>',sep="")
@@ -4343,6 +4377,8 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     pos=match(input$ROIsForProfilesAndBox,nomi)
     #all rois selected
     roi=ROIvariables$listROI[pos]
+    rawvals=Enrichlist$rawcoverage[pos]
+    normvals=Enrichlist$normfactlist[pos]
     maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
 
     toplot$profileAndBoxes$maxbinstohave=maxbinstohave
@@ -4350,17 +4386,21 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     if(input$binsProfilesAndBox<maxbinstohave){
       nameROI=unlist(lapply(roi,getName))
       bigbamlist=list()
+      bignormlist=list()
       strands=as.list(rep(NA,length(roi)))
       for(i in 1:length(roi)){
         unifROI=uniqueROI(roi[[i]])
         strands[[i]]=as.factor(strand(getRange(uniqueROI(roi[[i]]))))
-        allbams=names(getBAMlist(unifROI) )
+
+        allbams=names(rawvals[[i]] )
         pos2=match(input$BAMsForProfilesAndBox,allbams)
         #order even if BAM reordered, should be fine
-        bigbamlist[[i]]=getBAMlist(unifROI)[pos2]
+        bigbamlist[[i]]=rawvals[[i]][pos2]
+        bignormlist[[i]]=normvals[[i]][pos2]
         names(bigbamlist[[i]])=input$BAMsForProfilesAndBox
+        names(bignormlist[[i]])=input$BAMsForProfilesAndBox
       }
-      names(bigbamlist)=nameROI
+      names(bigbamlist)=names(bignormlist)=nameROI
       
       #from bigbamlist (1st order: roi, 2nd order: BAM) do the binning from baseCOverage to matrix
 
@@ -4377,7 +4417,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       if(nc==1){
         matlists=lapply(1:length(bigbamlist),function(i) {
           matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                      return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic))
+                      return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
                     }) 
           names(matlist)=names(bigbamlist[[i]])
           # ###HERE invert "-" strand. They are in strands list. each element of this list
@@ -4401,7 +4441,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
           if(length(bigbamlist)>length(bigbamlist[[i]])){
             matlists=mclapply(1:length(bigbamlist),function(i) {
               matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic))
+                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
                         }) 
               names(matlist)=names(bigbamlist[[i]])
 
@@ -4423,7 +4463,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
           }else{
             matlists=lapply(1:length(bigbamlist),function(i) {
               matlist=mclapply(1:length(bigbamlist[[i]]),function(k) {
-                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic))
+                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
                         },mc.cores=nc) 
               names(matlist)=names(bigbamlist[[i]])
 
@@ -4455,7 +4495,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
         if(decision==0){
           matlists=lapply(1:length(bigbamlist),function(i) {
             matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                        return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic))
+                        return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
                       }) 
             names(matlist)=names(bigbamlist[[i]])
 
@@ -4482,14 +4522,18 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       #obtain list form list of lists
       portionlist=list()
       listforbox=list()
+      normforbox=list()
       for(i in 1:length(matlists)){
         provv=matlists[[i]]
         provv_box=bigbamlist[[i]]
-        names(provv)=names(provv_box)=paste("ROI:",names(matlists)[i]," (",nrow(matlists[[i]][[1]]),"); ",names(matlists[[i]]),sep="" )
+        provv_normbox=bignormlist[[i]]
+        names(provv)=names(provv_box)=names(provv_normbox)=paste("ROI:",names(matlists)[i]," (",nrow(matlists[[i]][[1]]),"); ",names(matlists[[i]]),sep="" )
         portionlist=c(portionlist,provv)
         listforbox=c(listforbox,provv_box)
-
+        normforbox=c(normforbox,provv_normbox)
       }
+
+      #while values for profiles were already normalized, values for boxes are not
 
       #print("collapse matrixes")
       #apply mean on the matrix/median
@@ -4502,8 +4546,9 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       #of the division
       portionlist_boxes=lapply(1:length(listforbox),function(i){
         block=listforbox[[i]]
+        norm=normforbox[[i]]
         len=sapply(block,length)
-        mat_boxes=sapply(block,sum)
+        mat_boxes=sapply(block,sum)*norm
         if(input$chooseNormalizationProfilesAndBox=="readdensity"){
           mat_boxes=mat_boxes/len
         }  
@@ -5212,9 +5257,15 @@ observeEvent(input$plotDynamics,{
       pos_TES= which(searchname_TES==nomi)
       roi_TES= unifyStrand(ROIvariables$listROI[[pos_TES]])   
       #get BAM for each roi of that genelist 
-      BAM_promoters=names(getBAMlist(roi_promoters))
-      BAM_transcripts=names(getBAMlist(roi_transcripts))      
-      BAM_TES=names(getBAMlist(roi_TES)) 
+      rawvals_promoters=Enrichlist$rawcoverage[[pos_promoters]]
+      normvals_promoters=Enrichlist$normfactlist[[pos_promoters]]
+      rawvals_transcripts=Enrichlist$rawcoverage[[pos_transcripts]]
+      normvals_transcripts=Enrichlist$normfactlist[[pos_transcripts]]
+      rawvals_TES=Enrichlist$rawcoverage[[pos_TES]]
+      normvals_TES=Enrichlist$normfactlist[[pos_TES]]
+      BAM_promoters=names(rawvals_promoters)
+      BAM_transcripts=names(rawvals_transcripts)      
+      BAM_TES=names(rawvals_TES) 
 
       for(k in 1:length(input$BAMforDynamics)){
         #extract baseCoverage for promoters/transcripts/TES for that gene list   
@@ -5222,9 +5273,12 @@ observeEvent(input$plotDynamics,{
         pos_BAM_promoters=which(BAMnametosearch==BAM_promoters)
         pos_BAM_transcripts=which(BAMnametosearch==BAM_transcripts)
         pos_BAM_TES=which(BAMnametosearch==BAM_TES)
-        content_promoters=getBAMlist(roi_promoters)[[pos_BAM_promoters]]
-        content_transcripts=getBAMlist(roi_transcripts)[[pos_BAM_transcripts]]
-        content_TES=getBAMlist(roi_TES)[[pos_BAM_TES]]
+        content_promoters=rawvals_promoters[[pos_BAM_promoters]]
+        contentnorm_promoters=normvals_promoters[[pos_BAM_promoters]]
+        content_transcripts=rawvals_transcripts[[pos_BAM_transcripts]]
+        contentnorm_transcripts=normvals_transcripts[[pos_BAM_transcripts]]
+        content_TES=rawvals_TES[[pos_BAM_TES]]
+        contentnorm_TES=normvals_TES[[pos_BAM_TES]]
         #for this genelist (p,t,t) and BAM, for promoter, transcripts and TES, calculate
         #profiles and box on the promoters,gb,TES
         #calculate content_transcripts_mod for gb only, where you cut 30% AND TSS down and TES up
@@ -5284,8 +5338,8 @@ observeEvent(input$plotDynamics,{
         #PROFILES
         
         #calc. matrixes for profiles, and invert negative strand
-        matcov_plus=makeMatrixFrombaseCoverage(content_transcripts_plus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization)
-        matcov_minus=makeMatrixFrombaseCoverage(content_transcripts_minus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization)
+        matcov_plus=makeMatrixFrombaseCoverage(content_transcripts_plus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
+        matcov_minus=makeMatrixFrombaseCoverage(content_transcripts_minus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
         matcov_minus <- matcov_minus[ , ncol(matcov_minus):1]
         matcov=rbind(matcov_plus,matcov_minus)
         #calculate median instead of mean
@@ -5302,20 +5356,21 @@ observeEvent(input$plotDynamics,{
 
         content_transcripts_mod_plus=cutAndSumTranscripts(GRbaseCoverageOutput=content_transcripts_plus,
                                                       StartingPositions=start_pos_plus,
-                                                      EndingPositions=end_pos_plus)
+                                                      EndingPositions=end_pos_plus,
+                                                      norm_factor=contentnorm_transcripts)
         content_transcripts_mod_minus=cutAndSumTranscripts(GRbaseCoverageOutput=content_transcripts_minus,
                                                       StartingPositions=start_pos_minus,
-                                                      EndingPositions=end_pos_minus)
+                                                      EndingPositions=end_pos_minus,
+                                                      norm_factor=contentnorm_transcripts)
 
         #join mod plus and minus
         content_transcripts_mod=c(content_transcripts_mod_plus,content_transcripts_mod_minus)
-
         #BOXPLOTS
         #for boxplots, sum everything inside TSS,TES and the part of the transcripts cut before
 
-        totallist_boxplot[[1]][[i]][[k]]=sapply(content_promoters[tokeep],sum)
+        totallist_boxplot[[1]][[i]][[k]]=sapply(content_promoters[tokeep],sum)*contentnorm_promoters
         totallist_boxplot[[2]][[i]][[k]]=content_transcripts_mod
-        totallist_boxplot[[3]][[i]][[k]]=sapply(content_TES[tokeep],sum)
+        totallist_boxplot[[3]][[i]][[k]]=sapply(content_TES[tokeep],sum)*contentnorm_TES
 
         #STALLING INDEX
         #use content_transcripts_mod for gb previously calculated.

@@ -245,6 +245,11 @@ observeEvent(input$confirmation, {
         # log the action just done:
         logvariables$msg[[length(logvariables$msg)+1]]= paste("Added ",BEDvariables$tempBEDname," new ROI<br>",sep="")
         print(paste("Added",BEDvariables$tempBEDname,"new ROI"))
+        ####newenrichimplementation####
+        #new ROI imported has no list of enrichments at the beginning! => initialization
+        Enrichlist$rawcoverage[[BEDvariables$tempBEDname]]=list()
+        Enrichlist$normfactlist[[BEDvariables$tempBEDname]]=list()
+        ################################
         #temporary BED and BED file name must be returned to NULL for the next open
         ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                       name=BEDvariables$tempBEDname,
@@ -253,10 +258,12 @@ observeEvent(input$confirmation, {
                                       flag="normalFlag",
                                       source=list(BEDvariables$tempBEDname)
                                       )  
+
         BEDvariables$tempBED=NULL
         BEDvariables$tempBEDname=NULL
         BEDvariables$opened=FALSE
         BEDvariables$sfn=NULL
+
         #alert the user that the file has been correctly import as ROI
         sendSweetAlert(
           session = session,
@@ -484,20 +491,33 @@ observeEvent(input$fileGENELISTS, {
           newSource_TES=c(oldSource_TES,list(newSource))
 
           #create new promoters, transcripts and TES for this gene list
+          ####newenrichimplementation####
+          #new ROI imported has no list of enrichments at the beginning! => initialization
+          Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+          Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
+          ################################
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                     name=paste("promoters_genelist_",toopen,sep=""),
                                                                     range=newrange_promoters,
                                                                     fixed=newfix_promoters,
                                                                     flag="promoterFlag",
                                                                     source=newSource_promoters) 
-
+          ####newenrichimplementation####
+          #new ROI imported has no list of enrichments at the beginning! => initialization
+          Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+          Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+          ################################
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                     name=paste("transcripts_genelist_",toopen,sep=""),
                                                                     range=newrange_transcripts,
                                                                     fixed=newfix_transcripts,
                                                                     flag="transcriptFlag",
                                                                     source=newSource_transcripts) 
-          
+          ####newenrichimplementation####
+          #new ROI imported has no list of enrichments at the beginning! => initialization
+          Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+          Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
+          ################################          
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                     name=paste("TES_genelist_",toopen,sep=""),
                                                                     range=newrange_TES,
@@ -652,20 +672,33 @@ observeEvent(input$createGENELISTSfrompath, {
               newSource_TES=c(oldSource_TES,list(newSource))
 
               #create new promoters, transcripts and TES for this gene list
+              ####newenrichimplementation####
+              #new ROI imported has no list of enrichments at the beginning! => initialization
+              Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+              Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
+              ################################ 
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                         name=paste("promoters_genelist_",toopen,sep=""),
                                                                         range=newrange_promoters,
                                                                         fixed=newfix_promoters,
                                                                         flag="promoterFlag",
                                                                         source=newSource_promoters) 
-
+              ####newenrichimplementation####
+              #new ROI imported has no list of enrichments at the beginning! => initialization
+              Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+              Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+              ################################ 
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                         name=paste("transcripts_genelist_",toopen,sep=""),
                                                                         range=newrange_transcripts,
                                                                         fixed=newfix_transcripts,
                                                                         flag="transcriptFlag",
                                                                         source=newSource_transcripts) 
-              
+              ####newenrichimplementation####
+              #new ROI imported has no list of enrichments at the beginning! => initialization
+              Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+              Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
+              ################################               
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                         name=paste("TES_genelist_",toopen,sep=""),
                                                                         range=newrange_TES,
@@ -805,20 +838,33 @@ observeEvent(input$createGENELISTSfrompaste,{
             newSource_TES=c(oldSource_TES,list(newSource))
 
             #create new promoters, transcripts and TES for this gene list
+            ####newenrichimplementation####
+            #new ROI imported has no list of enrichments at the beginning! => initialization
+            Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+            Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
+            ################################ 
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                       name=paste("promoters_genelist_",toopen,sep=""),
                                                                       range=newrange_promoters,
                                                                       fixed=newfix_promoters,
                                                                       flag="promoterFlag",
                                                                       source=newSource_promoters) 
-
+            ####newenrichimplementation####
+            #new ROI imported has no list of enrichments at the beginning! => initialization
+            Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+            Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+            ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                       name=paste("transcripts_genelist_",toopen,sep=""),
                                                                       range=newrange_transcripts,
                                                                       fixed=newfix_transcripts,
                                                                       flag="transcriptFlag",
                                                                       source=newSource_transcripts) 
-            
+            ####newenrichimplementation####
+            #new ROI imported has no list of enrichments at the beginning! => initialization
+            Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+            Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
+            ################################             
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                                                       name=paste("TES_genelist_",toopen,sep=""),
                                                                       range=newrange_TES,
@@ -922,7 +968,6 @@ observeEvent(input$deleteROI,{
 
   #check if at least one ROI is selected from the checkbutton list
   if (length(input$selectedCustomROItoRemove)>0){
-
     ROInametoRemove=input$selectedCustomROItoRemove
     #if "promoters","transcripts","TES" are being deleted,
     #make the DATABASEvariables$currentASSEMBLY to FALSE, because we cannot 
@@ -955,10 +1000,15 @@ observeEvent(input$deleteROI,{
       #match with the names of the BEDs eventually modified
       pos=match(ROInametoRemove,nomi)
 
-      #now update nomi, ROIvariables$listROI (the GR object)
-      for(i in pos){
-        ROIvariables$listROI[[i]]=setBAMlist(ROIvariables$listROI[[i]],list())
-      }
+      ####newenrichimplementation####
+      Enrichlist$rawcoverage[pos]<-NULL
+      Enrichlist$normfactlist[pos]<-NULL
+      ################################
+
+      # #now update nomi, ROIvariables$listROI (the GR object)
+      # for(i in pos){
+      #   ROIvariables$listROI[[i]]=setBAMlist(ROIvariables$listROI[[i]],list())
+      # }
 
       ROIvariables$listROI[pos]<-NULL
 
@@ -968,8 +1018,9 @@ observeEvent(input$deleteROI,{
       }
 
       #calling garbage collector can be very slow...
-      #print("forcing gc...")
-      #print(gc())      
+      print("forcing gc...")
+      print(gc())   
+   
     }else{
       #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">You have to remove both promoters,transcripts,TES for the given genome assembly...<br></font>'
       sendSweetAlert(
@@ -1006,6 +1057,10 @@ observeEvent(input$renameROI,{
           pos=match(input$selectedCustomROItoRename, nomi)
           oldname=nomi[pos]
           #also name in the object of the class
+          ####newenrichimplementation####
+          names(Enrichlist$rawcoverage)[pos]<-input$newfilenameROI
+          names(Enrichlist$normfactlist)[pos]<-input$newfilenameROI
+          ###############################
           ROIvariables$listROI[[pos]]=setName(ROIvariables$listROI[[pos]],input$newfilenameROI)
           #log the change:
           logvariables$msg[[length(logvariables$msg)+1]]= paste('Renamed ',oldname,' ROI in ',input$newfilenameROI,'<br></font>',sep="")
@@ -1064,11 +1119,18 @@ observeEvent(input$reorderROI,{
       #reorder nomi (character)
       #nomi=nomi[ord]
       #reorder ROIvariables$listROI classes (list)
+
+      ####newenrichimplementation####
+      #in theory useless, but better to keep the order also in the list of enrichments
+      Enrichlist$rawcoverage=Enrichlist$rawcoverage[order(ord)]
+      Enrichlist$normfactlist=Enrichlist$normfactlist[order(ord)]
+      ###############################
       ROIvariables$listROI=ROIvariables$listROI[order(ord)]
       if (!identical(unique(listprovv),unique(allnumbers))){
         logvariables$msg[[length(logvariables$msg)+1]]= paste('ROI files reordered...<br>',sep="")
         print("ROI files reordered")
       }  
+
     }else{
       #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red"> There arent\' all possible position in new ranking...<br></font>',sep="")
       sendSweetAlert(

@@ -1,31 +1,40 @@
 #####FUNCTIONS#####
 
+##functions for get and set the enrichment blocks in the reactiveVariables ##
+# those values are not part of the ROI object anymore, but contained in
+# Enrichlist<-reactiveValues(rawcoverage=NULL,normfactlist=NULL)
+#these functions cannot read or modify reactiveValues (outside the scope) but give useful info
+#on how to do that
 
-# #readbed: it reads the BED files in input
-# readbed<-function(bedpath,Header=TRUE,Skip=0) {
-#   #bedptah= path to the BED file to be opened
-#   #Header= whether to include the header
-#   #Skip= number defining how many lines of the BED file to skip 
-#   if (!file.exists(bedpath)){
-#     stop("file does not exist")
-#   }
-#   rt=suppressWarnings(read.table(bedpath,header=Header,sep="\t",skip=Skip))
+getEnrichList<-function(ROIname) {
+	nome=ROIname
+	pos=match(nome,names(Enrichlist$rawcoverage))
+	rawvals=Enrichlist$rawcoverage[[pos]]
+	normvals=Enrichlist$normfactlist[[pos]]
+	return(list(rawvals,normvals))
 
-#   #if number of columns>3, check 4th  (strand): in particular, it must be *,+ or -
-#   if (ncol(rt)>3){ 
-#     sign=as.character(rt[,4])
-#     logic=  sign=="+" | sign=="-" | sign=="*"
-#     logicneg=!logic
-#     if(any(logicneg)){
-#       return(rt[,1:3])
-#     }else{
-#       return(rt[,1:4])
-#     }
-#   }else{
-#     return(rt[,1:3])
-#   }
-# }
+}
+updateEnrichList<-function(ROIname,enrichlist,normfact) {
+	nome=ROIname
+	pos=match(nome,names(Enrichlist$rawcoverage))
+	#are we sure absence of mem leaks? Return value?
+	Enrichlist$rawcoverage[[pos]]=enrichlist
+	Enrichlist$normfactlist[[pos]]=normfact
+}
 
+#update enrich list before removing an entire ROI
+removeelementEnrichList<-function(ROIname) {
+	nome=ROIname
+	pos=match(nome,names(Enrichlist$rawcoverage))
+	Enrichlist$rawcoverage[pos]<-NULL
+	Enrichlist$normfactlist[pos]<-NULL
+}
+renameROIEnrichlist<-function(ROIname,newname) {
+	nome=ROIname
+	pos=match(nome,names(Enrichlist$rawcoverage))
+	names(Enrichlist$rawcoverage)[pos]<-newname
+	names(Enrichlist$normfactlist)[pos]<-newname
+}
 
 
 #function to display the help buttons, here choose color, symbol, ID and title of the box
@@ -908,18 +917,16 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
     #select if bam:
     if(substring(signalfile,nchar(signalfile)-3,nchar(signalfile))==".bam"){
       BAMseqs <- names(scanBamHeader(signalfile)[[1]]$targets)
-      matchingSeqs <- which(as.character(seqnames(Object)) %in% 
-          BAMseqs)
+      matchingSeqs <- which(as.character(seqnames(Object)) %in% BAMseqs)
       if (length(matchingSeqs) == 0) 
           return(sapply(width(Object), function(x) rep(0, x)))
-      param <- ApplyPileupsParam(which = Object[matchingSeqs], 
-          what = "seq")
-      coverage <- applyPileups(PileupFiles(signalfile), FUN = function(x) x, 
-          param = param)
+      param <- ApplyPileupsParam(which = Object[matchingSeqs],what = "seq")
+      pileupFiles=PileupFiles(signalfile)
+      coverage <- applyPileups(pileupFiles, FUN = function(x) x,param = param)
+      rm(pileupFiles)
       widths <- width(Object[matchingSeqs])
       covList <- list()
       starts <- start(Object[matchingSeqs])
-
       covList=lapply(1:length(Object[matchingSeqs]), function(i) {
           covx <- coverage[[i]]
           cvec <- rep(0, widths[i])
@@ -928,6 +935,8 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           cvec[inds] <- colSums(covx$seq)
           return(cvec)
       })
+      covList<-lapply(covList,function(i)as.integer(i))
+      rm(coverage)
 
 
       ####################################################################
@@ -945,11 +954,12 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
             norm_factor=norm_factor* nreadCtrSpike/  nreadCtr         
           }
           print (paste("Norm. factor=",norm_factor))  
-          covList <- lapply(covList, function(x) (x*norm_factor    )    )
+          #covList <- lapply(covList, function(x) (x*norm_factor) )
+      }else{
+      	norm_factor=1
       }
 
       
-
 
       if (length(matchingSeqs) < length(Object)) {
           coverageTot <- sapply(width(Object), function(x) list(rep(0, 
@@ -957,8 +967,9 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           coverageTot[matchingSeqs] <- covList
       }
       else coverageTot <- covList
+
       rm(covList)
-      return(coverageTot)
+      return(list(coverageTot,norm_factor))
 
 
     #select if wig:
@@ -968,6 +979,8 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       #those matching with "Object"
       print ("    Coverage of WIG file...")
       chromosomes=seqlevelsInUse(Object)
+      #just open the wig file, without opening all chromosome content. This serves just to know 
+      #how long is each chromosome
       grfake=GRanges(Rle(chromosomes[1]),IRanges(1,1))
       wig=import(signalfile,which=grfake,as = 'Rle')
       chrswig=lengths(wig)
@@ -979,6 +992,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       for (i in 1:length(common_chromosomes)){
         #length(as.character(seqnames(Object))) should be equal to length(Object) =>
         #find positions of Object that have that chromosome
+        #opening chromosome by chromosome
         pos=as.character(seqnames(Object))==common_chromosomes[i]
         chrsize=chrswig[common_chromosomes[i]]
         grcurrentchr=GRanges(Rle(common_chromosomes[i]),IRanges(1,chrsize))
@@ -986,8 +1000,10 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
         counts=Views(unlist(wigtempchr[[common_chromosomes[i]]]),ranges(Object[pos]))
         rm(wigtempchr)
-        #extract the base coverage for all those ranges for ith chromosome
-        tmp=viewApply(counts, as.vector)
+        #extract the base coverage for all those ranges for ith chromosome.
+        #used "as.integer" to save space: all numbers are pure integers
+        tmp=viewApply(counts, as.integer)
+        
         if(length(counts)==1){
           tmp=list(as.vector(tmp))
         }
@@ -996,9 +1012,17 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           tmp=lapply(seq_len(ncol(tmp)), function(i) tmp[,i])
         }
         rm(counts)
+        ##IMPORTANT##
+        #############
+        #change here if numbers can not be integer, but real
+        #############
+        tmp<-lapply(tmp,function(i)as.integer(i))
+        ########################################################
         coverageTot[pos] <- tmp
       }
-      return(coverageTot)      
+      #return coverage and norm factor (in case of WIG, simply 1) to keep the same result structure 
+      #for the function
+      return(list(coverageTot,1))      
     }else{
       stop("Error in retrieving file/extension...")
     }
@@ -1016,108 +1040,6 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
 
 
 
-
-
-
-
-
-# oldfunction<-function(Object, signalfile,signalfileNorm, Nnorm = FALSE)
-# {
-#     #Object: genomic range in which calculate the base coverage
-#     # signalfile= path to the signal file file (the associated signal file index must be present in the same directory if bam file)
-#     #      or the bw/bigwig file 
-#     #signalfileNorm= path to the signal file (BAM) for which normalize the signalfile
-#     # Nnorm= whether to normalize for library size (TRUE/FALSE). Only if signalfile is a bam file (?)
-#     if (!is.character(signalfile)) 
-#         stop("signalfile has to be a file path of class character ..")
-
-#     if (!is.logical(Nnorm)) 
-#         stop("Nnorm has to be of class logical ..")
-#     #find basename of file is useless, the slicing of the string is from the end... (extension)
-
-
-#     #select if bam:
-#     if(substring(signalfile,nchar(signalfile)-3,nchar(signalfile))==".bam"){
-#       BAMseqs <- names(scanBamHeader(signalfile)[[1]]$targets)
-#       matchingSeqs <- which(as.character(seqnames(Object)) %in% 
-#           BAMseqs)
-#       if (length(matchingSeqs) == 0) 
-#           return(sapply(width(Object), function(x) rep(0, x)))
-#       param <- ApplyPileupsParam(which = Object[matchingSeqs], 
-#           what = "seq")
-#       coverage <- applyPileups(PileupFiles(signalfile), FUN = function(x) x, 
-#           param = param)
-#       widths <- width(Object[matchingSeqs])
-#       covList <- list()
-#       starts <- start(Object[matchingSeqs])
-
-#       covList=lapply(1:length(Object[matchingSeqs]), function(i) {
-#           covx <- coverage[[i]]
-#           cvec <- rep(0, widths[i])
-#           inds <- covx$pos - starts[i] + 1
-#           #sometims max(inds) is > than length of cvec. => NAs in some positions. Why?
-#           cvec[inds] <- colSums(covx$seq)
-#           return(cvec)
-#       })
-
-#       if (Nnorm) {
-#           param <- ScanBamParam(flag = scanBamFlag(isUnmappedQuery = FALSE))
-#           nreads <- (countBam(signalfileNorm, param = param)$records)/1e+06
-#           covList <- lapply(covList, function(x) x/nreads)
-#       }
-#       if (length(matchingSeqs) < length(Object)) {
-#           coverageTot <- sapply(width(Object), function(x) list(rep(0, 
-#               x)))
-#           coverageTot[matchingSeqs] <- covList
-#       }
-#       else coverageTot <- covList
-#       return(coverageTot)
-
-
-#     #select if wig:
-#     }else if (substring(signalfile,nchar(signalfile)-2,nchar(signalfile))==".bw" | tolower(substring(signalfile,nchar(signalfile)-6,nchar(signalfile)))==".bigwig"){
-
-#       print ("    importing WIG file...")
-#       wig=import(signalfile,as = 'RleList')
-#       #find base coverage on the grange in input, FOR EACH CHROMOSOME
-#       #be careful to have matched chromosomes!!
-#       print ("    Coverage of WIG file...")
-#       chromosomes=seqlevelsInUse(Object)
-#       common_chromosomes=intersect(chromosomes,names(wig))
-#       #initialize 0s for all ranges (if wig do not have a chr, the remaining are 0s)
-#       widths=width(Object)
-#       coverageTot=lapply(1:length(Object),function(i){integer(widths[i])})
-#       for (i in 1:length(common_chromosomes)){
-#         #length(as.character(seqnames(Object))) should be equal to length(Object) =>
-#         #find positions of Object that have that chromosome
-#         pos=as.character(seqnames(Object))==common_chromosomes[i]
-#         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
-#         counts=Views(unlist(wig[[common_chromosomes[i]]]),ranges(Object[pos]))
-#         #extract the base coverage for all those ranges for ith chromosome
-#         tmp=viewApply(counts, as.vector)
-#         if(length(counts)==1){
-#           tmp=list(as.vector(tmp))
-#         }
-#         if(class(tmp)=="matrix"){
-#           ##check whether the order is correct
-#           tmp=lapply(seq_len(ncol(tmp)), function(i) tmp[,i])
-#         }
-#         coverageTot[pos] <- tmp
-#       }
-#       return(coverageTot)      
-#     }else{
-#       stop("Error in retrieving file/extension...")
-#     }
-
-
-# }
-
-GRbaseCoverageWIG<-function(Object,WIG){
-  #follow the scheme:
-  #library(rtracklayer) #should be already installed with dependencies
-  #import bigWig file from WIG list. Can import .gz and .wig ?
-
-}
 
 
 
@@ -1254,7 +1176,7 @@ makeMatrixFrombaseCoverageCPP <- cxxfunction(signature(GRbaseCoverageOutput='Lis
 ') 
 
 #wrapper for makeMatrixFrombaseCoverageCPP function
-makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE) {
+makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE,norm_factor=1) {
     # GRbaseCoverageOutput: output from GRbaseCoverage2 function
     # Nbins: the number of bins to ivide the coverage for each range into
     # Snorm: whether to normalize the coverage for each bin for the length of the range (TRUE/FALSE)
@@ -1263,14 +1185,21 @@ makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE) {
     }else{
       norm=0
     }
-    return(makeMatrixFrombaseCoverageCPP(GRbaseCoverageOutput,Nbins,Snorm=norm))
+    #here introduce normalization step. We could have done easyly in the CPP function,
+    #but it's fast anyway
+    result=makeMatrixFrombaseCoverageCPP(GRbaseCoverageOutput,Nbins,Snorm=norm)
+    if(norm_factor!=1){
+      #here the result should still be a matrix
+    	result <- result*norm_factor
+    }
+    return(result)
 }
 
 #cut the transcripts ranges in specific indexes and sum the coverage inside the internal part (remaining range),
 #the input is always a list of kind "GRbaseCoverageOutput", from GRbaseCoverage2 function
 #StartingPositions and EndingPositions are the array of positions for each element of the GRbaseCoverageOutput list
 #it returns an integer vector, that is the sums of the elements of the list within the cut part (be careful to the 0-index of C!)
-cutAndSumTranscripts <-cxxfunction(signature(GRbaseCoverageOutput='List',StartingPositions="vector",EndingPositions="vector"), plugin='Rcpp', body = '  
+cutAndSumTranscriptsCPP <-cxxfunction(signature(GRbaseCoverageOutput='List',StartingPositions="vector",EndingPositions="vector"), plugin='Rcpp', body = '  
      Rcpp::List xlist(GRbaseCoverageOutput); 
      Rcpp::IntegerVector starts(StartingPositions);
      Rcpp::IntegerVector ends(EndingPositions);
@@ -1298,7 +1227,18 @@ cutAndSumTranscripts <-cxxfunction(signature(GRbaseCoverageOutput='List',Startin
      //return the numeric array as result
      return (results); 
 ') 
-
+#wrapper for cutAndSumTranscriptsCPP function
+cutAndSumTranscripts <-function(GRbaseCoverageOutput,StartingPositions,EndingPositions,norm_factor=1) {
+    # GRbaseCoverageOutput: output from GRbaseCoverage2 function
+    #here introduce normalization step. We could have done easyly in the CPP function,
+    #but it's fast anyway
+    result=cutAndSumTranscriptsCPP(GRbaseCoverageOutput,StartingPositions,EndingPositions)
+    if(norm_factor!=1){
+      #here the result should still be a matrix
+      result <- result*norm_factor
+    }
+    return(result)
+}
 
 
 #OLD function (matrix frm base coverage). New functions implemented in Rcpp (much faster)
@@ -2285,7 +2225,7 @@ filterGOres<-function(GOres,padjthresh,generatiothresh,topN) {
 # this class will have 
 # - a range derived from BED files or from prvious ROIs
 # - a name
-# - a list of BAM files associated (list, that derives from GRbaseCoverage2 function)
+# - a list of BAM files associated (list, that derives from GRbaseCoverage2 function) - to be considered obsolete
 # - a fixed point: this point is a range that represents a position inside the ranges of the ROI
 #   that could be the midpoint (for "general" ROIs), the TSS (for promoters), the summit etc...
 #   this is generated automatically when creating new ROIs. It becomes the summit when a user
@@ -2380,7 +2320,7 @@ setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,
   }
   rang=getRange(Object)
   cov=GRbaseCoverage2(Object=rang, signalfile=signalfile,signalfileNorm=signalfileNorm,signalControl=signalControl,signalControlSpike=signalControlSpike, multiplFactor=1e+06)
-  return(cov)
+  return(list(cov[[1]],cov[[2]]))
 
 })
 
