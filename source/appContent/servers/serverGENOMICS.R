@@ -1386,6 +1386,7 @@ observeEvent(toListenDigitalHeat(),{
       ranges_forclick=list()
       #loop through all master ROIs selected
       for(i in 1:length(roi)){
+      	pos_notdup_range=!duplicated(getRange(roi[[i]]))
         unifROI=uniqueROI(roi[[i]])
         rangeroi=getRange(unifROI)
         bigrange[[i]]=granges(rangeroi)
@@ -1393,7 +1394,21 @@ observeEvent(toListenDigitalHeat(),{
 
         ranges_forclick[[i]]=rangeroi
 
-        bigbamlist[[i]]=rawvals[[i]]
+
+		bigbamlist[[i]]=rawvals[[i]]
+		bamlist2=list()
+		if(length(bigbamlist[[i]])>0){
+		  	for(j in 1:length(bigbamlist[[i]])){
+		    	element_i=bigbamlist[[i]][[j]]
+		    	#remove duplicated positions
+		    	bamlist2[[j]]=element_i[pos_notdup_range]
+		    }		    
+		}
+		bigbamlist[[i]]=bamlist2
+
+        names(bigbamlist[[i]])=names(rawvals[[i]])
+        browser()
+        
         bignormlist[[i]]=normvals[[i]]
         fixes[[i]]=granges(getFixed(unifROI))
 
@@ -2782,6 +2797,8 @@ observeEvent(toListenAnalogHeat(),{
         #strands "-" are inverted, while should not be...
         #unifROI=unifyStrand(roi[[i]])
         unifROI=roi[[i]]
+        pos_notdup_range=!duplicated(getRange(unifROI))
+
         unifROI=uniqueROI(unifROI)
         fixes[[i]]=granges(getFixed(unifROI))
         completerange[[i]]=getRange(unifROI)
@@ -2789,17 +2806,28 @@ observeEvent(toListenAnalogHeat(),{
         bigrange[[i]]=granges(completerange[[i]])
         bigrange[[i]]$label=nameROI[i]      
         
+        #when collapsing ranges (for example alternative promoters identical),
+        #we must also collapse enrichments. uniqueROI function works only for ranges and fixes
+        #because BAMlist attribute has been removed in the last version
         totbams=rawvals[[i]]
-        BAMs[[i]]=totbams
+		bamlist2=list()
+		if(length(totbams)>0){
+		  	for(j in 1:length(totbams)){
+		    	element_i=totbams[[j]]
+		    	#remove duplicated positions
+		    	bamlist2[[j]]=element_i[pos_notdup_range]
+		    }		    
+		}
+		totbams=bamlist2
+		BAMs[[i]]=totbams
         normlisttostore[[i]]=normvals[[i]]
-
         #order even if BAM reordered, should be fine
-        bamnames[[i]]=names(totbams)
+        bamnames[[i]]=names(rawvals[[i]])
         pos2=match(toplot$analogic$BAMsForAnalogHeat,bamnames[[i]])
         bigbamlist[[i]]=totbams[pos2]
         normlisttouse[[i]]=normvals[[i]][pos2]
+        
       }
-
       #collapse all selected ranges into a single, big range list
       #this is useful for random sampling, to keep the proportions of the lengths
       
@@ -2867,7 +2895,6 @@ observeEvent(toListenAnalogHeat(),{
               strand_sampled=split( as.factor(strand(finalrange_sampled)) ,factor(labelstosplit,levels=unique(labelstosplit)))
               positions_splitted=split( finalBAMs_sample_pos ,factor(labelstosplit,levels=unique(labelstosplit)))
               #print("preparing material for ROI extraction...")
-
               #########prepare for ROI xtraction from heatmap#############
               finalbam=list()
               for(i in 1:length(BAMs)){
@@ -2895,7 +2922,6 @@ observeEvent(toListenAnalogHeat(),{
               # fixes_sampled_split=split( fixes ,factor(labelstosplit,levels=unique(labelstosplit)))          
               ############################################################
               #print("prepared...")
-
               #combine lists from different ROIs (c)
               subselectedBAMlist=list()
               for(i in 1:length(bigbamlist[[1]])){
@@ -2908,7 +2934,6 @@ observeEvent(toListenAnalogHeat(),{
                 provv=provv[finalBAMs_sample_pos]
                 subselectedBAMlist[[i]]=provv
               }
-
               #use only finalBAMs_sample_pos positions sample. This is because the "random" sample
               #number refers to the total number of rows plotted, and not for each range.
               #this means that we have to merge matrixes first and then subsample. This will keep 
@@ -2927,7 +2952,6 @@ observeEvent(toListenAnalogHeat(),{
                 }      
               }
               #here, check if normlisttouse follows the same hierarchy of slicedbamlist (ROI/enrich)
-              
               #transform the lists of baseCoverage output in binned matrixes lists
               #check if ROI have fixed size: if so, create the matrixes without bins, then bin
               #but matrix without bins is used for profiles
