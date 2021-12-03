@@ -166,8 +166,22 @@ observeEvent(input$loadenv, {
 			#DATABASEvariables$missingASSEMBLIES=totalENV$DATABASEvariables_missingASSEMBLIES
 
 			#load the BAMvariables
-			#bam=totalENV$BAMvariables
-			BAMvariables$listBAM=totalENV$BAMvariables_listBAM
+			#include only existent enrichment files
+			
+			existents=list()
+			tempenrichlist=totalENV$BAMvariables_listBAM
+			if (length(tempenrichlist)>0){
+				for (i in 1:length(tempenrichlist)){
+					if(file.exists(tempenrichlist[[i]])){
+						existents=c(existents,tempenrichlist[[i]])
+						names(existents)[length(existents)]=names(tempenrichlist)[i]
+					}
+				}				
+			}else{
+				existents=NULL
+			}
+
+			BAMvariables$listBAM=existents
 			#DATABASE variables not loaded! libraries must be re-loaded!
 			#load the heatvariables
 			#load the logvariables
