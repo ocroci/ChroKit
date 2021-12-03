@@ -250,249 +250,26 @@ shinyServer(function(input, output,session) {
     }
   })
 
+
+  #every time the ROI list is changing or the enrichments are changins, show the current memory used
+  #using gc
+  output$showRAMusageGC<-renderText({
+    ROIvariables$listROI
+    Enrichlist$rawcoverage
+    mem=gc()
+    #extract value of vectors used in Mb
+    val=unname(mem[,2][2])
+    if(length(val)>0){
+      paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val,"</b></p>",sep="")
+    }else{
+      paste("")
+    }
+
+  })
+
+
+
+
 })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ################################################################################
-# ################################################################################
-# ################################################################################
-# #HEATMAP+ CLUSTERING
-# ################################################################################
-# ################################################################################
-# ################################################################################
-#   observe({
-#     set.seed(123)
-#     x=sample(1:100,(input$cols*input$rows),replace=TRUE)
-#     heatm=matrix(x,nrow=input$cols,ncol=input$rows)
-#     variables$oldheat=heatm
-#     variables$heat=heatm
-#   })
-
-#   #create heatmap (or load/calculate from data) if col changes
-#   observe({
-#     #heatmap
-#     # set.seed(123)
-#     # x=sample(1:100,(input$cols*input$rows),replace=TRUE)
-#     # heat=matrix(x,nrow=input$cols,ncol=input$rows)
-#     observeEvent(input$confirmDim,{
-#       heat=variables$oldheat
-
-#       #if a button is pressed, use input$rows and cols, but ISOLATED, so that is not instantly changed
-#       textrows=1:input$rows
-#       textcols=1:input$cols
-#       rowdend=NULL
-#       coldend=NULL
-
-
-#       #if checkbox cluster row is checked, cluster for rows, and modif. vars
-#       if (input$clusterrow & input$rows>=2 & input$cols>=2){
-#           #hcl <- hclust(dist(t(heat),method=distmethod),method=clustmethod)
-#           hcl <- variables$oldheat %>% t %>% dist(method=input$distmethod) %>% hclust(method = input$clustmethod) 
-#            #now update with new order:
-#           ord= hcl$order
-#           heat=variables$oldheat[,ord] 
-#           textrows=textrows[ord]
-#           rowdend=hcl        
-#       }
-
-#       #if checkbox cluster row is checked, cluster for cols,and modif. vars
-#       if (input$clustercols & input$rows>=2 & input$cols>=2){
-#           #hcl <- hclust(dist(heat,method=distmethod),method=clustmethod )
-#           hcl <- variables$oldheat %>% dist(method=input$distmethod) %>% hclust(method = input$clustmethod) 
-#           #now update with new order:
-#           ord= hcl$order
-#           heat=variables$oldheat[ord,]
-#           textcols=textcols[ord]
-#           coldend=hcl        
-#       }
-
-#       #update reactive values (heat matrix, text cols, dendrograms (NULL or not))
-#       variables$heat=heat
-#       variables$textcols=textcols
-#       variables$coldend=coldend
-#       variables$rowdend=rowdend
-#     })
-
-
-
-#   })
-
-
-
-
-# ################################################################################
-# ################################################################################
-# ################################################################################
-# #PLOTS/TEXTS
-# ################################################################################
-# ################################################################################
-# ################################################################################
-
-
-
-#   #modify slider input of number of clusters, if heatmap dim are modified:
-#   observe({
-#      updateSliderInput(session, "BEDnumberclusterscols", value = round(input$cols /3+1),
-#           min = 1, max = input$cols )
-#      updateSliderInput(session, "BEDnumberclusterrow", value = round(input$rows/3+1),
-#           min = 1, max = input$rows )
-#   })
-
-
-
-#   #output row cluster
-#   output$rowcluster <- renderPlot({
-#       par(mar = rep(0, 4),oma=rep(0, 4),xpd=NA)
-#       #if there is clustering, plot dendr., otherwise empty plot
-#       if (!is.null(variables$rowdend)){
-#         if (ncol(variables$heat)<300){
-#           #calculate which elements belong to which cluster, given by the desired number of clusters in input
-#           clusterarray = cutree(variables$rowdend, input$BEDnumberclusterrow)
-#           clusternum=length(unique(clusterarray))
-#           #plot(as.dendrogram(variables$rowdend),horiz=TRUE,xlab="", sub="",axes=FALSE,ann=FALSE,frame.plot=FALSE,yaxs="i",xaxs="i")         
-#           variables$rowdend %>% as.dendrogram %>% set("branches_k_color",k=clusternum) %>% plot  (horiz=TRUE,xlab="", sub="",axes=FALSE,ann=FALSE,frame.plot=FALSE,yaxs="i",xaxs="i")    
-#         }else{
-#           plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-#         }
-#       }else{
-#         plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-#       }   
-#   })
-
-#   #output col cluster
-#   output$colcluster <- renderPlot({
-#       par(mar = rep(0, 4),oma=rep(0, 4),xpd=NA)
-#       #if there is clustering, plot dendr., otherwise empty plot
-#       if (!is.null(variables$coldend)){
-#         if (nrow(variables$heat)<300){
-#           #calculate which elements belong to which cluster, given by the desired number of clusters in input
-#           clusterarray = cutree(variables$coldend, input$BEDnumberclusterscols)
-#           clusternum=length(unique(clusterarray))
-#           #plot(as.dendrogram(variables$coldend),horiz=FALSE,xlab="", sub="",axes=FALSE,ann=FALSE,frame.plot=FALSE,yaxs="i",xaxs="i")            
-#           variables$coldend %>% as.dendrogram %>% set("branches_k_color",k=clusternum) %>% plot (horiz=FALSE,xlab="", sub="",axes=FALSE,ann=FALSE,frame.plot=FALSE,yaxs="i",xaxs="i")          
-#         }else{
-#           plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')         
-#         }
-#       }else{  
-#         plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n')
-#       }   
-#   })
-
-
-#   #output noplot
-#   output$noplot <- renderPlot({
-#     emptyplot()
-#   })
-#   #output noplot2
-#   output$noplot2 <- renderPlot({
-#     emptyplot()
-#   })
-#   #output noplot3
-#   output$noplot3 <- renderPlot({
-#     emptyplot()
-#   })
-#   #output noplot4
-#   output$noplot4 <- renderPlot({
-#     emptyplot()
-#   })
-
-#   #output heatmap image
-#   output$heatmap <- renderPlot({
-#       par(mar = rep(0, 4))
-#       image(variables$heat)
-#   })
-
-#   #output text plot
-#   output$testo <- renderPlot({
-#       par(mar = rep(0, 4))
-#       plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")
-#       #devo partire dalla coordinata x della metà della prima cella alla meta' dell'ultima
-#       halfcellwidth=(1/input$cols)/2
-#       #set cex according to number of columns
-#       cextext=40/input$cols
-#       if (cextext>3){
-#         cextext=3
-#       }
-#       text(x=seq(0+halfcellwidth,1-halfcellwidth,length.out=input$cols),labels=variables$textcols,y=rep(0.5,input$cols),srt=90,cex=cextext  )
-        
-#   })
-
-
-
-
-
-
-
-# ###############################################################################
-# ###############################################################################
-# ###############################################################################
-# #COORDINATES
-# ###############################################################################
-# ###############################################################################
-# ###############################################################################
-
-
-# #calc coordinates of click
-#   output$coordheat<-renderText({
-#    paste0("x=", input$heatmap_click$x, "\ny=", input$heatmap_click$y)
-#    ny=round(input$rows*input$heatmap_click$y)
-#    nx=round(input$cols*input$heatmap_click$x)
-#    paste0("cella x=", nx, "\ncella y=", ny)
-
-#   })
-
-# #calc coordinates of click in dendrogram row
-#   output$coorddend<-renderText({
-#    paste0("x=", input$rowdendrogram_click$x, "\ny=", input$rowdendrogram_click$y)
-#   # ny=round(input$rows*input$heatmap_click$y)
-#   # nx=round(input$cols*input$heatmap_click$x)
-#   # paste0("cella dend x=", nx, "\ncella dend y=", ny)
-
-#   })
-
-
-# #calc coordinates & brush
-# output$coordbrushheat<-renderText({
-#    nymin=round(input$rows*input$heatmap_brush$ymin)
-#    nxmin=round(input$cols*input$heatmap_brush$xmin)
-#    nymax=round(input$rows*input$heatmap_brush$ymax)
-#    nxmax=round(input$cols*input$heatmap_brush$xmax)
-#     #adjust if <0 and > max col|rows
-#    if (length(nymin)>0){
-#        if (nymin<0){
-#         nymin=0
-#        }
-#    }
-#    if (length(nxmin)>0){
-#        if (nxmin<0){
-#          nxmin=0
-#        }
-#    }
-#    if (length(nymax)>0){
-#        if (nymax>input$rows){
-#          nymax=input$rows
-#        }
-#    }
-#    if (length(nxmax)>0){
-#       if (nxmax>input$cols){
-#         nxmax=input$cols
-#       }
-#    }
-#    paste0("cella x1=", nxmin, "\ncella y1=", nymin,"\ncella x2=", nxmax, "\ncella y2=",nymax)
-#   })
-
-
-# })

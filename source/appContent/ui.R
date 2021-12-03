@@ -68,8 +68,12 @@ sidebar<- dashboardSidebar(
     menuItem("Genomics", tabName = "GENOMICSblock", icon = icon("area-chart")),
     HTML("<br><br>&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
     menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
-    HTML("<br>"),
+    HTML("<br><br>"),
+    htmlOutput("showRAMusageGC"),
+     HTML("<br>"),
     .busyIndicator(text="Loading..." , wait=1000 , image="gif.gif")
+   
+
   )      
 )
 
