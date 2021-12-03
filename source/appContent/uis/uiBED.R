@@ -85,7 +85,7 @@ tabBED <- tabItem(tabName = "BEDblock",
 
       column(width=4,
         box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-          title=boxHelp(ID="msg_deleteRois_deleteRois",title="Delete ROIs"),
+          title=boxHelp(ID="msg_deleteRois_deleteRois",title="Loaded ROIs"),
 
           HTML("<b>ROI to delete:</b>"),
           wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; background-color: #ffffff;",
