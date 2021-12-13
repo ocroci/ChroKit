@@ -15,10 +15,10 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
 
 To pull the image, use the following command from the terminal:\
-```sudo docker pull ocroci/chrokit:HumanMouseGenomes```
+```sudo docker pull ocroci/chrokit:latest```
 
 To run the program, type this command from the terminal:\
-```sudo docker run -v /home/:/mnt/ -p <port>:6060 -it ocroci/chrokit:HumanMouseGenomes```
+```sudo docker run -v /home/:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```
 
 In this case the /mnt folder inside the container will mount the /home folder of the host system; change these folders according to your needs.
 \<port\> is an arbitrary port on the host system to use for accessing the docker image; this port must be free.
