@@ -9,11 +9,33 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
+# Execute the program
 
-### From source (using R interpreter)
+## From Docker image (recommended)
+Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
+
+To pull the image, use the following command from the terminal:\
+```sudo docker pull ocroci/chrokit:HumanMouseGenomes```
+
+To run the program, type this command from the terminal:\
+```sudo docker run -v /home/:/mnt/ -p <port>:6060 -it ocroci/chrokit:HumanMouseGenomes```
+
+In this case the /mnt folder inside the container will mount the /home folder of the host system; change these folders according to your needs.
+\<port\> is an arbitrary port on the host system to use for accessing the docker image; this port must be free.
+
+To use the application, open a web browser and
+  - if you are using a personal computer, go to:\
+    ```127.0.0.1:<port>```
+  - if you are using a remote machine, go to:\
+    ```<IP>:<port> ```\
+    where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
+
+For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
 
-## Install dependencies 
+## From source (using R interpreter)
+
+### Install dependencies 
 - Download and install the R interpreter (suggested version 3.5 or higher) on your computer or on a remote machine
 - Download the ChroKit source code in this gitHub page. Unzip the folder if necessary 
 - Make sure the OS-specific requirements are satisfied:
@@ -70,14 +92,14 @@ in\
 and source the *installChrokitDependencies.R* script again:
 ``` > source ("installChrokitDependencies.R")```\
 
-## Basic setup
+### Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
 - The variable **Port** specify the listening port of the program
 - The variable **nc** specify the number of cores that will be used for computation. The higher the number, the faster the program will be, but it will require more RAM. Windows users will always use 1 single core for operations because of technical issues.
 - The variable **ColsArray** specify all colors available in the palettes for heatmaps (gradient from white)
 - The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
 
-## launch the program
+### launch the program
 - Launch the application using\
   ``` > source("shinyapp.r")```
 - Open the application using your web browser.
@@ -89,28 +111,6 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 
 
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Signatures from MSigDB (Molecular Signature Database) (https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb) are already preloaded. 
-
-
-### From Docker image (recommended)
-Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
-
-To pull the image, use the following command from the terminal:\
-```sudo docker pull ocroci/chrokit:HumanMouseGenomes```
-
-To run the program, type this command from the terminal:\
-```sudo docker run -v /home/:/mnt/ -p <port>:6060 -it ocroci/chrokit:HumanMouseGenomes```
-
-In this case the /mnt folder inside the container will mount the /home folder of the host system; change these folders according to your needs.
-\<port\> is an arbitrary port on the host system to use for accessing the docker image; this port must be free.
-
-To use the application, open a web browser and
-  - if you are using a personal computer, go to:\
-    ```127.0.0.1:<port>```
-  - if you are using a remote machine, go to:\
-    ```<IP>:<port> ```\
-    where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
-
-For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
 
 ## Tutorial
