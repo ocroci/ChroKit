@@ -9,7 +9,7 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
-# Execute the program
+# Run the program
 
 ## From Docker image (recommended)
 Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
