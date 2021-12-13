@@ -2961,7 +2961,7 @@ observeEvent(toListenAnalogHeat(),{
               roisSelected=ROIvariables$listROI[pos]
               getwdth=lapply(roisSelected,getWidth) 
               widths=Reduce(union,getwdth)
-
+              
               if(length(slicedbamlist)<length(slicedbamlist[[1]])){
                 #if BAMs>ROIs, paralllize at BAM level
                 matlists=lapply(1:length(slicedbamlist),function(i) {

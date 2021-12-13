@@ -3176,7 +3176,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
 
     #check existence of file and .bai extension if BAM
     pos2=match(input$selectBAMsummitPredefPipeline,names(BAMvariables$listBAM))
-    paths_summit=BAMvariables$listBAM[pos2]
+    paths_summit=BAMvariables$listBAM[[pos2]]
     if(!file.exists(paths_summit)){
       sendSweetAlert(
         session = session,
@@ -3206,12 +3206,11 @@ observeEvent(input$PrepareROIpredefPipeline,{
 
 
 
-
   #if some enrichments selected, check existence. They are not mandatory for digital heatmap
   if(isvalid(input$enrichAllPredefPipeline) & length(input$enrichAllPredefPipeline)>=1 ){
     for(i in 1:length(input$enrichAllPredefPipeline)){
       pos2=match(input$enrichAllPredefPipeline[i],names(BAMvariables$listBAM))
-      currentenrichpath=BAMvariables$listBAM[pos2]
+      currentenrichpath=BAMvariables$listBAM[[pos2]]
       if(!file.exists(currentenrichpath)){
         sendSweetAlert(
           session = session,
@@ -3561,15 +3560,15 @@ observeEvent(input$PrepareROIpredefPipeline,{
     if(ncores==1 | length(enrichments_toAssociate)==1 | length(paths)==1){
       #single core (lapply)
       finallist=lapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        singlecover=cover(Object=ROI_after_resize,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
         normfacts=singlecover[[2]]
         singlecover=singlecover[[1]]
-        print(paste("Associating ",paths[i]," in single core",sep=""))
+        print(paste("Associating ",paths[[i]]," in single core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
         	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
         	temproi=setRange(ROI_after_resize,temprange)
-        	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        	singlecover=cover(Object=temproi,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
           normfacts=singlecover[[2]]
           singlecover=singlecover[[1]]
         }
@@ -3579,15 +3578,15 @@ observeEvent(input$PrepareROIpredefPipeline,{
     }else{
       #multicore (mclapply)
       finallist=mclapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        singlecover=cover(Object=ROI_after_resize,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
         normfacts=singlecover[[2]]
         singlecover=singlecover[[1]]        
-        print(paste("Associating ",paths[i]," in multi core",sep=""))
+        print(paste("Associating ",paths[[i]]," in multi core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
         	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
         	temproi=setRange(ROI_after_resize,temprange)
-        	singlecover=cover(Object=temproi,signalfile=paths[i],signalfileNorm=paths[i],signalControl=NULL,signalControlSpike=NULL)
+        	singlecover=cover(Object=temproi,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
           normfacts=singlecover[[2]]
           singlecover=singlecover[[1]]        
         }
