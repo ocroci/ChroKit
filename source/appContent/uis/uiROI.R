@@ -558,7 +558,7 @@ tabROI<-tabItem (tabName = "ROIblock",
             # ),
             #number of cores for this association:
             HTML("<b>Number of cores:</b>"),
-            numericInput(inputId = 'coresPredefPipeline',label=NULL,min = 1, max = nc, step = 1,value=nc),
+            numericInput(inputId = 'coresPredefPipeline',label=NULL,min = 1, max = nc, step = 1,value=1),
 
             HTML("<br>"),
             HTML('<hr size=3>'),
