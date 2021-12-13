@@ -61,12 +61,12 @@ For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
 
 - Open the R interpreter and go to the main source directory of the program; type:\
- ``` > setwd("/path/to/the/ChroKit/folder")```\
+ ```setwd("/path/to/the/ChroKit/folder")```\
   where "/path/to/the/ChroKit/folder" is the path on the system in which installChrokitDependencies.R and shinyapp.R scripts are located. For example, if the    ChroKit source code has been downloaded in "/Users/ocroci/Downloads" directory, just type:\
-  ``` > setwd("/Users/ocroci/Downloads/ChroKit-master/source/")```\
+  ```setwd("/Users/ocroci/Downloads/ChroKit-master/source/")```\
   in the R console.
 - Run the script and wait for all dependencies to be downloaded from internet, by typing the following command in the R console:\
- ``` > source ("installChrokitDependencies.R")```\
+ ```source ("installChrokitDependencies.R")```\
  
  
  Alternatively, make sure the following R libraries are installed:
@@ -89,8 +89,8 @@ For example, R 4.0 is compatible with bioconductor version 3.11. In that case, c
 ```bioCversion="3.8"```\
 in\
 ```bioCversion="3.11"```\
-and source the *installChrokitDependencies.R* script again:\
-``` > source ("installChrokitDependencies.R")```\
+and source the *installChrokitDependencies.R* script again, by typing the following command in the R console:\
+```source ("installChrokitDependencies.R")```\
 
 ### Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
@@ -101,13 +101,13 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 
 ### launch the program
 - Launch the application using\
-  ``` > source("shinyapp.r")```
-- If the message "Listening on http://0.0.0.0:6060" is displayed in the R console, the application is running properly. Open the application using your web browser.
-  - if you are using a personal computer, go to:\
-    ```127.0.0.1:6060```
-  - if you are using a remote machine, go to:\
+  ```source("shinyapp.r")```\
+
+When you see the message "Listening on http://0.0.0.0:6060" in the R console, it means the application is running properly. Open the application using your web browser, by typing:\
+    ```127.0.0.1:6060```\
+in the address bar. If you installed ChroKit on a remote machine, type:
     ```<IP>:6060 ```\
-    where \<IP\> is the IP address of the remote machine, and 6060 is the listening port used by ChroKit.
+in the address bar of the browser, where \<IP\> is the IP address of the remote machine, and 6060 is the listening port used by ChroKit.
 
 
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Signatures from MSigDB (Molecular Signature Database) (https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb) are already preloaded. 
