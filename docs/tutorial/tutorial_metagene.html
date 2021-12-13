@@ -1,0 +1,70 @@
+<h2>Analysing metagene profiles on a set of genes</h2>
+
+<br><br>
+
+<hr>
+<hr>
+
+
+<h4>Aim</h4>
+<p align="justify">In this tutorial we will look at how to analyse RNAPol2 average enrichment in a set of genes up- or down-regulated between in transgenic tet-Yap/Myc mice.</p>
+
+
+<hr>
+<hr>
+
+<h4>Requirements</h4>
+<p align="justify">
+ <ul>
+  The session file "tutorial_ROI.rds" and enrichment files in bigWig format (wt_ChIPSeq_Pol2.bw, yapmyc_ChIPSeq_Pol2.bw) available at <a href=https://drive.google.com/drive/folders/1BrYso234fcpL2wir9UhMR97iIw9_4fRx?usp=sharing> this link</a>
+</ul> 
+</p>
+
+
+
+
+
+<h4>1) Opening the session file, importing enrichments and gene lists</h4>
+<p align="justify">
+To import the session file generated in the previous tutorial, click "Save/Load" on the side menu under "Save your progress" section (fig. 1a) and click "Load" button (fig. 1b). Then select the "tutorial_ROI.rds" rds session from the menu. All the required ROIs will be imported in ChroKit.
+<figure>
+    <img src='../tutorial_figures/tutorial_enrichments_fig1.png' width="70%" alt='missing' />
+    <figcaption>Figure 1</figcaption>
+</figure>
+To import the enrichment files, click "Enrichment files" on the side menu ("Import data" section, fig. 2a) and then "Choose file" in the window on the left (fig. 2b). Navigate through the filesystem and choose wt_ChIPSeq_Pol2.bw file provided for this tutorial. Repeat the operation for the yapmyc_ChIPSeq_Pol2.bw file. The path for all the enrichment files is shown on the window in the middle (fig. 2c).
+<figure>
+    <img src='../tutorial_figures/tutorial_metagene_fig1.png' width="70%" alt='missing' />
+    <figcaption>Figure 2</figcaption>
+</figure>
+To open gene lists, click "ROIs" on the side menu ("Import data" section, fig. 3a) and paste the symbols of up-regulated genes contained in the text file "list_UP_top200.txt" provided for this tutorial in the dedicated input field inside "Genes to import" window (fig. 3b). Then type the name of the new genelist ("upregulated", fig. 3c) and click the "Import" button (fig. 3d). Three new ROIs will be generated ("promoters_genelist_upregulated", "transcripts_genelist_upregulated", "TES_genelist_upregulated") corresponding to promoters, transcripts and transcription termination regions of the set of genes provided. All alternative isoforms will be included.
+Repeat the step for downregulated genes ("list_DOWN_top200.txt"), and give the name "downregulated" to the new genelist.
+<figure>
+    <img src='../tutorial_figures/tutorial_metagene_fig2.png' width="70%" alt='missing' />
+    <figcaption>Figure 3</figcaption>
+</figure>
+</p>
+
+
+
+<h4>2) Associating RNAPol2 enrichments (bigWig) to the genes</h4>
+<p align="justify">
+Before analysing enrichments, we must associate enrichment files (i.e. finding the reads coverage for each position in the genomic ranges of the ROIs) to the up and down regulated genes. Click "ROI management" on side menu ("Work with data" section, fig. 4a) and select the "Associate enrichments" tab (fig. 4b). From the menu, select all the ROIs created in the previous step ("promoters_genelist_upregulated", "transcripts_genelist_upregulated", "TES_genelist_upregulated", "promoters_genelist_downregulated", "transcripts_genelist_downregulated", "TES_genelist_downregulated") (fig. 4c); choose the enrichments to use for the analysis (wt_ChIPSeq_Pol2.bw and yapmyc_ChIPSeq_Pol2.bw) (fig. 4d). Note: unless a high amount of free RAM is available on your machine, be sure to use only one CPU core (fig. 4e). Finally, click the "Associate!" button. The loading gif will appear on the left (fig. 4f), indicating that an operation is running. Do not carry out other operations while loading, but wait until it is finished.
+<figure>
+    <img src='../tutorial_figures/tutorial_metagene_fig3.png' width="70%" alt='missing' />
+    <figcaption>Figure 4</figcaption>
+</figure>
+The association will take few or several seconds (depending on the computational power of the machine in use).
+</p>
+
+
+
+<h4>3) Analysing metagene profiles</h4>
+<p align="justify">
+To evaluate the RNAPol2 enrichment in up-regulated and down-regulated genes, click "Genomics" on side menu ("Work with data" section, fig. 5a) and select the "Metagenes profiles" tab (fig. 5b). In this window, select "upregulated" genelist (fig. 5c) and associated RNAPol2 enrichment (fig. 5d) and increase the number of bins to 200 (fig. 5e). Finally, click "Update plot" (fig. 5f). 
+Seven plots will be generated in the windows on the right: the average profile of the RNAPol2 enrichment in control and transgenic mice (fig. 5g), three boxplots showing RNAPol2 enrichment at TSS, genebodies and TES regions (fig. 5h) and three plots showing the ranked enrichments of RNAPol2 for each gene at promoters, genebodies and the stalling index (fig. 5i)(= number of reads at TSS/number of reads at genebodies). The RNAPol2 enrichment is increased both in promoters and in genebodies of up-regulated genes.
+Repeat these steps for the "downregulated" genelist.
+<figure>
+    <img src='../tutorial_figures/tutorial_metagene_fig4.png' width="70%" alt='missing' />
+    <figcaption>Figure 5</figcaption>
+</figure>
+</p>
