@@ -90,6 +90,10 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 - The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
 
 
+## Tutorial
+To learn the basics on how to analyse NGS data with ChroKit, please follow the tutorials at this page: https://ocroci.github.io/ChroKit/ using sample data.
+
+
 ## Credits
 - The function for drawing color bars was adapted from John Colby (stackoverflow) http://stackoverflow.com/questions/9314658/colorbar-from-custom-colorramppalette
 - The function to generate a number of most distinctive colors in R was taken from http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r (Megatron)
