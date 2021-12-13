@@ -94,7 +94,7 @@ and source the *installChrokitDependencies.R* script again:\
 
 ### Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
-- The variable **Port** specify the listening port of the program
+- The variable **Port** specify the listening port of the program. Default: 6060.
 - The variable **nc** specify the number of cores that will be used for computation. The higher the number, the faster the program will be, but it will require more RAM. Windows users will always use 1 single core for operations because of technical issues.
 - The variable **ColsArray** specify all colors available in the palettes for heatmaps (gradient from white)
 - The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
@@ -102,12 +102,12 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 ### launch the program
 - Launch the application using\
   ``` > source("shinyapp.r")```
-- Open the application using your web browser.
+- If the message "Listening on http://0.0.0.0:6060" is displayed in the R console, the application is running properly. Open the application using your web browser.
   - if you are using a personal computer, go to:\
     ```127.0.0.1:6060```
   - if you are using a remote machine, go to:\
     ```<IP>:6060 ```\
-    where \<IP\> is the IP address of the remote machine
+    where \<IP\> is the IP address of the remote machine, and 6060 is the listening port used by ChroKit.
 
 
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Signatures from MSigDB (Molecular Signature Database) (https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb) are already preloaded. 
