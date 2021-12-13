@@ -89,7 +89,7 @@ For example, R 4.0 is compatible with bioconductor version 3.11. In that case, c
 ```bioCversion="3.8"```\
 in\
 ```bioCversion="3.11"```\
-and source the *installChrokitDependencies.R* script again:
+and source the *installChrokitDependencies.R* script again:\
 ``` > source ("installChrokitDependencies.R")```\
 
 ### Basic setup
