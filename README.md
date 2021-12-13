@@ -100,7 +100,7 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 - The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
 
 ### launch the program
-- Launch the application using\
+- Launch the application by typing the following command in the R console (make sure you are in the directory in which ChroKit source code was installed):\
   ```source("shinyapp.r")```\
 
 When you see the message "Listening on http://0.0.0.0:6060" in the R console, it means the application is running properly. Open the application using your web browser, by typing:\
