@@ -1407,7 +1407,7 @@ observeEvent(toListenDigitalHeat(),{
 		bigbamlist[[i]]=bamlist2
 
         names(bigbamlist[[i]])=names(rawvals[[i]])
-        browser()
+
         
         bignormlist[[i]]=normvals[[i]]
         fixes[[i]]=granges(getFixed(unifROI))
