@@ -23,7 +23,7 @@ observeEvent(input$fileBAM, {
   if (!is.null(bamchoice)& is.na(suppressWarnings(as.integer(bamchoice)))){
     toopen=basename(bamchoice)
     if (length(BAMvariables$listBAM)>0){
-      alreadyopened=basename(BAMvariables$listBAM)      
+      alreadyopened=sapply(BAMvariables$listBAM,basename)     
     }else{
       alreadyopened=NULL
     }
@@ -99,7 +99,7 @@ observeEvent(input$confirmImportBAMfrompath, {
     if(input$BAMfrompath!=""){
       toopen=basename(input$BAMfrompath)
       if (length(BAMvariables$listBAM)>0){
-        alreadyopened=basename(BAMvariables$listBAM)      
+        alreadyopened=sapply(BAMvariables$listBAM,basename)       
       }else{
         alreadyopened=NULL
       }
