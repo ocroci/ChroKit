@@ -2,8 +2,9 @@
 x=rownames(installed.packages())
 #bioCversion will define the version for installing BiocManager packages
 #change this if you have an R version that is not supported. For example, 
-#bioCversion="3.8" for R 3.5, bioCversion="3.9" for R 3.6 and so on...
-bioCversion="3.9"
+#bioCversion="3.8" for R 3.5, bioCversion="3.9" for R 3.6 and so on... tools:::.BioC_version_associated_with_R_version()
+numeric_version=as.character(tools:::.BioC_version_associated_with_R_version())
+bioCversion=numeric_version
 cranRepo='http://cran.us.r-project.org'
 ## IMPORTANT: on linux (tested on Ubuntu), additional libraries are rquired:
 
@@ -138,6 +139,9 @@ if(! ("BiocManager" %in% x) & R35){
 	print("Installing BiocManager package for R > 3.5.0 ...")
 	install.packages("BiocManager", repos=cranRepo)
 	BiocManager::install(version=bioCversion)
+}else if("BiocManager" %in% x & R35){
+	print(paste("Updating bioconductor packages to the version",bioCversion))
+	BiocManager::install(version=bioCversion,ask=FALSE)
 }else{
 	print("BiocManager package already installed...")
 }
