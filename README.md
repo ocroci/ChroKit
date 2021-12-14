@@ -8,7 +8,7 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
-![ Alt text](example_analogHeat_GO.gif) / ! [](example_analogHeat_GO.gif)
+![ Alt text](example_analogHeat_GO.gif)
 
 
 # Install dependencies
