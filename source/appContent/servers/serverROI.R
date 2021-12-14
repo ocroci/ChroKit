@@ -1002,6 +1002,9 @@ observeEvent(input$DownloadBSgenome,{
 
   tryCatch({
 	  if(R35){
+      print(paste("updating bioconductor packages to the version",bioCversion))
+      BiocManager::install(version = bioCversion,ask=FALSE)
+      BiocManager::install()
 	    print(paste("Downloading",BSstring,"..."))
 	    BiocManager::install(BSstring, version = bioCversion,ask=FALSE)
 	  }else{
