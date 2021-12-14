@@ -6,10 +6,13 @@ This bioinformatics tool can help the researchers to process the data from next 
 As input, ChroKit takes aligned reads (BAM or WIG files), genomic ranges (BED or GTF/GFF formats) and list of genes and performs a several operations on them, such as the refinement of ranges boundaries, extraction of sequence patterns, gene ontologies on the annotated genes and the calculation of reads enrichment. The user can then perform logical operation on the genomic regions and unsupervised clustering to create further subsets of regions.
 The wide variety of interactive plots offered by ChroKit can be modified simply by playing with mouse cursor and downloaded as pdf files. Working sessions can be exported as RDS files, allowing data sharing and reproducibility of the analyses.
 
-
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
 # Install dependencies
+
+## Requirements
+ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Linux), but at least 8 Gb of RAM are required. 
+The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
 ## From Docker image (recommended)
 Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
