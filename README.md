@@ -40,23 +40,23 @@ For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 2) Download the ChroKit source code in this gitHub page. Unzip the folder if necessary 
 3) Make sure the OS-specific requirements are satisfied:
 
-- *Linux users*
+- *Linux users
   For Linux users, make sure to install the required system packages; this can be done from a terminal with the following command:\
   ```sudo apt install libcurl4-openssl-dev libxml2-dev libssl-dev libz-dev```\
-  In case of further errors, try to follow the suggestions at the beginning of the *installChrokitDependencies.R* script.
+  In case of further errors, try to follow the suggestions at the beginning of the *installChrokitDependencies.R* script.*
 
 
-- *MacOS users*
+- *MacOS users
   To run ChroKit from within R in a MacOS machine, make sure the Xcode command line tools are properly installed and updated.
   This could be done by simply typing the following command on a terminal:
-  ```xcode-select --install```
+  ```xcode-select --install```*
 
 
--  *Windows users*
+-  *Windows users
   Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
   After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
   To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/.
-  Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel”  library, which works only on UNIX operating systems.
+  Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel”  library, which works only on UNIX operating systems.*
 
 
 4) Open the R interpreter and go to the main source directory of the program; type:\
