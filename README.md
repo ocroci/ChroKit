@@ -9,7 +9,7 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
-# Run the program
+# Install dependencies
 
 ## From Docker image (recommended)
 Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed on your system.
@@ -36,37 +36,36 @@ For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 ## From source (using R interpreter)
 
 ### Install dependencies 
-- Download and install the R interpreter (suggested version 3.5 or higher) on your computer or on a remote machine
-- Download the ChroKit source code in this gitHub page. Unzip the folder if necessary 
-- Make sure the OS-specific requirements are satisfied:
+1) Download and install the R interpreter (suggested version 3.5 or higher) on your computer or on a remote machine
+2) Download the ChroKit source code in this gitHub page. Unzip the folder if necessary 
+3) Make sure the OS-specific requirements are satisfied:
 
-  #### Linux users
+  ** Linux users **
   For Linux users, make sure to install the required system packages; this can be done from a terminal with the following command:\
   ```sudo apt install libcurl4-openssl-dev libxml2-dev libssl-dev libz-dev```\
   In case of further errors, try to follow the suggestions at the beginning of the *installChrokitDependencies.R* script.
 
 
-  #### MacOS users
+  ** MacOS users **
   To run ChroKit from within R in a MacOS machine, make sure the Xcode command line tools are properly installed and updated.
   This could be done by simply typing the following command on a terminal:
-  ```xcode-select --install```\
+  ```xcode-select --install```
 
 
-  #### Windows users
+  ** Windows users **
   Make sure to install the R interpreter in a directory path without spaces: when prompted the path for installation choose C:\R\ as the path.
   After installing the R interpreter, install Rtools; then, modify the PATH variable to include also all the binaries of Rtools.
-  To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/
-
+  To install Rtools and modify the PATH variable, follow the instructions at the link: https://cran.r-project.org/bin/windows/Rtools/.
   Note for windows users: only BAM file association is allowed (WIG files not supported); moreover, only one core is allowed, due to the use of “parallel”  library, which works only on UNIX operating systems.
 
 
-- Open the R interpreter and go to the main source directory of the program; type:\
+4) Open the R interpreter and go to the main source directory of the program; type:\
  ```setwd("/path/to/the/ChroKit/folder")```\
   where "/path/to/the/ChroKit/folder" is the path on the system in which installChrokitDependencies.R and shinyapp.R scripts are located. For example, if the    ChroKit source code has been downloaded in "/Users/ocroci/Downloads" directory, just type:\
   ```setwd("/Users/ocroci/Downloads/ChroKit-master/source/")```\
   in the R console.
-- Run the script and wait for all dependencies to be downloaded from internet, by typing the following command in the R console:\
- ```source ("installChrokitDependencies.R")```\
+5) Run the script and wait for all dependencies to be downloaded from internet, by typing the following command in the R console:\
+ ```source ("installChrokitDependencies.R")```
  
  
  Alternatively, make sure the following R libraries are installed:
@@ -90,7 +89,7 @@ For example, R 4.0 is compatible with bioconductor version 3.11. In that case, c
 in\
 ```bioCversion="3.11"```\
 and source the *installChrokitDependencies.R* script again, by typing the following command in the R console:\
-```source ("installChrokitDependencies.R")```\
+```source ("installChrokitDependencies.R")```
 
 ### Basic setup
 Some parameters could be set in the **shinyapp.r** script, such as the listening port or the number of cores, as well as the colors available for the heatmaps.
@@ -99,9 +98,9 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 - The variable **ColsArray** specify all colors available in the palettes for heatmaps (gradient from white)
 - The variable **bioCversion** specify the appropriate version of Bioconductor for your R interpreter for the download of databases
 
-### launch the program
+# Launch the program
 - Launch the application by typing the following command in the R console (make sure you are in the directory in which ChroKit source code was installed):\
-  ```source("shinyapp.r")```\
+  ```source("shinyapp.r")```
 
 When you see the message "Listening on http://0.0.0.0:6060" in the R console, it means the application is running properly. Open the application using your web browser, by typing:\
     ```127.0.0.1:6060```\
