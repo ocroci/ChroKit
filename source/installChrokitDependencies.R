@@ -1,5 +1,6 @@
 ### find and, if necessary, install, required packages for Chrokit
 x=rownames(installed.packages())
+options(install.packages.compile.from.source = "always")
 #bioCversion will define the version for installing BiocManager packages
 #change this if you have an R version that is not supported. For example, 
 #bioCversion="3.8" for R 3.5, bioCversion="3.9" for R 3.6 and so on... tools:::.BioC_version_associated_with_R_version()
@@ -138,10 +139,10 @@ if(Rversion_main==3){
 if(! ("BiocManager" %in% x) & R35){
 	print("Installing BiocManager package for R > 3.5.0 ...")
 	install.packages("BiocManager", repos=cranRepo)
-	BiocManager::install(version=bioCversion)
+	BiocManager::install(version=bioCversion,ask=FALSE,force=TRUE)
 }else if("BiocManager" %in% x & R35){
 	print(paste("Updating bioconductor packages to the version",bioCversion))
-	BiocManager::install(version=bioCversion,ask=FALSE)
+	BiocManager::install(version=bioCversion,ask=FALSE,force=TRUE)
 }else{
 	print("BiocManager package already installed...")
 }
