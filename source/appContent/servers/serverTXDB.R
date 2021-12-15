@@ -291,27 +291,34 @@ observeEvent(input$confirmASSEMBLYfordownload,{
 	if (!is.null(input$searchASSEMBLYfordownload) & input$searchASSEMBLYfordownload!="" & length(input$searchASSEMBLYfordownload)>0){
 		#from assembly string (ex:"mm9") to download of the correct database from bioconductor
 		#and upadte of DATABASEvariables$avail/missing database
-		tryCatch({
-			downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
-	    },
-	    warning = function( w ){
-		  sendSweetAlert(
-	          session = session,
-	          title = "Problems in downloading database",
-	          text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
-	          type = "error"
-	      )
-	      return()
-	    },
-	    error = function( err ){
-	        sendSweetAlert(
-	          session = session,
-	          title = "Problems in downloading database",
-	          text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
-	          type = "error"
-	        )
-	       	return()
-	    })
+		# tryCatch({
+		downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
+	    #alert the user that the the assembly has been correctly downloaded
+        sendSweetAlert(
+          session = session,
+          title = "Genome assembly downloaded!",
+          text = paste("The ",input$searchASSEMBLYfordownload," genome assembly has been correctly downloaded!",sep=""),
+          type = "success"
+        ) 
+	   #  },
+	   #  warning = function( w ){
+		  # sendSweetAlert(
+	   #        session = session,
+	   #        title = "Problems in downloading database",
+	   #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+	   #        type = "error"
+	   #    )
+	   #    return()
+	   #  },
+	   #  error = function( err ){
+	   #      sendSweetAlert(
+	   #        session = session,
+	   #        title = "Problems in downloading database",
+	   #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+	   #        type = "error"
+	   #      )
+	   #     	return()
+	   #  })
 		
 		updateExistingDB=getExistingDB(avail_assemblies=all_avail_assemblies)
 		DATABASEvariables$availASSEMBLIES=updateExistingDB$assemblies_we_have

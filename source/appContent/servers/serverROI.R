@@ -1000,13 +1000,12 @@ observeEvent(input$DownloadBSgenome,{
 
   #install the correct BSgenome package
 
-  tryCatch({
+  # tryCatch({
 	  if(R35){
       print(paste("updating bioconductor packages to the version",bioCversion))
-      BiocManager::install(version = bioCversion,ask=FALSE)
-      BiocManager::install()
+      BiocManager::install(version = bioCversion,ask=FALSE,force=TRUE)
 	    print(paste("Downloading",BSstring,"..."))
-	    BiocManager::install(BSstring, version = bioCversion,ask=FALSE)
+	    BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE)
 	  }else{
 	    print(paste("Downloading",BSstring,"..."))
 	    biocLite(BSstring,suppressUpdates=TRUE,ask=FALSE)
@@ -1026,23 +1025,23 @@ observeEvent(input$DownloadBSgenome,{
 	  ) 
 
 
-  },
-  warning = function( w ){
-	sendSweetAlert(
-        session = session,
-        title = "Problems in downloading BSgenome",
-        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
-        type = "error"
-    )
-  },
-  error = function( err ){
-      sendSweetAlert(
-        session = session,
-        title = "Problems in downloading BSgenome",
-        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
-        type = "error"
-      )
-  })
+ #  },
+ #  warning = function( w ){
+	# sendSweetAlert(
+ #        session = session,
+ #        title = "Problems in downloading BSgenome",
+ #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+ #        type = "error"
+ #    )
+ #  },
+ #  error = function( err ){
+ #      sendSweetAlert(
+ #        session = session,
+ #        title = "Problems in downloading BSgenome",
+ #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
+ #        type = "error"
+ #      )
+ #  })
 
 
   
