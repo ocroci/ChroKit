@@ -292,14 +292,29 @@ observeEvent(input$confirmASSEMBLYfordownload,{
 		#from assembly string (ex:"mm9") to download of the correct database from bioconductor
 		#and upadte of DATABASEvariables$avail/missing database
 		# tryCatch({
-		downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
-	    #alert the user that the the assembly has been correctly downloaded
-        sendSweetAlert(
-          session = session,
-          title = "Genome assembly downloaded!",
-          text = paste("The ",input$searchASSEMBLYfordownload," genome assembly has been correctly downloaded!",sep=""),
-          type = "success"
-        ) 
+		if (checkBiocConnection()){
+			downloadDB(assembly=input$searchASSEMBLYfordownload,avail_assemblies=all_avail_assemblies)
+	    	#alert the user that the the assembly has been correctly downloaded
+	       	updateExistingDB=getExistingDB(avail_assemblies=all_avail_assemblies)
+			DATABASEvariables$availASSEMBLIES=updateExistingDB$assemblies_we_have
+			DATABASEvariables$missingASSEMBLIES=updateExistingDB$assemblies_we_donthave
+			logvariables$msg[[length(logvariables$msg)+1]]= paste('Downloaded databases for ',input$searchASSEMBLYfordownload,' assembly<br>',sep="")
+	        sendSweetAlert(
+	          session = session,
+	          title = "Genome assembly downloaded!",
+	          text = paste("The ",input$searchASSEMBLYfordownload," genome assembly has been correctly downloaded!",sep=""),
+	          type = "success"
+	        ) 
+	    }else{
+	    	sendSweetAlert(
+		        session = session,
+		        title = "Connection problems",
+		        text = "Problems in connecting to bioconductor site",
+		        type = "error"
+		    )
+		    return()
+	    }
+
 	   #  },
 	   #  warning = function( w ){
 		  # sendSweetAlert(
@@ -320,10 +335,7 @@ observeEvent(input$confirmASSEMBLYfordownload,{
 	   #     	return()
 	   #  })
 		
-		updateExistingDB=getExistingDB(avail_assemblies=all_avail_assemblies)
-		DATABASEvariables$availASSEMBLIES=updateExistingDB$assemblies_we_have
-		DATABASEvariables$missingASSEMBLIES=updateExistingDB$assemblies_we_donthave
-		logvariables$msg[[length(logvariables$msg)+1]]= paste('Downloaded databases for ',input$searchASSEMBLYfordownload,' assembly<br>',sep="")
+
 	}
 },ignoreInit=TRUE)
 

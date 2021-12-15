@@ -1000,48 +1000,45 @@ observeEvent(input$DownloadBSgenome,{
 
   #install the correct BSgenome package
 
+
   # tryCatch({
-	  if(R35){
+  if (checkBiocConnection()){
+    if(R35){
       print(paste("updating bioconductor packages to the version",bioCversion))
       BiocManager::install(version = bioCversion,ask=FALSE,force=TRUE)
-	    print(paste("Downloading",BSstring,"..."))
-	    BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE)
-	  }else{
-	    print(paste("Downloading",BSstring,"..."))
-	    biocLite(BSstring,suppressUpdates=TRUE,ask=FALSE)
-	  }
+      print(paste("Downloading",BSstring,"..."))
+      BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE)
+    }else{
+      print(paste("Downloading",BSstring,"..."))
+      biocLite(BSstring,suppressUpdates=TRUE,ask=FALSE)
+    }
 
-	  #update reactive variable
-	  DATABASEvariables$currentORG=BSstring
-	  #import library
-	  library(BSstring,character.only=TRUE)
+    #update reactive variable
+    DATABASEvariables$currentORG=BSstring
+    #import library
+    library(BSstring,character.only=TRUE)
 
-	  #alert the user the package has been installed
-	  sendSweetAlert(
-	    session = session,
-	    title = paste(BSstring, "installed!"),
-	    text = paste("The package '",BSstring,"' has been installed and imported for pattern extraction from ROIs",sep=""),
-	    type = "success"
-	  ) 
+    #alert the user the package has been installed
+    sendSweetAlert(
+      session = session,
+      title = paste(BSstring, "installed!"),
+      text = paste("The package '",BSstring,"' has been installed and imported for pattern extraction from ROIs",sep=""),
+      type = "success"
+    )     
+  }else{
+    sendSweetAlert(
+        session = session,
+        title = "Connection problems",
+        text = "Problems in connecting to bioconductor site",
+        type = "error"
+    )
+    return()  
+  }
+
 
 
  #  },
- #  warning = function( w ){
-	# sendSweetAlert(
- #        session = session,
- #        title = "Problems in downloading BSgenome",
- #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
- #        type = "error"
- #    )
- #  },
- #  error = function( err ){
- #      sendSweetAlert(
- #        session = session,
- #        title = "Problems in downloading BSgenome",
- #        text = "Check your internet connection, or change bioCversion (for example, for R 3.6, the bioCversion 3.9 is needed)",
- #        type = "error"
- #      )
- #  })
+
 
 
   
