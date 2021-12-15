@@ -198,7 +198,21 @@ readBEDGTFF<-function(bedpath,Header=TRUE,Skip=0){
 #DATABASES
 ####################################################################
 ####################################################################
-
+checkBiocConnection<-function(url="bioconductor.org/packages/") {
+  library(RCurl)
+  connectivity=FALSE
+  tryCatch({ 
+    x=getURL(url)
+    connectivity=TRUE
+  },
+  warning = function( w ){
+    connectivity=FALSE
+  },
+  error = function( err ){
+    connectivity=FALSE
+  })
+  return(connectivity)
+}
 downloadDB<-function(assembly,avail_assemblies) {
   #assembly: character with the name of the assembly for which txdb and org DBs 
   #   have to be installed
