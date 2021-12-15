@@ -14,7 +14,7 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 # Install dependencies
 
 ## Requirements
-ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Linux), but at least 8 Gb of RAM are required. 
+ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Linux). At least 8 Gb of RAM are recommended. 
 The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
 ## From Docker image (recommended)
