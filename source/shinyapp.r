@@ -1,3 +1,4 @@
+options(install.packages.compile.from.source = "always")
 ############################################
 #General parameters
 ############################################
@@ -15,6 +16,7 @@ ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
 #R 3.5 wants bioCversion="3.8", R 3.6 wants bioCversion="3.9" and so on...
 numeric_version=as.character(tools:::.BioC_version_associated_with_R_version())
 bioCversion=numeric_version
+
 
 
 
