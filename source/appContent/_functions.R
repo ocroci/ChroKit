@@ -261,21 +261,20 @@ downloadDB<-function(assembly,avail_assemblies) {
   if(R35){
     #upgrading bioconductor packages to the correct version bioCversion detected with .BioC_version_associated_with_R_version() function
     print(paste("updating bioconductor packages to the version",bioCversion))
-    BiocManager::install(version = bioCversion,ask=FALSE)
-    BiocManager::install()
+    BiocManager::install(version = bioCversion,ask=FALSE,force=TRUE)
     if(is_txdb&!is_org){
       print(paste("Downloading",todownload_org,"..."))
-      BiocManager::install(todownload_org, version = bioCversion,ask=FALSE)
+      BiocManager::install(todownload_org, version = bioCversion,ask=FALSE,force=TRUE)
     }
     if(!is_txdb&is_org){
       print(paste("Downloading",todownload_txdb,"..."))
-      BiocManager::install(todownload_txdb, version = bioCversion,ask=FALSE)
+      BiocManager::install(todownload_txdb, version = bioCversion,ask=FALSE,force=TRUE)
     }
     if(!is_txdb&!is_org){
       print(paste("Downloading",todownload_org,"..."))
-      BiocManager::install(todownload_org, version = bioCversion,ask=FALSE)
+      BiocManager::install(todownload_org, version = bioCversion,ask=FALSE,force=TRUE)
       print(paste("Downloading",todownload_txdb,"..."))
-      BiocManager::install(todownload_txdb, version = bioCversion,ask=FALSE)
+      BiocManager::install(todownload_txdb, version = bioCversion,ask=FALSE,force=TRUE)
     }  
   }else{
     source("https://bioconductor.org/biocLite.R")
