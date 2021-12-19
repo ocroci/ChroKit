@@ -34,11 +34,9 @@ observeEvent(input$plotSingleEval,{
 	set.seed(123)
 	if (!is.null(input$ROIchooseSingleEval) & length(ROIvariables$listROI)>0) {
 		nomi=unlist(lapply(ROIvariables$listROI,getName))
-		
     	if ("promoters"%in% nomi & "transcripts"%in% nomi) {
       		pos=match(input$ROIchooseSingleEval,nomi)
       		roi=uniqueROI(ROIvariables$listROI[[pos]]) 
-
           roi=unifyStrand(roi)
 
       		if (!is.null(roi)){
@@ -60,7 +58,6 @@ observeEvent(input$plotSingleEval,{
 				    label<-c(paste(perc[1],"% (",elements[1],")",sep=''),paste(perc[2],"% (",elements[2],")",sep=''),paste(perc[3],"% (",elements[3],")",sep=''))
             label<-paste(c("Promoters:","Genebody:","Intergenic:"),label,sep="")
 				    maintitle=paste("ROI: ",ROInameSingleEval," (",length(range)," total ranges)",sep='')
-
             toplot$viewDistributionPieSingleEval$Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
             toplot$viewDistributionPieSingleEval$elements=elements
             toplot$viewDistributionPieSingleEval$maintitle=maintitle
@@ -82,7 +79,6 @@ observeEvent(input$plotSingleEval,{
    				  })
 
 
-
             #barplot
             output$viewDistributionBarSingleEval<-renderPlot({
               Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
@@ -99,7 +95,6 @@ observeEvent(input$plotSingleEval,{
             print(paste("Single evaluation of",input$ROIchooseSingleEval))
             #width distribution
             if (length(range)>2){
-              
               quant=0.95
               Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
               cuttedga=range[width(range)<quantile(width(range),quant)]
@@ -108,7 +103,6 @@ observeEvent(input$plotSingleEval,{
               cuttedinter=range_inter[width(range_inter)<quantile(width(range_inter),quant)]
 
               if (length(range_promo)>2&length(cuttedga)>2){
-
                 output$widthDistributionSingleEval<-renderPlot( {
                   if (length(range_intra)>2){
                     if(length(range_inter)>2){
@@ -145,7 +139,6 @@ observeEvent(input$plotSingleEval,{
                 })
                 #download button for width distribution
                 output$savewidthDistributionSingleEval<-renderUI({downloadButton('savewidthDistributionSingleEvalbutton', 'Get PDF')})
-              
               }else{
                 #only total plot, but at least one between promoters, intra, inter must be >0 by definition
                 output$widthDistributionSingleEval<-renderPlot({NULL})
@@ -161,16 +154,14 @@ observeEvent(input$plotSingleEval,{
             #extract enrichment from correct position of the ROI selected
             rawvals=Enrichlist$rawcoverage[[pos]]
             normvals=Enrichlist$normfactlist[[pos]]
-
-      		  getbam=names(rawvals)
+      		getbam=names(rawvals)
 
             toplot$viewDistributionPieSingleEval$getbam=getbam
             toplot$viewDistributionPieSingleEval$chooseNormalizationSingleEval=input$chooseNormalizationSingleEval
-
         		if (!is.null(getbam)& length(getbam)>0){
         		  pos2=match(input$BAMchooseSingleEval,getbam)
       			  bam_orig=rawvals[[pos2]]
-              norm_orig=normvals[[pos]]
+              	  norm_orig=normvals[[pos2]]
                   #bam=unlist(lapply(bam,sum))
       			  #calculate enrichments for boxplots
       			  bam_promo_orig=bam_orig[ov_range>0]
@@ -183,7 +174,6 @@ observeEvent(input$plotSingleEval,{
               bam_promo=unlist(lapply(bam_promo_orig,sum))*norm_orig
               bam_intra=unlist(lapply(bam_intra_orig,sum))*norm_orig
               bam_inter=unlist(lapply(bam_inter_orig,sum))*norm_orig
-
               toplot$viewDistributionPieSingleEval$bam=bam
               toplot$viewDistributionPieSingleEval$bam_promo=bam_promo
               toplot$viewDistributionPieSingleEval$bam_intra=bam_intra
@@ -204,7 +194,7 @@ observeEvent(input$plotSingleEval,{
                 axis(1,at=1:4,labels=c("All intervals","Promoter","Genebody","Intergenic"),las=2)
 
               })
-
+              print ("passed6")
 
               # bam_orig
               # bam_promo_orig
@@ -218,7 +208,7 @@ observeEvent(input$plotSingleEval,{
                 smp=sample(1:length(listtoprofile[[i]]),floor(length(listtoprofile[[i]])/10),replace=FALSE)
                 listtoprofile[[i]]=listtoprofile[[i]][smp]
               }
-
+              print ("passed7")
               #find matrix in bins for promo,intra,inter
               matrixes=list()
               if(input$chooseNormalizationSingleEval=="totread"){
