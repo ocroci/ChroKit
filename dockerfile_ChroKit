@@ -27,7 +27,7 @@ RUN   apt update && \
 
 EXPOSE 6060
 #copy the folder of the source code of ChroKit in the home directory
-COPY ./ChroKit_lowmem /home/ChroKit
+COPY ./ChroKit_lowmem/source /home/ChroKit
 
 #the following script (start_chrokit_docker.sh) contains this:
 #! /bin/bash
