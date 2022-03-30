@@ -192,6 +192,19 @@ if(! ("rtracklayer" %in% x)){
 }
 
 
+#bamsignals
+if(! ("bamsignals" %in% x)){
+	print("Installing bamsignals package...")
+	if(R35){
+		BiocManager::install("bamsignals", version = bioCversion,ask=FALSE)
+	}else{
+		source("http://bioconductor.org/biocLite.R"); biocLite("bamsignals",ask=FALSE)
+	}
+	
+}else{
+	print("bamsignals package already installed...")
+}
+
 
 
 #################################################################

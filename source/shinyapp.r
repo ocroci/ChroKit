@@ -3,7 +3,7 @@ options(install.packages.compile.from.source = "always")
 #General parameters
 ############################################
 #select the listening port
-Port=6060
+Port=6061
 ### select the number of cores for execution
 ### on windows systems, it will put nc=1
 nc=4
@@ -97,6 +97,8 @@ library(Rsamtools)
 library(ppcor)
 #inline, for compiling Rcpp functions
 library(inline)
+#bamsignals, for efficient pileups/coverage computation from BAM files
+library(bamsignals)
 
 
 
