@@ -194,7 +194,6 @@ observeEvent(input$plotSingleEval,{
                 axis(1,at=1:4,labels=c("All intervals","Promoter","Genebody","Intergenic"),las=2)
 
               })
-              print ("passed6")
 
               # bam_orig
               # bam_promo_orig
@@ -208,7 +207,6 @@ observeEvent(input$plotSingleEval,{
                 smp=sample(1:length(listtoprofile[[i]]),floor(length(listtoprofile[[i]])/10),replace=FALSE)
                 listtoprofile[[i]]=listtoprofile[[i]][smp]
               }
-              print ("passed7")
               #find matrix in bins for promo,intra,inter
               matrixes=list()
               if(input$chooseNormalizationSingleEval=="totread"){
@@ -2986,19 +2984,17 @@ observeEvent(toListenAnalogHeat(),{
                   }
 
                   ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
-                  ###is a ROI. 
+                  ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
                   pos_toinvert=as.character(strand_sampled[[i]])=="-"
-                  
                   #for k in matlist (k should be the bam)
-                  for(k in 1:length(matlist)){
-                    #for each of the BAM file in this current ROI;
-                    matprovv=matlist[[k]]
+                  # for(k in 1:length(matlist)){
+                  #   #for each of the BAM file in this current ROI;
+                  #   matprovv=matlist[[k]]
+                  #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+                  #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+                  #   }
+                  # }
 
-                    if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                      matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                    }
-                    
-                  }
 
                   return(matlist)    
                 })
@@ -3012,15 +3008,16 @@ observeEvent(toListenAnalogHeat(),{
                                           return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                         }) 
                     ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
-                    ###is a ROI. 
+                    ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
                     pos_toinvert=as.character(strand_sampled[[i]])=="-"
-                    for(k in 1:length(matlist)){
-                      #for each of the BAM file in this current ROI;
-                      matprovv=matlist[[k]]
-                      if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                        matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                      }
-                    }
+                    # for(k in 1:length(matlist)){
+                    #   #for each of the BAM file in this current ROI;
+                    #   matprovv=matlist[[k]]
+                    #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+                    #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+                    #   }
+                    # }
+
                     return(matlist)    
                   })                
                 }else{
@@ -3032,15 +3029,15 @@ observeEvent(toListenAnalogHeat(),{
                                             return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
-                      ###is a ROI. 
+                      ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
                       pos_toinvert=as.character(strand_sampled[[i]])=="-"
-                      for(k in 1:length(matlist)){
-                        #for each of the BAM file in this current ROI;
-                        matprovv=matlist[[k]]
-                        if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                          matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                        }
-                      }
+                      # for(k in 1:length(matlist)){
+                      #   #for each of the BAM file in this current ROI;
+                      #   matprovv=matlist[[k]]
+                      #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+                      #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+                      #   }
+                      # }
                       return(matlist)    
                     },mc.cores=nc)  
                     #if multicore returned correctly, decision==1, following if won't be calculated..
@@ -3062,18 +3059,17 @@ observeEvent(toListenAnalogHeat(),{
                                             return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
-                      ###is a ROI. 
+                      ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
                       pos_toinvert=as.character(strand_sampled[[i]])=="-"
 
                       #for k in matlist (k should be the bam)
-                      for(k in 1:length(matlist)){
-                        #for each of the BAM file in this current ROI;
-                        matprovv=matlist[[k]]
-                        if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                          matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                        }
-                        
-                      }
+                      # for(k in 1:length(matlist)){
+                      #   #for each of the BAM file in this current ROI;
+                      #   matprovv=matlist[[k]]
+                      #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+                      #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+                      #   }
+                      # }
                       return(matlist)    
                     }) 
 
@@ -4435,16 +4431,15 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
                     }) 
           names(matlist)=names(bigbamlist[[i]])
           # ###HERE invert "-" strand. They are in strands list. each element of this list
-          # ###is a ROI. 
+          # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
           pos_toinvert=as.character(strands[[i]])=="-"
-          #
-          for(k in 1:length(matlist)){
-            #for each of the BAM file in this current ROI;
-            matprovv=matlist[[k]]
-            if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-              matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-            }
-          }
+          # for(k in 1:length(matlist)){
+          #   #for each of the BAM file in this current ROI;
+          #   matprovv=matlist[[k]]
+          #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+          #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+          #   }
+          # }
           return(matlist)
         })
       }else{
@@ -4460,16 +4455,16 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
               names(matlist)=names(bigbamlist[[i]])
 
               # ###HERE invert "-" strand. They are in strands list. each element of this list
-              # ###is a ROI. 
+              # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
               pos_toinvert=as.character(strands[[i]])=="-"
               #
-              for(k in 1:length(matlist)){
-                #for each of the BAM file in this current ROI;
-                matprovv=matlist[[k]]
-                if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                  matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                }
-              }
+              # for(k in 1:length(matlist)){
+              #   #for each of the BAM file in this current ROI;
+              #   matprovv=matlist[[k]]
+              #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+              #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+              #   }
+              # }
 
               return(matlist)
             },mc.cores=nc)            
@@ -4482,16 +4477,16 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
               names(matlist)=names(bigbamlist[[i]])
 
               # ###HERE invert "-" strand. They are in strands list. each element of this list
-              # ###is a ROI. 
+              # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
               pos_toinvert=as.character(strands[[i]])=="-"
               #
-              for(k in 1:length(matlist)){
-                #for each of the BAM file in this current ROI;
-                matprovv=matlist[[k]]
-                if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                  matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                }
-              }
+              # for(k in 1:length(matlist)){
+              #   #for each of the BAM file in this current ROI;
+              #   matprovv=matlist[[k]]
+              #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+              #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+              #   }
+              # }
 
               return(matlist)
             })               
@@ -4514,16 +4509,16 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
             names(matlist)=names(bigbamlist[[i]])
 
             # ###HERE invert "-" strand. They are in strands list. each element of this list
-            # ###is a ROI. 
+            # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
             pos_toinvert=as.character(strands[[i]])=="-"
             #
-            for(k in 1:length(matlist)){
-              #for each of the BAM file in this current ROI;
-              matprovv=matlist[[k]]
-              if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-              }
-            }
+            # for(k in 1:length(matlist)){
+            #   #for each of the BAM file in this current ROI;
+            #   matprovv=matlist[[k]]
+            #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
+            #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
+            #   }
+            # }
 
             return(matlist)
           })
@@ -5354,7 +5349,11 @@ observeEvent(input$plotDynamics,{
         #calc. matrixes for profiles, and invert negative strand
         matcov_plus=makeMatrixFrombaseCoverage(content_transcripts_plus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
         matcov_minus=makeMatrixFrombaseCoverage(content_transcripts_minus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
-        matcov_minus <- matcov_minus[ , ncol(matcov_minus):1]
+        
+
+        #With "bamsignals" package, negative strand is already reversed at the beginning
+        #matcov_minus <- matcov_minus[ , ncol(matcov_minus):1]
+        
         matcov=rbind(matcov_plus,matcov_minus)
         #calculate median instead of mean
         totallist_profile[[i]][[k]]=apply(matcov,2,input$chooseMetricforDynamics)
