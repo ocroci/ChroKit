@@ -3,7 +3,7 @@ options(install.packages.compile.from.source = "always")
 #General parameters
 ############################################
 #select the listening port
-Port=6061
+Port=6060
 ### select the number of cores for execution
 ### on windows systems, it will put nc=1
 nc=4
