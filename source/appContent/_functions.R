@@ -937,23 +937,26 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       matchingSeqs <- which(as.character(seqnames(Object)) %in% BAMseqs)
       if (length(matchingSeqs) == 0) 
           return(sapply(width(Object), function(x) rep(0, x)))
-      param <- ApplyPileupsParam(which = Object[matchingSeqs],what = "seq")
-      pileupFiles=PileupFiles(signalfile)
-      coverage <- applyPileups(pileupFiles, FUN = function(x) x,param = param)
-      rm(pileupFiles)
-      widths <- width(Object[matchingSeqs])
-      covList <- list()
-      starts <- start(Object[matchingSeqs])
-      covList=lapply(1:length(Object[matchingSeqs]), function(i) {
-          covx <- coverage[[i]]
-          cvec <- rep(0, widths[i])
-          inds <- covx$pos - starts[i] + 1
-          #sometims max(inds) is > than length of cvec. => NAs in some positions. Why?
-          cvec[inds] <- colSums(covx$seq)
-          return(cvec)
-      })
-      covList<-lapply(covList,function(i)as.integer(i))
-      rm(coverage)
+      #use ss parameter for splitting strands
+      #already integer!
+      covList=as.list(bamCoverage(bampath=signalfile, gr=Object[matchingSeqs], verbose=FALSE))
+      # param <- ApplyPileupsParam(which = Object[matchingSeqs],what = "seq")
+      # pileupFiles=PileupFiles(signalfile)
+      # coverage <- applyPileups(pileupFiles, FUN = function(x) x,param = param)
+      # rm(pileupFiles)
+      # widths <- width(Object[matchingSeqs])
+      # covList <- list()
+      # starts <- start(Object[matchingSeqs])
+      # covList=lapply(1:length(Object[matchingSeqs]), function(i) {
+      #     covx <- coverage[[i]]
+      #     cvec <- rep(0, widths[i])
+      #     inds <- covx$pos - starts[i] + 1
+      #     #sometims max(inds) is > than length of cvec. => NAs in some positions. Why?
+      #     cvec[inds] <- colSums(covx$seq)
+      #     return(cvec)
+      # })
+      # covList<-lapply(covList,function(i)as.integer(i))
+
 
 
       ####################################################################
