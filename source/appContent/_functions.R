@@ -1014,9 +1014,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         #find positions of Object that have that chromosome
         #opening chromosome by chromosome
         pos=as.character(seqnames(Object))==common_chromosomes[i]
-        chrsize=chrswig[common_chromosomes[i]]
-        grcurrentchr=GRanges(Rle(common_chromosomes[i]),IRanges(1,chrsize))
-        wigtempchr=import(signalfile,which=grcurrentchr,as = 'Rle')
+        wigtempchr=import(signalfile,which=Object[pos],as = 'Rle')
         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
         counts=Views(unlist(wigtempchr[[common_chromosomes[i]]]),ranges(Object[pos]))
         rm(wigtempchr)
@@ -1027,21 +1025,23 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         if(length(counts)==1){
           tmp=list(as.vector(tmp))
         }
-        if(class(tmp)=="matrix"){
+        if(any(class(tmp)!="list") ){
           ##check whether the order is correct
-          tmp=lapply(seq_len(ncol(tmp)), function(i) tmp[,i])
+          tmp=lapply(seq_len(ncol(tmp)), function(i) as.integer(tmp[,i]))
         }
         rm(counts)
         ##IMPORTANT##
         #############
         #change here if numbers can not be integer, but real
         #############
-        tmp<-lapply(tmp,function(i)as.integer(i))
+        #tmp<-lapply(tmp,function(i)as.integer(i))
         ########################################################
         coverageTot[pos] <- tmp
+
       }
       #return coverage and norm factor (in case of WIG, simply 1) to keep the same result structure 
       #for the function
+
       return(list(coverageTot,1))      
     }else{
       stop("Error in retrieving file/extension...")
