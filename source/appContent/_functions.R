@@ -219,10 +219,10 @@ downloadDB<-function(assembly,avail_assemblies) {
   #avail assemblies= named charactr vector with all existing Txdb and names are
   #   the relative org db
   av_packages=rownames(installed.packages())
-  if(class(assembly)!="character"){
+  if(!inherits(assembly,"character") ){
     stop("'assembly' must be a named character")
   }  
-  if(class(avail_assemblies)!="character"){
+  if(!inherits(avail_assemblies,"character")   ){
     stop("'avail_assemblies' must be a named character")
   }  
   #search, from the assembly, the couple txdb/org inside avail_assemblies vector:
@@ -318,7 +318,7 @@ getExistingDB<-function(avail_assemblies) {
   #avail_assemblies is a named array; elements are character strings of TxDb bioC annotation packages,
   #  while the names are the org.XX.eg.db of the species associated to that genome assembly TxDb.
   #  (defined in shinyapp.r initial script)
-  if(class(avail_assemblies)!="character"){
+  if(!inherits(avail_assemblies,"character")   ){
     stop("'avail_assemblies' must be a named character")
   }
   av_packages=rownames(installed.packages())
@@ -355,13 +355,13 @@ extractFromDB<-function(assembly,avail_assemblies) {
   # for example, mm10, hg19, rheMac3, rn6, which is part of the name in TxDb libraries
   #avail_assemblies is a named array; elements are character strings of TxDb bioC annotation packages,
   # while the names are the org.XX.eg.db of the species associated to that genome assembly TxDb
-  if(class(assembly)!="character"){
+  if(!inherits(assembly,"character")){
     stop("'assembly' must be a character of the genome assembly (example: mm9,hg19)")
   }
   if(length(assembly)!=1){
     stop("'assembly' length must be 1")
   }
-  if(class(avail_assemblies)!="character"){
+  if(!inherits(avail_assemblies,"character") ){
     stop("'avail_assemblies' must be a named character")
   }
   if(!any(grepl(assembly,avail_assemblies))) {
@@ -583,16 +583,16 @@ findPositionFromGene<-function(genelist,annotatedrange,kindofID="entrez",thresh=
   # or any annotated ROI with the same columns
   #kindofID: whether genelist given to the function is an "entrez", "ensembl", "symbol" or "refseq"
   #thresh: threshold width for the transcripts or annotatedranges
-  if(class("genelist")!="character"){
+  if( !inherits(genelist,"character")   ){
     stop("'genelist' must be a character vector of genes...")
   }
   if(length(genelist)==0){
     stop("'genelist' must not be 0 length")
   }
-  if(class(annotatedrange)!="GRanges" ){
+  if(!inherits(annotatedrange,"GRanges")     ){
     stop("'annotatedrange' must be genomic ranges")
   }
-  if(length(thresh)!=1 | ( class(thresh)!="numeric" & class(thresh)!="integer") ){
+  if(length(thresh)!=1 | ( !inherits(thresh,"numeric")  &  !inherits(thresh,"integer") ) ){
     stop("'thresh' must be a number")
   }
   if(thresh<=0){
@@ -691,10 +691,10 @@ distanceFromTSS3<-function(Object, Tss,criterion="midpoint") {
     #     TSS:   |               |            |
     #     Object:                    ------|------ 
     #     The distance will be:             ***   <- this one! 
-    if(class(Object)!="GRanges"){
+    if(!inherits(Object,"GRanges")  ){
       stop("Object must be a GRange")
     }
-    if(class(Tss)!="GRanges"){
+    if(!inherits(Tss,"GRanges")  ){
       stop("Tss must be a GRange")
     }
     if(!all(width(Tss))==1){
@@ -859,7 +859,7 @@ color.bar2 <- function(lut, min, max=-min, margins=c(2,2,2,2),nticks=11, ticks=s
 
 #this function checks the maximum number of bins in which a ROI can be divided into
 checkMaxBins<-function(roiobject){
-  if(class(roiobject)!="RegionOfInterest"){
+  if(!inherits(roiobject,"RegionOfInterest")    ){
     stop("roiobject must be a 'RegionOfInterest' object...")
   }
   rangeSelected=getRange(roiobject)
@@ -1025,7 +1025,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         if(length(counts)==1){
           tmp=list(as.vector(tmp))
         }
-        if(any(class(tmp)!="list") ){
+        if( !inherits(tmp,"list")        ){
           ##check whether the order is correct
           tmp=lapply(seq_len(ncol(tmp)), function(i) as.integer(tmp[,i]))
         }
@@ -1072,10 +1072,10 @@ summitFromBaseCoverage<-function(Object,baseCoverageOutput) {
   #Object: GRanges from which derive the summits
   #baseCoverageOutput: list of output of GRbaseCoverage2 function
 
-  if(class(Object)!="GRanges"){
+  if( !inherits(Object,"GRanges")  ){
     stop("'Object' must be a GRange...")
   }
-  if(class(baseCoverageOutput)!="list"){
+  if(!inherits(baseCoverageOutput,"list") ){
     stop("'baseCoverageOutput' must be a list")
   }
 
@@ -1111,10 +1111,10 @@ distanceFromTSS2<-function (Object, Tss,criterion="midpoint")
     #     the distance will be calculated from the boundaries of Object
     #     otherwise, if set to "midpoint", the distance will be calculated
     #     from the midpoint of Object
-    if(class(Object)!="GRanges"){
+    if(!inherits(Object,"GRanges")   ){
       stop("Object must be a GRange")
     }
-    if(class(Tss)!="GRanges"){
+    if(!inherits(Tss,"GRanges") ){
       stop("Tss must be a GRange")
     }
     if(!all(width(Tss))==1){
@@ -1422,19 +1422,19 @@ clusterMatrix<-function(matlist,distmethod,clustmethod,clustinds){
   #clustinds: indexes rpresenting the position of the matrixes inside matlist 
   #         that will drive the clustering. All the other matrixes will be reordered accordingly
   if (!is.null(clustinds)){
-    if(class(clustinds)!="integer"){
+    if(!inherits(clustinds,"integer")   ){
       stop("'clustinds' must be an integer or NULL...")
     }
   }
-  if(class(distmethod)!="character" | class(clustmethod) != "character"){
+  if(!inherits(distmethod,"character")  | !inherits(clustmethod,"character")  ){
     stop("'distmethod' and 'clustmethod' must be characters...")
   }
-  if(class(matlist)!="list"){
+  if(!inherits(matlist,"list")   ){
     stop("'matlist' must be a list...")
   }
 
   for(i in 1:length(matlist)){
-    if(class(matlist[[i]])!="matrix"){
+    if(!inherits(matlist[[i]],"matrix") ){
       stop("each element of 'matlist' must be a matrix...")
     }
   }
@@ -1482,29 +1482,29 @@ clusterMatrixKmeans<-function(matlist,clustinds,numberclusters,startingpoints,it
   #k-means is not deterministic! make it reproducible across different runs
   set.seed(123)
   if (!is.null(clustinds)){
-    if(class(clustinds)!="integer"){
+    if(!inherits(clustinds,"integer")  ){
       stop("'clustinds' must be an integer or NULL...")
     }
   }
-  if(class(matlist)!="list"){
+  if( !inherits(matlist,"list")   ){
     stop("'matlist' must be a list...")
   }
   for(i in 1:length(matlist)){
-    if(class(matlist[[i]])!="matrix"){
+    if(!inherits(matlist[[i]],"matrix") ){
       stop("each element of 'matlist' must be a matrix...")
     }
   }
-  if (class(numberclusters)!="numeric" & class(numberclusters)!="integer"){
+  if (!inherits(numberclusters,"numeric")   & !inherits(numberclusters,"integer")  ){
     stop("'numberclusters' must be a number...")
   }
-  if(class(startingpoints)!="numeric" & class(startingpoints)!="integer"){
+  if(!inherits(startingpoints,"numeric")     & !inherits(startingpoints,"integer") ) {
     stop("'startingpoints' must be a number...")
   }else{
     if(startingpoints<=0){
       stop("'startingpoints' must be > 0...")
     }
   }
-  if(class(iter)!="numeric" & class(iter)!="integer"){
+  if(!inherits(iter,"numeric")  & !inherits(iter,"integer")  ){
     stop("'iter' must be a number...")
   }else{
     if(iter<=0){
@@ -1584,7 +1584,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
   #method: combine method for starting selectedlist: union or intersection
   #strandSpecific: TRUE or FALSE. If TRUE, - will overlap with other - or * (but not +)
   #                 if FALSE, same range lablled as - and + can overlap with each other
-  if (class(method)!="character"){
+  if (!inherits(method,"character") ){
     stop("method must be a character ('intersection' or 'union' or NULL)...")
   }
 
@@ -1608,7 +1608,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
   }
 
   if (!is.null(selectedfix)){
-    if(class(selectedfix)!="GRanges"){
+    if(!inherits(selectedfix,"GRanges")  ){
       stop("'selectedfix' must be of class GRanges...")
     }  
 
@@ -1626,24 +1626,24 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
     stop("criterion2 must be 'intersection' or 'union'...")
   }
 
-  if (class(bamlist)!="list"){
+  if (!inherits(bamlist,"list")    ){
     stop("'bamlist' must be a list of baseCoverage of BAM files")
   }
 
 
   if (!is.null(overlaplist)){
-    if (class(overlaplist[[1]])!="GRanges"){
+    if (!inherits(overlaplist[[1]],"GRanges")   ){
       stop("overlaplist does not contain all GRanges...")
     }
   }
 
   if (!is.null(notoverlaplist)){
-    if (class(notoverlaplist[[1]])!="GRanges"){
+    if (!inherits(notoverlaplist[[1]],"GRanges")  ){
       stop("overlaplist does not contain all GRanges...")
     }
   }
 
-  if(class(minbp)!="numeric" & class(minbp)!="integer"){
+  if(!inherits(minbp,"numeric")   &  !inherits(minbp,"integer")  ){
     stop("'minbp' parameter must be a number...")
   }
 
@@ -1768,13 +1768,13 @@ plotpcor<-function (mat,idx) {
   #idx: vector numeric of length 2, for indexes of cols in the matrix to consider
   #   for the partial correlation. The other elements will be considered as the confounding factors
   
-  if (class(mat)!="matrix" & class(mat)!="data.frame"){
+  if (!inherits(mat,"matrix")  & !inherits(mat,"data.frame") ){
     stop("mat must be a matrix or a data.frame...")
   }
   if (length(idx) != 2){
     stop("idx must be a numeric vector of length 2...")
   }
-  if (class(idx)!= "numeric" & class(idx)!= "integer"){
+  if (!inherits(idx,"numeric") & !inherits(idx,"integer") ){
     stop("idx is not numeric...")
   }else{
     if(max(idx)>ncol(mat)){
@@ -1835,7 +1835,7 @@ plotpcor<-function (mat,idx) {
 #output can be smaller than the input
 convertNomenclatureGR <-function(range, to="UCSC") {
   #range is the GenomicRange in input
-  if (class(range)!="GRanges"){
+  if (!inherits(range,"GRanges")   ){
     stop("'range' must be of class GRange...")
   }
   if(to !="UCSC" & to != "NCBI"){
@@ -1940,15 +1940,15 @@ extractPattern<-function(Subject,BSgenomeDB,pattern,bothstrands=TRUE){
   ###############################################################
 
   if(!is.null(Subject)){
-    if(class(Subject)!="GRanges"){
+    if(!inherits(Subject,"GRanges") ){
       stop("'Subject' must be a GRanges object or NULL, for entire genome pattern search")
     }    
   }
 
-  if(class(BSgenomeDB)!="BSgenome"){
+  if(!inherits(BSgenomeDB,"BSgenome") ){
     stop("'BSgenomeDB' should be a BSgenome database")
   }
-  if(class(pattern)!="character"){
+  if(!inherits(pattern,"character")   ){
     stop("'pattern' must be a string representing the pattern to search")
   }
   splitted_pattern=strsplit(pattern,split="")[[1]]
@@ -2116,7 +2116,7 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   #       or a combination of different catgories
   #minsize and maxsize: filter of size of genesets to consider
   #padj_method: method to calculate the padjusted from hypergeometric test
-  if(class(gene)!="character"){
+  if(!inherits(gene,"character")  ){
     stop("'gene' must be a character vector with gene symbols")
   }
 
@@ -2342,10 +2342,10 @@ setMethod(f="setFix",signature="RegionOfInterest",def=function(object,range){
   if(!all(width(range))==1){
     stop("Fix must be range of length 0...")
   }
-  if (class(object)!="RegionOfInterest"){
+  if (!inherits(object,"RegionOfInterest")  ){
     stop("'object' must be of class 'RegionOfInterest'...")
   }
-  if (class(range)!="GRanges"){
+  if (!inherits(range,"GRanges")  ){
     stop("'range' must be of class 'GenomicRanges'...")
   }
   object@fixed <- range ;return(object)
@@ -2369,7 +2369,7 @@ setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,
     stop("signalfile file doesn't exist...")
   }
 
-  if (class(Object)!="RegionOfInterest"){
+  if (!inherits(Object,"RegionOfInterest")  ){
     stop("'Object' must be of class 'RegionOfInterest'...")
   }
   rang=getRange(Object)
@@ -2383,7 +2383,7 @@ setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,
 #to see the asimmetry of profile. If strand is *, keep as +
 setGeneric(name="unifyStrand",def=function(object) {standardGeneric("unifyStrand")} )
 setMethod(f="unifyStrand",signature="RegionOfInterest",def=function(object){
-  if (class(object)!="RegionOfInterest"){
+  if (!inherits(object,"RegionOfInterest")   ){
     stop("'object' must be of class 'RegionOfInterest'...")
   }
   
@@ -2420,7 +2420,7 @@ setMethod(f="unifyStrand",signature="RegionOfInterest",def=function(object){
 #useful for the digital heatmap
 setGeneric(name="splitStrand",def=function(object) {standardGeneric("splitStrand")} )
 setMethod(f="splitStrand",signature="RegionOfInterest",def=function(object){
-  if (class(object)!="RegionOfInterest"){
+  if (!inherits(object,"RegionOfInterest")    ){
     stop("'object' must be of class 'RegionOfInterest'...")
   }
   
@@ -2440,7 +2440,7 @@ setMethod(f="splitStrand",signature="RegionOfInterest",def=function(object){
 #use it if duplicated ROI to remove (for example promoters of alternative transcripts, but duplicated)
 setGeneric(name="uniqueROI",def=function(object) {standardGeneric("uniqueROI")} )
 setMethod(f="uniqueROI",signature="RegionOfInterest",def=function(object){
-  if (class(object)!="RegionOfInterest"){
+  if (!inherits(object,"RegionOfInterest")   ){
     stop("'object' must be of class 'RegionOfInterest'...")
   }
   
@@ -2480,7 +2480,7 @@ setMethod(f="convertNomenclatureROI",signature="RegionOfInterest",def=function(O
   if(To !="UCSC" & To != "NCBI"){
   	stop("'To' must be either 'UCSC' or 'NCBI'...")
   }
-  if (class(Object)!="RegionOfInterest"){
+  if (!inherits(Object,"RegionOfInterest")   ){
     stop("'Object' must be of class 'RegionOfInterest'...")
   }
   rang=getRange(object)
