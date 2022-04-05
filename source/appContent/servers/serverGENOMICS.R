@@ -3096,7 +3096,7 @@ observeEvent(toListenAnalogHeat(),{
                 #choose depending on hclust or kmeans (on kmeans, do a check on number
                 #of clusters, between 2 and 433 included)
                 if (input$clusterTypeAnalogHeat=="hierarchical"){
-                  if(class(input$distmethodAnalogHeat)!="character" |class(input$clustmethodAnalogHeat)!="character"){
+                  if(!inherits(input$distmethodAnalogHeat,"character")  |!inherits(input$clustmethodAnalogHeat,"character")  ){
                     distmethod="euclidean"
                     clustmethod="average"
                   }else{
@@ -3464,7 +3464,7 @@ observeEvent(toListenAnalogHeat(),{
 
 
                 trasp=t(matProc_analogic)
-                if(class(trasp)!="matrix"){
+                if(!inherits(trasp,"matrix")  ){
                   trasp=matrix(trasp,ncol=1)
                 }
                 
