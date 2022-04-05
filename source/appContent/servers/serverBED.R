@@ -23,7 +23,7 @@ observeEvent(input$file, {
   temp=shinyFileName(input$file)
 
   #if the file is not NULL and not an integer (file yet not chosen)
-  if (!is.null(temp) & class(temp)!="integer"){
+  if (!is.null(temp) & !inherits(temp,"integer")   ){
     
     BEDvariables$completepath=shinyFilePath(input$file)
     BEDvariables$opened=TRUE
