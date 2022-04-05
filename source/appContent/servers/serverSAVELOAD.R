@@ -130,7 +130,7 @@ observeEvent(input$loadenv, {
     sessiontoload=shinyFileName(input$loadenv)
     #if the file is not NULL 
 
-    if (!is.null(sessiontoload) & length(sessiontoload)>0 & isvalid(sessiontoload) & class(sessiontoload)!="integer"){
+    if (!is.null(sessiontoload) & length(sessiontoload)>0 & isvalid(sessiontoload) & !inherits(sessiontoload,"integer")  ){
         #try to open RDS file session
         tryCatch({
 
