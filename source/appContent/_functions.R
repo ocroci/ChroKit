@@ -1038,6 +1038,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         ########################################################
         coverageTot[pos] <- tmp
 
+
       }
       #return coverage and norm factor (in case of WIG, simply 1) to keep the same result structure 
       #for the function
@@ -1848,26 +1849,59 @@ convertNomenclatureGR <-function(range, to="UCSC") {
 }
 
 
-#verify that the output of coverage functions from ROIs (can be either a list or a matrix,
-#if ranges are fixed length) are all zeroes
-verifyzerocov<-function(covresult) {
-  if (class(covresult)=="matrix"){
-    if(all(covresult==0)){
-      return(TRUE)
-    }else{
-      return(FALSE)
-    }
-  }else if (class(covresult)=="list"){
-    covresult2=unlist(covresult)
-    if(all(covresult2==0)){
-      return(TRUE)
-    }else{
-      return(FALSE)
-    }
-  }else{
-    stop("'covresult' must be a matrix or a list...")
-  }
-}
+# #verify that the output of coverage functions from ROIs (can be either a list or a matrix,
+# #if ranges are fixed length) are all zeroes
+# verifyzerocov<-function(covresult) {
+#   if (class(covresult)=="matrix"){
+#     if(all(covresult==0)){
+#       return(TRUE)
+#     }else{
+#       return(FALSE)
+#     }
+#   }else if (class(covresult)=="list"){
+#     #extremely RAM expensive and inefficient
+#     covresult2=unlist(covresult)
+#     # function "all" extremely RAM expensive and inefficient
+#     if(all(covresult2==0)){
+#       return(TRUE)
+#     }else{
+#       return(FALSE)
+#     }
+#   }else{
+#     stop("'covresult' must be a matrix or a list...")
+#   }
+# }
+
+
+#extremely efficient implementation of zero check of coverages in CPP. No more RAM peaks
+#much faster
+verifyzerocov<-cxxfunction(signature(covresult='List'), plugin='Rcpp', body = '  
+     Rcpp::List xlist(covresult); 
+
+     int n = xlist.size(); 
+     //bool allzeros=true;
+     //loop through all ranges in list
+     int tempsum=0;
+     Rcpp::LogicalVector ALLzeros(1,true);
+     for(int i=0; i<n; i++) {  
+       //printf("LOOP %i NEW ",i);   
+         Rcpp::NumericVector y(xlist[i]); 
+         int rangelen=y.size();
+         // start from 1-based position (maybe Rcpp is 1-based)
+         for(int k=1; k<= rangelen; k++){
+          tempsum+=y[k];
+         }
+
+         if(tempsum>0){
+          ALLzeros(0)=false;
+          break;
+         }
+     }
+     
+     //ALLzeros(0)=allzeros;
+     //return boolean. "true" if 
+     return (ALLzeros); 
+')
 
 
 
