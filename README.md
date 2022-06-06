@@ -131,7 +131,7 @@ To learn the basics on how to analyse NGS data with ChroKit, please follow the d
 
 
 ## Citation
-If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of IIT@CGS, Fondazione Istituto Italiano di Tecnologia. 
+If you use this framework for your project, please acknowledge Ottavio Croci, PhD at Center for Genomic Science of CGS@SEMM, Fondazione Istituto Italiano di Tecnologia. 
 
 
 ## License
