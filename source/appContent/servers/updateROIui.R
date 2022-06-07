@@ -32,10 +32,10 @@ observe({
   names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
   updateCheckboxGroupInput(session,inputId="selectedROIs",label=NULL,
                                     choices = historylist)
-  updateCheckboxGroupInput(session,inputId="overlapROIs",label=NULL,
-                                    choices = historylist)  
-  updateCheckboxGroupInput(session,inputId="notoverlapROIs",label=NULL,
-                                    choices = historylist)  
+  # updateCheckboxGroupInput(session,inputId="overlapROIs",label=NULL,
+  #                                   choices = historylist)  
+  # updateCheckboxGroupInput(session,inputId="notoverlapROIs",label=NULL,
+  #                                   choices = historylist)  
 
   #those 2 have been moved in uiBED, but kept here
   updateCheckboxGroupInput(session,inputId="selectedCustomROItoRemove",label=NULL,
@@ -55,6 +55,8 @@ observe({
   updateSelectInput(session,"selectROItoFilterWIDTH", "ROI to filter:",choices=historylist)
   updateSelectInput(session,"selectROItoSample", "ROI to sample:",choices=historylist)
   updateSelectInput(session,"selectROIpredefPipeline", "Select ROI for preparation:",choices=historylist)
+  updateSelectInput(session,"selectROItoExtractPattern","ROI to extract pattern from:",choices=historylist)
+
   #?
   
 
@@ -65,6 +67,183 @@ observe({
 })
 
 
+
+######################################################################################
+######################################################################################
+######################################################################################
+#create ROI from overlaps
+######################################################################################
+######################################################################################
+######################################################################################
+
+#react to ROI selected and put radiobutton for union/intersection
+observe({
+  input$selectedROIs
+  if(length(input$selectedROIs)>1){
+    output$RadiobuttonStartingROI<-renderUI({
+      radioButtons(inputId="choiceROI",label="Criteria for building the aggregated reference ROI:" ,
+                                  choices=c("Intersection"="intersection",
+                                            "Union"="union"),
+                                  selected="union"
+                  )       
+    })
+
+  }else{
+    output$RadiobuttonStartingROI<-renderUI({NULL})
+  }
+})
+
+
+#react to ROI selected to put overlapping and not overlapping lists
+observe({
+  input$selectedROIs
+
+  #historylist is simply the current primary ROIs opened (ROIvariables$names)
+  nomi=unlist(lapply(ROIvariables$listROI,getName))
+  historylist=as.list(nomi)
+  lens=unlist(lapply(ROIvariables$listROI,getLength))
+  lens2=paste("(",lens,")",sep="")
+  if(length(nomi)>0){names(historylist)=paste(nomi,lens2)} else { names(historylist)=paste(nomi,lens)}
+  getwdth=lapply(ROIvariables$listROI,getWidth) 
+  getwdth=unlist(lapply(getwdth, function(k) {table(!duplicated(k))["TRUE"]==1}))
+  #correction on NAs. Maybe fix th error :"NAs are not allowed in subscripted assignments"
+  if(!is.null(getwdth)){
+    getwdth[is.na(getwdth)]=FALSE
+  }
+  names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
+
+  if(length(input$selectedROIs)>0){
+    output$columnOverlap<-renderUI({
+      list( HTML("Select ROI(s):"),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 400px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput(inputId="overlapROIs",label=NULL,choices = historylist)
+            )
+      )
+    })
+    output$columnNotOverlap<-renderUI({
+      list(
+            HTML("Select ROI(s):"),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 400px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput(inputId="notoverlapROIs",label=NULL,choices = historylist)
+            )
+      )
+    })
+  }else{
+    output$columnOverlap<-renderUI({HTML(paste("(select at least one reference ROI)",sep=""))})
+    output$columnNotOverlap<-renderUI({HTML(paste("(select at least one reference ROI)",sep=""))})
+  }
+})
+
+
+#react to ROI selected overlap to put radiobutton for union/intersection for contrast overlapping ROI
+observe ({
+  input$overlapROIs
+
+  if(length(input$overlapROIs)>1){
+    output$overlapcriteria<-renderUI({
+      radioButtons("choiceoverlapROI",label="Criteria for building the aggregated contrast ROI:" ,
+                              choices=c("Intersection of the selected ROIs"="stringent",
+                                        #"Overlap of the contrast ROIs"="permissive",
+                                        "Union of the selected ROIs"="allofthem"),
+                              selected="allofthem"
+      )        
+    })
+
+  }else{
+    output$overlapcriteria<-renderUI({NULL})
+  }
+})
+
+#react to ROI selected notOverlap to put radiobutton for union/intersection for contrast not overlapping ROI
+observe ({
+  input$overlapROIs
+
+  if(length(input$notoverlapROIs)>1){
+    output$notoverlapcriteria<-renderUI({
+      radioButtons("choicenotoverlapROI",label="Criteria for building the aggregated contrast ROI:" ,
+                          choices=c("Intersection of the selected ROIs"="intersection",
+                                                  "Union of the selected ROIs"="union"),
+                          selected="union"
+      ) 
+    })
+  }else{
+    output$notoverlapcriteria<-renderUI({NULL})
+  }
+})
+
+######################################################################################
+######################################################################################
+######################################################################################
+#resize UI adaptation
+######################################################################################
+######################################################################################
+######################################################################################
+
+#if at least one ROI selected in input, make menus with radiobuttons and values to resize
+observe({
+  input$chooseResizeType
+  if (input$chooseResizeType=="fixedVal"){
+      updateRadioButtons(session,"choosePointResize",label="Choose fixed point for resize:",choices=c(
+                              "From midpoint/TSS"="fromMid",
+                              "From starts"="fromStart",
+                              "From ends"="fromEnd"
+                            ),selected="fromMid"
+      )
+  }else{
+        updateRadioButtons(session,"choosePointResize",label="Choose if increment/decrement width:",choices=c(
+                                "Increment width from midpoint/TSS"="increment",
+                                "Decrement width from midpoint/TSS"="decrement"
+                              ),selected="increment"
+        ) 
+
+  }
+})
+
+
+
+
+
+observe({
+  choice=input$choosePointResize
+  if (length(choice)>0){
+    if(choice=="fromMid" |choice=="fromStart" | choice=="fromEnd"){
+
+      if(choice=="fromMid"){label_fix="<h4>Range center</h4>"}
+      if(choice=="fromStart"){label_fix="<h4>Range start</h4>"}
+      if(choice=="fromEnd"){label_fix="<h4>Range end</h4>"}
+      output$showFixedMenuResize<-renderUI({
+        list(
+          fluidRow(
+            column(width=4,HTML("<b>Upstream</b>")),
+            column(width=4),
+            column(width=4,HTML("<b>Downstream</b>"))
+          ),
+          fluidRow(
+            column(width=4,
+              numericInput(inputId = 'sliderUpstreamROI',label=NULL,min = 0, max = 20000, step = 50,value=1000) 
+            ),
+            column(width=4,
+              HTML(label_fix)
+            ),
+            column(width=4,
+              numericInput(inputId = 'sliderDownstreamROI',label=NULL,min = 0, max = 20000, step = 50,value=1000) 
+            )
+          )
+        )
+      }) 
+    }else if (choice=="increment" | choice=="decrement"){
+      output$showFixedMenuResize<-renderUI({
+        sliderInput('chooseWidthPercResize',label="Select the % of range width for resize",min = 0, max = 100, value = 0.3,step=1)
+      })
+    }
+
+
+  }else{
+    output$showFixedMenuResize<-renderUI({NULL})
+  }
+  
+
+})
 
 
 
@@ -154,15 +333,20 @@ observe({
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
       rawcovs=Enrichlist$rawcoverage[[pos]]
+      decrkeys=Enrichlist$decryptkey[[pos]]
       normfacts=Enrichlist$normfactlist[[pos]]
       getbam=names(rawcovs)
       pos2=match(input$selectBAMtoFilter,getbam)
-      bamselected=rawcovs[[pos2]]
+      bamselected_tmp=rawcovs[[pos2]]
+      decrkeyselected=decrkeys[[pos2]]
       normfactselected=normfacts[[pos2]]
-      if (!is.null(bamselected)){
+      if (!is.null(bamselected_tmp)){
         #bamselected is the baseCoverageOutput selected
-        sums=unlist(lapply(bamselected,sum))
-        sums=sums*normfactselected
+        # bamselected=decryptcov( list(bamselected_tmp,decrkeyselected),chunk=length(bamselected_tmp))
+        # sums=unlist(lapply(bamselected,sum))
+        # sums=sums*normfactselected
+        sums=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bamselected_tmp,Nbins=1,Snorm=FALSE,key=decrkeyselected,norm_factor=normfactselected)
+
         maxx=max(sapply(sums,max))
         quant1=round(quantile(sums,0.9))
         quant2=round(quantile(sums,0))
@@ -198,16 +382,21 @@ observe({
     roi=ROIvariables$listROI[[pos]]
     if (!is.null(roi)){
       rawcovs=Enrichlist$rawcoverage[[pos]]
+      decrkeys=Enrichlist$decryptkey[[pos]]
       normfacts=Enrichlist$normfactlist[[pos]]
 
       getbam=names(rawcovs)
       pos2=match(input$selectBAMtoFilter,getbam)
-      bamselected=rawcovs[[pos2]]
+      bamselected_tmp=rawcovs[[pos2]]
+      decrkeyselected=decrkeys[[pos2]]
       normfactselected=normfacts[[pos2]]
-      if (!is.null(bamselected)){
+      if (!is.null(bamselected_tmp)){
         #bamselected is the baseCoverageOutput selected
-        sums=unlist(lapply(bamselected,sum))
-        sums=sums*normfactselected
+        # bamselected=decryptcov( list(bamselected_tmp,decrkeyselected),chunk=length(bamselected_tmp))
+        # sums=unlist(lapply(bamselected,sum))
+        # sums=sums*normfactselected
+        sums=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bamselected_tmp,Nbins=1,Snorm=FALSE,key=decrkeyselected,norm_factor=normfactselected)
+
         maxx=max(sapply(sums,max))
         quant1=round(quantile(sums,input$quantileThreshFilter[1]))
         quant2=round(quantile(sums,input$quantileThreshFilter[2]))
@@ -365,32 +554,27 @@ observe({
 ######################################################################################
 
 #observer to decide if motif coms from a ROI (default) or the entire genome (slow)
-observe({
-  input$choiceWherePattern
-  if(input$choiceWherePattern=="fromGenome"){
-    #menu with ROIs
-    output$selectWherePattern<-renderUI({NULL})
-  }else{
-    nomi=unlist(lapply(ROIvariables$listROI,getName))
-    historylist=as.list(nomi)
-    lens=unlist(lapply(ROIvariables$listROI,getLength))
-    lens2=paste("(",lens,")",sep="")
-    if(length(nomi)>0){
-      names(historylist)=paste(nomi,lens2)
-    }else{
-      names(historylist)=paste(nomi,lens)
-    }
-    getwdth=lapply(ROIvariables$listROI,getWidth) 
-    getwdth=unlist(lapply(getwdth, function(k) {table(!duplicated(k))["TRUE"]==1}))
-    #correction on NAs. Maybe fix th error :"NAs are not allowed in subscripted assignments"
-    if(!is.null(getwdth)){
-      getwdth[is.na(getwdth)]=FALSE
-    }
-    names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
+# observe({
+#   input$choiceWherePattern
+#   nomi=unlist(lapply(ROIvariables$listROI,getName))
+#   historylist=as.list(nomi)
+#   lens=unlist(lapply(ROIvariables$listROI,getLength))
+#   lens2=paste("(",lens,")",sep="")
+#   if(length(nomi)>0){
+#     names(historylist)=paste(nomi,lens2)
+#   }else{
+#     names(historylist)=paste(nomi,lens)
+#   }
+#   getwdth=lapply(ROIvariables$listROI,getWidth) 
+#   getwdth=unlist(lapply(getwdth, function(k) {table(!duplicated(k))["TRUE"]==1}))
+#   #correction on NAs. Maybe fix th error :"NAs are not allowed in subscripted assignments"
+#   if(!is.null(getwdth)){
+#     getwdth[is.na(getwdth)]=FALSE
+#   }
+#   names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
     
-    output$selectWherePattern<-renderUI({selectInput("selectROItoExtractPattern",label="ROI to extract pattern from:",choices=historylist)})
-  }
-})
+
+# })
 
 
 #find current BSgenome in the installed packages. If not found, put a button for installation.
@@ -417,6 +601,7 @@ observe({
       #BSgenome found. Import library and do nothing
       library(BSstring,character.only=TRUE)
       output$showWarningBSgenome<-renderUI({NULL})
+      output$showWarningBSgenome2<-renderUI({NULL})
     }else{
       #button for download the package
       output$showWarningBSgenome<-renderUI({
@@ -425,12 +610,20 @@ observe({
         actionButton("DownloadBSgenome","Download")
         )
       })
+
+      output$showWarningBSgenome2<-renderUI({
+        list(
+        HTML(paste("<font color='red'>Need ",BSstring," package to be installed. Install it now?</font><br>",sep="")),
+        actionButton("DownloadBSgenome2","Download")
+        )
+      })
     }
 
 
   }else{
     #warning message: I need database of a genome assembly
     output$showWarningBSgenome<-renderUI({HTML("<font color='red'>Warning: choose a genome assembly from 'Databases' section</font>")})
+    output$showWarningBSgenome2<-renderUI({HTML("<font color='red'>Warning: choose a genome assembly from 'Databases' section</font>")})
   }
 
 })
@@ -441,51 +634,47 @@ observe({
 observe({
   input$choiceWherePattern
   input$selectROItoExtractPattern
-  if(input$choiceWherePattern=="fromGenome"){
-    output$showStrandOptsPattern<-renderUI({HTML("Pattern will be extracted from both strands of genome<br>")})
-  }else{
-    if(isvalid(input$selectROItoExtractPattern)>0){
+  if(isvalid(input$selectROItoExtractPattern)>0){
 
-      #find strand. If * => only print text, if + and - , give the choice
-      nomi=unlist(lapply(ROIvariables$listROI,getName))
-      if(isvalid(nomi)){
-        pos=match(input$selectROItoExtractPattern,nomi)
+    #find strand. If * => only print text, if + and - , give the choice
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    if(isvalid(nomi)){
+      pos=match(input$selectROItoExtractPattern,nomi)
 
 
-        if(!is.null(ROIvariables$listROI[[pos]])){
-          range_roi=getRange(ROIvariables$listROI[[pos]])
-          strand_roi=unique(as.character(strand(range_roi)))
+      if(!is.null(ROIvariables$listROI[[pos]])){
+        range_roi=getRange(ROIvariables$listROI[[pos]])
+        strand_roi=unique(as.character(strand(range_roi)))
 
-          if("*" %in% strand_roi){
-            #pattern search on both strands, because strand not defined
-            output$showStrandOptsPattern<-renderUI({HTML("Strands not defined: pattern search on both strands<br>")})
-          }else{
-            #stranded (+ and -) => offer the choice
-            output$showStrandOptsPattern<-renderUI({
-              list(
-              HTML("<b>Strand selection:</b><br>"),
-              radioButtons("strandOptsPattern",label=NULL ,
-                                       choices=c("Both strands"="bothStrands",
-                                                 "Strand-specific"="strandSpecific"),
-                                       selected="strandSpecific"
-              )
-              )
-            })
-          }          
+        if("*" %in% strand_roi){
+          #pattern search on both strands, because strand not defined
+          output$showStrandOptsPattern<-renderUI({HTML("Strands not defined: pattern search on both strands<br>")})
         }else{
-          output$showStrandOptsPattern<-renderUI({NULL})
-        }
-        
+          #stranded (+ and -) => offer the choice
+          output$showStrandOptsPattern<-renderUI({
+            list(
+            HTML("<b>Strand selection:</b><br>"),
+            radioButtons("strandOptsPattern",label=NULL ,
+                                     choices=c("Both strands"="bothStrands",
+                                               "Strand-specific"="strandSpecific"),
+                                     selected="strandSpecific"
+            )
+            )
+          })
+        }          
       }else{
         output$showStrandOptsPattern<-renderUI({NULL})
       }
-
-        
+      
     }else{
-      #NULL
       output$showStrandOptsPattern<-renderUI({NULL})
-    }    
-  }
+    }
+
+      
+  }else{
+    #NULL
+    output$showStrandOptsPattern<-renderUI({NULL})
+  }    
   
 })
 
@@ -521,9 +710,9 @@ observe({
           leg=unlist(ROIvariables$listselectednames)
           plot(1, type="n", xlab="log2 width", ylab="density", xlim=c(xmin, xmax), ylim=c(ymin, ymax),main="frequency plot width")
           for (i in 1:length(ROIvariables$listfordensity)){
-            lines(ROIvariables$listfordensity[[i]],col=ROIvariables$colorsfordensity[[i]],lwd=2)
+            lines(ROIvariables$listfordensity[[i]],col=ROIvariables$colorsfordensity[[i]],lwd=3)
           }
-          legend("topright",leg,col=unlist(ROIvariables$colorsfordensity),lty=1,lwd=2,bty = "n")
+          legend("topright",leg,col=unlist(ROIvariables$colorsfordensity),lty=1,lwd=3,bty = "n")
 
         }else{
           plot(1, type="n", xlab="log2 width", ylab="density",main="no ROI selected")
@@ -614,136 +803,135 @@ observe({
   #find and show all possible fatures of the ROI in CheckboxGroupInput, interactively
   #if a ROI is selected
 
-  if(!is.null(input$listgetROI)&length(input$listgetROI)>0 & input$listgetROI!="" & length(ROIcompleteList)>0){
+  if(  !(!is.null(input$listgetROI)&length(input$listgetROI)>0 & input$listgetROI!="" & length(ROIcompleteList)>0 )   )  {
+    output$showROIoptionsToGET<-renderUI({
+      paste("No ROI available...")
+    }) 
+    output$showROIoptionsToGET<-renderUI({
+      paste("No ROI available...")
+    }) 
+    output$previewROItodownload<-renderUI({
+      paste("Select a ROI...")
+    })
+    output$previewROItodownloadbutton<-renderUI({NULL})
+    tosave$datatableROI=NULL
 
+  }else{
     nomi=unlist(lapply(ROIcompleteList,getName))
     pos=match(input$listgetROI,nomi)
     roi=ROIcompleteList[[pos]]
-    #chr, start, end and strand are by definition, present
-    toadd_range=c("chr; start; end; strand"="ranges")
-
     if(!is.null(roi)){
-      output$showROIoptionsToViewRANGE<-renderUI({
-        checkboxGroupInput("ROIoptionsToViewRANGE","View Ranges:",choices=toadd_range)
-      })
-
+      listGUI=list()
       emd=as.data.frame(elementMetadata(getRange(roi)))
-      if(ncol(emd)!=0){
-        #add metadata cols (for example, the annotation) in the options to provide
-        toadd_emd=colnames(emd)
-        names(toadd_emd)=toadd_emd
-
-        output$showROIoptionsToViewMETADATA<-renderUI({
-          checkboxGroupInput("ROIoptionsToViewMETADATA","Select annotations to show:",choices=toadd_emd)
-        })
-
-        #show the window and the button for the window annotation
-        if("gene_id"%in%toadd_emd & "symbol"%in%toadd_emd & "ensembl_id" %in%toadd_emd & "refSeq_id"%in%toadd_emd ){
-          output$showWindowAnnotation<-renderUI({
-            list(HTML('<hr size="10">'),
-            HTML("Get annotated genes within a genomic window:"),
-            #show all IDs (excluding distancefromTSS)
-            radioButtons("IDorsymbolwindow",label=NULL ,
-                                     choices=c("gene_id"="gene_id",
-                                               "symbol"="symbol",
-                                               "ensembl_id"="ensembl_id",
-                                               "refSeq_id"="refSeq_id"),
-                                     selected="gene_id"
-            ),
-            HTML("<br>"),
-            HTML("Select the genomic window (bp):"),
-            numericInput(inputId = 'windowAnnotateGenes',label=NULL,min = 100, max = 200000, step = 1000,value=20000),
-            actionButton("showgenelistWindowROI", "Preview genes in window")     )   
-          })
+      if (input$choosegetROItype=="eachRange"){
+        #chr, start, end and strand are by definition, present
+        toadd_range=c("chr; start; end; strand"="ranges")
+        listGUI=c(listGUI,list(checkboxGroupInput("ROIoptionsToViewRANGE","View Ranges:",choices=toadd_range)))
+        if(ncol(emd)!=0){
+          #add metadata cols (for example, the annotation) in the options to provide
+          toadd_emd=colnames(emd)
+          names(toadd_emd)=toadd_emd
+          listGUI=c(listGUI,list(checkboxGroupInput("ROIoptionsToViewMETADATA","Select annotations to show:",choices=toadd_emd)))
         }else{
-          output$showWindowAnnotation<-renderUI({NULL})
+          listGUI=c(listGUI,list(renderText("No annotation found for the selected ROI.")))
+        }
+        ####newenrichimplementation####
+        rawvals=Enrichlist$rawcoverage[[pos]]
+        ###############################
+
+        bams=names(rawvals)
+        if(length(bams)>0){
+          #add bam file enrichment to the options to provide
+          toadd_bams=bams
+          names(toadd_bams)=paste(bams,"enrichment")
+          listGUI=c(listGUI, list(
+              HTML("<b>Enrichments:</b>"),
+              wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; background-color: #ffffff;",
+                checkboxGroupInput("ROIoptionsToViewENRICHMENTS",NULL,choices=toadd_bams)
+              )))
+
+        }else{
+          listGUI=c(listGUI,list(renderText("No enrichments associated to the selected ROI.")) )
+        }
+        listGUI=c(listGUI,list(HTML("<br>"),actionButton("showdataframeROI", "Preview ROI")))
+
+      }else if (input$choosegetROItype=="genesWindow"){
+
+        if(ncol(emd)!=0){
+          toadd_emd=colnames(emd)
+          #show the window and the button for the window annotation
+          if("gene_id"%in%toadd_emd & "symbol"%in%toadd_emd & "ensembl_id" %in%toadd_emd & "refSeq_id"%in%toadd_emd ){
+            listGUI=list(HTML('<hr size="10">'),
+              HTML("Get annotated genes within a genomic window:"),
+              #show all IDs (excluding distancefromTSS)
+              radioButtons("IDorsymbolwindow",label=NULL ,
+                                       choices=c("gene_id"="gene_id",
+                                                 "symbol"="symbol",
+                                                 "ensembl_id"="ensembl_id",
+                                                 "refSeq_id"="refSeq_id"),
+                                       selected="gene_id"
+              ),
+              HTML("<br>"),
+              HTML("Select the genomic window (bp):"),
+              numericInput(inputId = 'windowAnnotateGenes',label=NULL,min = 100, max = 200000, step = 1000,value=20000),
+              actionButton("showgenelistWindowROI", "Preview genes in window")     
+            )   
+          }else{
+            listGUI<-list(paste("No annotation found for the selected ROI. Please import a genome assembly first."))
+            output$previewROItodownload<-renderUI({
+              paste("")
+            })
+            output$previewROItodownloadbutton<-renderUI({NULL})
+            tosave$datatableROI=NULL           
+          }
+        }else{
+          listGUI<-list(paste("No annotation found for the selected ROI. Please import a genome assembly first."))
+          output$previewROItodownload<-renderUI({
+            paste("")
+          })
+          output$previewROItodownloadbutton<-renderUI({NULL})
+          tosave$datatableROI=NULL                
         }
         
+
       }else{
-        output$showROIoptionsToViewMETADATA<-renderText({
-          paste("For the annotation, please use a database...")
-        }) 
-        output$showWindowAnnotation<-renderUI({NULL})     
-      }
+        #here edit/download ROI notes
+        #get value of source of the selected ROI:
+        text=getSource(roi)
+        windowNotesToShow<-list(textAreaInput(inputId="ROInotes",label="View and edit the notes of the selected ROI:",value=text,cols=60,rows=10),
+                      actionButton("saveNotesROI", "save notes"),
+                      downloadButton('downloadNotesROI', 'Download notes'))
+        output$previewROItodownload<-renderUI({windowNotesToShow})
+        output$previewROItodownloadbutton<-renderUI({NULL})
+        listGUI<-list(paste(""))
+      }  
 
-      ####newenrichimplementation####
-      rawvals=Enrichlist$rawcoverage[[pos]]
-      ###############################
 
-      bams=names(rawvals)
-      if(length(bams)>0){
-        #add bam file enrichment to the options to provide
-        toadd_bams=bams
-        names(toadd_bams)=paste(bams,"enrichment")
 
-        output$showROIoptionsToViewENRICHMENTS<-renderUI({
-          list(
-            HTML("<b>Enrichments:</b>"),
-            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; background-color: #ffffff;",
-              checkboxGroupInput("ROIoptionsToViewENRICHMENTS",NULL,choices=toadd_bams)
-            )
-          )
-        })
-      }else{
-        output$showROIoptionsToViewENRICHMENTS<-renderText({
-          paste("No enrichment associated to this ROI...")
-        })      
-      }
 
+
+
+
+      output$showROIoptionsToGET<-renderUI({listGUI})
+
+
+
+
+
+    }else{
+      output$showROIoptionsToGET<-renderUI({
+        paste("No ROI available...")
+      }) 
       output$previewROItodownload<-renderUI({
         paste("Select a ROI...")
       })
       output$previewROItodownloadbutton<-renderUI({NULL})
-      tosave$datatableROI=NULL
-
-    }else{
-      #roi is not selected because is null...
-      output$showROIoptionsToView<-renderUI({
-        checkboxGroupInput("ROIoptionsToView",NULL,choices=character(0))
-      }) 
-      output$showROIoptionsToViewMETADATA<-renderUI({
-        checkboxGroupInput("ROIoptionsToViewMETADATA",NULL,choices=character(0))
-      })
-      output$showROIoptionsToViewENRICHMENTS<-renderUI({
-        checkboxGroupInput("ROIoptionsToViewENRICHMENTS",NULL,choices=character(0))
-      })  
-
-      #clean the data frame to show
-      output$previewROItodownload<-renderUI({
-        paste("Select a ROI...")
-      })
-      output$previewROItodownloadbutton<-renderUI({
-        NULL
-      })
-      tosave$datatableROI=NULL 
-
-      #clean options for window annotation if no ROI...
-      output$showWindowAnnotation<-renderUI({NULL})
-    }
-    
-  }else{
-    output$showROIoptionsToView<-renderUI({
-      checkboxGroupInput("ROIoptionsToView",NULL,choices=character(0))
-    }) 
-    output$showROIoptionsToViewMETADATA<-renderUI({
-      checkboxGroupInput("ROIoptionsToViewMETADATA",NULL,choices=character(0))
-    })
-    output$showROIoptionsToViewENRICHMENTS<-renderUI({
-      checkboxGroupInput("ROIoptionsToViewENRICHMENTS",NULL,choices=character(0))
-    })  
-
-    #clean the data frame to show
-    output$previewROItodownload<-renderUI({
-      paste("Select a ROI...")
-    })
-    output$previewROItodownloadbutton<-renderUI({
-      NULL
-    })
-    tosave$datatableROI=NULL 
-
-    #clean options for window annotation if no ROI...
-    output$showWindowAnnotation<-renderUI({NULL})
+      tosave$datatableROI=NULL      
+    }    
+  
   }
+
+
 })
 
 
@@ -755,44 +943,8 @@ observe({
 ######################################################################################
 ######################################################################################
 
-#update BAM files already associated to that ROI (reactive to ROI selectInput)
-# observe({
-#   input$selectROItoBAMassociate
-#   if (length(ROIvariables$listROI)>0){
-#     nomi=unlist(lapply(ROIvariables$listROI,getName))
-#     pos=match(input$selectROItoBAMassociate,nomi)
-#     roi=ROIvariables$listROI[[pos]]
-#     if (!is.null(roi)){
-#       getbam=names(getBAMlist(roi))
-#       if (is.null(getbam)){
-#         updateCheckboxGroupInput(session,"selectBAMtoDeassociate",NULL,choices=character(0))
-#       }else{
-#         updateCheckboxGroupInput(session,"selectBAMtoDeassociate",NULL,choices=getbam)
-#       }
-      
-#     }
-#   }
-
-# })
 
 
-
-# #update BAM files available for that ROI (reactive to ROI selectInput)
-# observe({
-#   #get BAMs missing of selected ROI
-#   if (length(ROIvariables$listROI)>0){
-#     nomi=unlist(lapply(ROIvariables$listROI,getName))
-#     pos=match(input$selectROItoBAMassociate,nomi)
-#     roi=ROIvariables$listROI[[pos]]
-#     if (!is.null(roi) & length(BAMvariables$listBAM)>0){
-#       getbam=names(getBAMlist(roi))
-#       allbams=names(BAMvariables$listBAM)
-#       remaining=setdiff(allbams,getbam)
-#       updateCheckboxGroupInput(session,"selectBAMtoassociate",NULL,choices=remaining)
-#     }
-    
-#   }
-# })
 
 
 #reactive through the selectd ROI to cover with enrichments, showing
@@ -933,20 +1085,82 @@ observe({
 
 
   #update selectInput of BAMs associated to selected ROI
-observe({
 
-  if(length(ROIvariables$listROI)>0){
-    nomi=unlist(lapply(ROIvariables$listROI,getName))
-    pos=match(input$selectROIforBAMrename,nomi)
-    roi=ROIvariables$listROI[[pos]]
-    if (!is.null(roi) & length(BAMvariables$listBAM)>0){
-      getbam=names(Enrichlist$rawcoverage[[pos]])
-      if (is.null(getbam)){
-          updateSelectInput(session,"selectedBAMtoRename",NULL,choices=character(0))
+
+
+
+#based on the radiobutton, rename or reorder menu
+observe({
+  input$selectRenameOrReorder
+  if(!is.null(ROIvariables$listROI) & length(ROIvariables$listROI)>=1){
+    if(input$selectRenameOrReorder=="rename"){
+      nomi=unlist(lapply(ROIvariables$listROI,getName))
+      pos=match(input$selectROIforBAMrename,nomi)
+      roi=ROIvariables$listROI[[pos]]
+
+      if (!is.null(roi) & length(BAMvariables$listBAM)>0){
+
+        getbam=names(Enrichlist$rawcoverage[[pos]])
+        if (length(getbam)!=0){
+          output$RenameReorder<-renderUI({
+            list(
+              HTML("<h3>Rename enrichments</h3><br>"),
+              selectInput("selectedBAMtoRename",label="Select enrichment to rename:",choices=getbam),
+              textInput("newBAMname","Select new name:",placeholder="type new enrichment name here",value=""),
+              actionButton("renameBAM", "Rename")
+            )
+          })
         }else{
-          updateSelectInput(session,"selectedBAMtoRename",NULL,choices=getbam)
-      }  
+          output$RenameReorder<-renderUI({ HTML("No enrichments associated to the selected ROI...")})
+        }
+
+      }else{
+        output$RenameReorder<-renderUI({ HTML("No ROI...")})
+      }
+    }else{
+      nomi=unlist(lapply(ROIvariables$listROI,getName))
+      pos=match(input$selectROIforBAMrename,nomi)
+      roi=ROIvariables$listROI[[pos]]
+      if (!is.null(roi) ){
+        getbam=names(Enrichlist$rawcoverage[[pos]])
+        if(length(getbam)>1){
+          choicelist=as.list(1:length(getbam))
+          names(choicelist)=as.character(1:length(getbam))
+          lista=list()
+          for (i in 1:length(getbam)){
+            lista[[i]]=fluidRow(column(3,
+                                      selectInput(inputId = paste("reorderoptionBAM",i,sep=""), label = NULL, 
+                                   choices = choicelist,selected=i)),
+                      column(4,HTML(getbam[i])))
+          }
+
+          output$RenameReorder<-renderUI({
+
+            list(
+              HTML("<h3>Reorder enrichments</h3><br>"),
+              wellPanel(id = "logPanelBAM",style = "overflow-y:scroll; max-height: 400px",
+                fluidPage(
+                  lista
+                )
+              ),
+              actionButton("reorderBAM","Reorder!")
+            )
+          })
+
+
+
+
+
+        }else{
+          output$RenameReorder<-renderUI({ HTML("At least 2 enrichments must be associated to the selected ROI...")})
+        }
+      }else{
+        output$RenameReorder<-renderUI({ HTML("No ROI...")})
+      }
+
     }    
+  }else{
+    output$RenameReorder<-renderUI({NULL})
   }
 
 })
@@ -954,48 +1168,46 @@ observe({
 
 
   #update text field for renaming the BAM to blank for any change in ROIlist
-  observe({
+  # observe({
     
-    nomi=unlist(lapply(ROIvariables$listROI,getName))
-    updateTextInput(session,inputId="newBAMname",label="New enrichment name:",value="")    
-  })
+  #   nomi=unlist(lapply(ROIvariables$listROI,getName))
+  #   updateTextInput(session,inputId="newBAMname",label="New enrichment name:",value="")    
+  # })
 
 
 
-  #reorder BAM for the ROI. Must respond to input$selectROIforBAMrename, the same!
-  observeEvent(ROIvariables$listROI,{
+  # #reorder BAM for the ROI. Must respond to input$selectROIforBAMrename, the same!
+  # observeEvent(ROIvariables$listROI,{
     
-    output$dinamicBAM<-renderUI({
-      if (!is.null(ROIvariables$listROI) & length(ROIvariables$listROI)>=1){
-        lista=list()
-        nomi=unlist(lapply(ROIvariables$listROI,getName))
-        pos=match(input$selectROIforBAMrename,nomi)
-        roi=ROIvariables$listROI[[pos]]
-        if (!is.null(roi) ){
-          getbam=names(Enrichlist$rawcoverage[[pos]])
-          if (length(getbam)>0){
-            choicelist=as.list(1:length(getbam))
-            names(choicelist)=as.character(1:length(getbam))
-            for (i in 1:length(getbam)){
-              lista[[i]]=fluidRow(column(3,
-                                      selectInput(inputId = paste("reorderoptionBAM",i,sep=""), label = NULL, 
-                                   choices = choicelist,selected=i)),
-                      column(4,HTML(getbam[i])))
-            }
-            return(lista)  
-          }else{
-            return(HTML("No enrichment..."))
-          }
+  #   output$dinamicBAM<-renderUI({
+  #     if (!is.null(ROIvariables$listROI) & length(ROIvariables$listROI)>=1){
+        
 
-        }else{
-          return(HTML("No enrichment..."))
-        }     
-      }else{
-        return(HTML("No enrichment..."))
-      }
+  #       if (!is.null(roi) ){
+  #         getbam=names(Enrichlist$rawcoverage[[pos]])
+  #         if (length(getbam)>0){
+  #           choicelist=as.list(1:length(getbam))
+  #           names(choicelist)=as.character(1:length(getbam))
+  #           for (i in 1:length(getbam)){
+  #             lista[[i]]=fluidRow(column(3,
+  #                                     selectInput(inputId = paste("reorderoptionBAM",i,sep=""), label = NULL, 
+  #                                  choices = choicelist,selected=i)),
+  #                     column(4,HTML(getbam[i])))
+  #           }
+  #           return(lista)  
+  #         }else{
+  #           return(HTML("No enrichment..."))
+  #         }
 
-    })   
-  })
+  #       }else{
+  #         return(HTML("No enrichment..."))
+  #       }     
+  #     }else{
+  #       return(HTML("No enrichment..."))
+  #     }
+
+  #   })   
+  # })
 
 
 
