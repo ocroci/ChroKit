@@ -36,13 +36,13 @@
 
 
 <h4><a id="import">1) Opening the session file and importing enrichments</a></h4>
-<p align="justify">To import the session file generated in the previous tutorial, click "Save/Load" on the side menu under "Save your progress" section (fig. 1a) and click "Load" button (fig. 1b). Then select the "tutorial_ROI.rds" rds session from the menu. All the required ROIs will be imported in ChroKit.
+<p align="justify">To import the session file generated in the previous tutorial, click "Load session file" button on the side menu (fig. 1). Then choose the file "tutorial_ROI.rds" from the folder in which you downloaded the tutorial files. All the required ROIs will be imported in ChroKit.
 <figure>
-    <img src='../tutorial_figures/tutorial_enrichments_fig1.png' width="70%" alt='missing' />
+    <img src='../tutorial_figures/tutorial_enrichments_fig1.png' width="15%" alt='missing' />
     <figcaption>Figure 1</figcaption>
 </figure>
 
-To import the enrichment files, click "Enrichment files" on the side menu ("Import data" section, fig. 2a) and then "Choose file" in the "Import enrichment file" window (fig. 2b). Navigate through the filesystem and choose the yapmyc_ChIPSeq_YAP.bw. Repeat the operation for all the other bigWig files (i.e. yapmyc_ChIPSeq_Pol2.bw, yapmyc_ChIPSeq_MYC.bw, yapmyc_ChIPSeq_H3K27Ac.bw, yapmyc_ChIPSeq_H3K4me3.bw). The path for all the enrichment files is shown in the window in the middle (fig. 2c).
+To import the enrichment files, click "Enrichment files" on the side menu ("Import data" section, fig. 2a), then "Choose one or more files from filesystem" (fig. 2b) and press "Select a file" button. Navigate through the filesystem and choose the yapmyc_ChIPSeq_YAP.bw. Repeat the operation for all the other bigWig files (i.e. yapmyc_ChIPSeq_Pol2.bw, yapmyc_ChIPSeq_MYC.bw, yapmyc_ChIPSeq_H3K27Ac.bw, yapmyc_ChIPSeq_H3K4me3.bw). The path for all the enrichment files is shown in the window in the middle (fig. 2c).
 <figure>
     <img src='../tutorial_figures/tutorial_enrichments_fig2.png' width="70%" alt='missing' />
     <figcaption>Figure 2</figcaption>
@@ -53,7 +53,7 @@ To import the enrichment files, click "Enrichment files" on the side menu ("Impo
 
 <h4><a id="overlaps">2) Identifying promoters bound by the transcription factors Myc and Yap</a></h4>
 <p align="justify">
-On side menu, click "ROI management" ("Work with data" section, fig. 3a) and select the "Overlaps" tab (fig. 3b). Select "promoters" as a reference ROI (fig. 3c) and Myc and Yap peaks as contrast ROIs (yapmyc_ChIPSeq_MYC.xls and yapmyc_ChIPSeq_YAP.xls ROIs, fig. 3d); choose "Intersection of the contrast ROIs" below, since we want the promoters to overlap with both Yap and Myc (fig. 3e). Finally, type the name of the new ROI in the dedicated space ("promoters_bound_yap_myc") and click the "Build the ROI!" button (fig. 3f).
+On side menu, click "ROI management" ("Work with data" section, fig. 3a) and select the "Overlaps" tab (fig. 3b). Select "promoters" as a reference ROI (fig. 3c) and Myc and Yap peaks as contrast ROIs (yapmyc_ChIPSeq_MYC.xls and yapmyc_ChIPSeq_YAP.xls ROIs, fig. 3d); choose "Intersection of the selected ROIs" below, since we want the promoters to overlap with both Yap and Myc (fig. 3e). Finally, type the name of the new ROI in the dedicated space ("promoters_bound_yap_myc") and click the "Build the ROI!" button (fig. 3f).
 <figure>
     <img src='../tutorial_figures/tutorial_enrichments_fig3.png' width="70%" alt='missing' />
     <figcaption>Figure 3</figcaption>
@@ -64,9 +64,9 @@ After this step, you will obtain 9433 mouse promoters bound by both Myc and Yap 
 
 <h4><a id="resize">3) Resizing promoters</a></h4>
 <p align="justify">
-For a wider view of the enrichments around TSS, you need to increase the width of the promoters (by default defined as a 600 bp window around TSS). On the side menu, click "ROI management" ("Work with data" section, fig. 4a) and select the "Modify ROIs" tab (fig. 4b): six windows will appear, each containing a different function for modifying ROIs. In the "Resize" window, choose the "promoters_bound_yap_myc" ROI created in step 2 (fig. 4c), select 2500 base pairs upstream and downstream (fig. 4d) and type the name of the new ROI ("promoters_bound_resized", fig. 4e); finally, click "Create ROI" button (fig. 4f). 
+For a wider view of the enrichments around TSS, you need to increase the width of the promoters (by default defined as a 600 bp window around TSS). On the side menu, click "ROI management" ("Work with data" section, fig. 4a) and select the "Modify ROIs" tab (fig. 4b): six windows will appear, each containing a different function for modifying ROIs. In the "Resize" window, choose the "promoters_bound_yap_myc" ROI created in step 2 (fig. 4c), select 2500 base pairs upstream and downstream the middle of the ranges (fig. 4d) and type the name of the new ROI ("promoters_bound_resized", fig. 4e); finally, click "Create ROI" button (fig. 4f). 
 <figure>
-    <img src='../tutorial_figures/tutorial_enrichments_fig4.png' width="70%" alt='missing' />
+    <img src='../tutorial_figures/tutorial_enrichments_fig4.png' width="40%" alt='missing' />
     <figcaption>Figure 4</figcaption>
 </figure>
 The new ROI called "promoters_bound_resized" will be added to the ROIs list.
@@ -75,9 +75,9 @@ The new ROI called "promoters_bound_resized" will be added to the ROIs list.
 
 <h4><a id="associateEnrichments">4) Associating enrichments (bigWig) to promoters</a></h4>
 <p align="justify">
-Before analysing enrichments, you must associate enrichment files to one or more ROIs (i.e. finding the reads coverage for each position in the genomic ranges of the ROI). As an example, you will associate the enrichment files (in bigWig format) of ChIP-Seq experiments in tet-Yap/Myc transgenic mouse. On the side menu, click "ROI management" ("Work with data" section, fig. 5a) and select the "Associate enrichments" tab (fig. 5b). From the menu, select the "promoters_bound_resized" ROI created in the step before (fig. 5c) and choose all the enrichments available (fig. 5d). Note: unless a large amount of free RAM is available on your machine, be sure to use only one CPU core (fig. 5e). Finally, click the "Associate!" button. The loading gif will appear on the left (fig. 5f), indicating that an operation is ongoing. WARNING: Do not carry out other operations while loading, but wait until finished.
+Before analysing enrichments, you must associate enrichment files to one or more ROIs (i.e. finding the reads coverage for each position in the genomic ranges of the ROI). As an example, you will associate the enrichment files (in bigWig format) of ChIP-Seq experiments in tet-Yap/Myc transgenic mouse. On the side menu, click "ROI management" ("Work with data" section, fig. 5a) and select the "promoters_bound_resized" ROI created in the step before (fig. 5b). Then choose all the enrichments available (fig. 5c). Note: unless a large amount of free RAM is available on your machine, be sure to use only one CPU core (fig. 5d). Finally, click the "Associate!" button. The loading gif will appear on the left (fig. 5e), indicating that an operation is ongoing. WARNING: Do not carry out other operations while loading, but wait until finished.
 <figure>
-    <img src='../tutorial_figures/tutorial_enrichments_fig5.png' width="70%" alt='missing' />
+    <img src='../tutorial_figures/tutorial_enrichments_fig5.png' width="60%" alt='missing' />
     <figcaption>Figure 5</figcaption>
 </figure>
 The association will take few or several seconds (depending on the computational power of the machine in use); once completed, the subset of promoters will be available for the enrichment analyses.
@@ -88,7 +88,7 @@ The association will take few or several seconds (depending on the computational
 <p align="justify">
 	<b><a id="analogicHeat">Generate the heatmap</a></b>
 	<br>
-Click "Genomics" on the side menu ("Work with data" section, fig. 6a), and select the "Enrichment-based heatmap" tab (fig. 6b). Here, select the "promoters_bound_resized" ROI created in step 3 (fig. 6c) and all the enrichments associated with it (fig. 6d). Select the "clustering" option and all the enrichments as input for the algorithm (fig. 6e), leaving the default clustering options. Finally, click the "Update plot" button (fig. 6f) and the heatmap will appear on the right.
+Click "Genomics" on the side menu ("Work with data" section, fig. 6a), and select the "Enrichment-based heatmap" tab (fig. 6b). Here, select the "promoters_bound_resized" ROI created in step 3 (fig. 6c) and all the enrichments associated with it (fig. 6d). Select the "clustering" option and all the enrichments as input for the algorithm (fig. 6e), leaving the default clustering options. Finally, click the "Update plot" button and the heatmap will appear on the right.
 <figure>
     <img src='../tutorial_figures/tutorial_enrichments_fig6.png' width="70%" alt='missing' />
     <figcaption>Figure 6</figcaption>
@@ -103,7 +103,7 @@ Note: The maximum number of available genomic ranges for the heatmap (6900) is l
 <br><br>
 <b><a id="extractROI">Extract regions of interest from the heatmap</a></b>
 <br>
-Clusters are depicted as color bars on the left of the heatmap (fig. 8a). We are interested in the first and fourth clusters, which are enriched in H3K4me3 upstream and downstream TSS, respectively. To extract these genomic ranges, click the corresponding bar (fig. 8b), type the name of the new ROI ("promoters_upstream_enrichment", fig. 8c) and click "Import ROI" (fig. 8d): a new ROI of 1639 genomic ranges will be generated.  
+Clusters are depicted as color bars on the left of the heatmap (fig. 8a). We are interested in the first and fourth clusters, which are enriched in H3K4me3 upstream and downstream TSS, respectively. To extract these genomic ranges, click the corresponding bar (fig. 8b), type the name of the new ROI ("promoters_upstream_enrichment", fig. 8c) and click "Import ROI" (fig. 8d): a new ROI of 1753 genomic ranges will be generated.  
 <figure>
     <img src='../tutorial_figures/tutorial_enrichments_fig8.png' width="70%" alt='missing' />
     <figcaption>Figure 8</figcaption>

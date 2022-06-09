@@ -20,6 +20,7 @@
         <ol>    
             <li style="font-size:20px;font-style:italic"><a href="#ROIfromfile">From files</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#ROIfromgenelist">From gene-list</a></li>
+            <li style="font-size:20px;font-style:italic"><a href="#ROIfrompattern">From sequence pattern</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#deleteROI">Delete ROIs</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#renameROI">Rename ROIs</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#reorderROI">Reorder ROIs</a></li>
@@ -29,16 +30,18 @@
       </ol>
    <li style="font-size:32px;font-weight:bold"><a href="#workwithdata">Work with data</a></li>
       <ol>
+
+        <li style="font-size:24px;font-weight:bold"><a href="#associateenrichments">Associate enrichments</a></li>
+
         <li style="font-size:24px;font-weight:bold"><a href="#ROImanagement">ROI management</a></li>
         <ol>
             <li style="font-size:20px;font-style:italic"><a href="#newROIoverlaps">Create new ROIs from overlaps</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#modifyROI">Modify ROIs</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#viewROI">View ROIs</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#getROI">Get ROI</a></li>
-            <li style="font-size:20px;font-style:italic"><a href="#associateenrichments">Associate enrichments</a></li>
-            <li style="font-size:20px;font-style:italic"><a href="#ontology">Gene ontology analyses</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#prepareROI">Prepare ROI for heatmap</a></li>
         </ol>
+
         <li style="font-size:24px;font-weight:bold"><a href="#genomics">Genomics</a></li>
         <ol>
             <li style="font-size:20px;font-style:italic"><a href="#singleROI">Analyze a single ROI</a></li>
@@ -47,7 +50,10 @@
             <li style="font-size:20px;font-style:italic"><a href="#analogheat">Evaluating signals in ROIs through enrichment-based heatmaps</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#enrichmentinROI">Advanced analyses of enrichments</a></li>
             <li style="font-size:20px;font-style:italic"><a href="#metagene">Metagene profiles</a></li>
+            <li style="font-size:20px;font-style:italic"><a href="#ontology">Gene ontology analyses</a></li>
         </ol>
+
+
       </ol>
    <li style="font-size:32px;font-weight:bold"><a href="#saveload">Save your progress</a></li>
    <li style="font-size:32px;font-weight:bold"><a href="#performance">Performances</a></li>
@@ -64,7 +70,7 @@
     <ol>
         <br><br>
         <li style="font-size:24px;font-weight:bold"><a id="ImportnewROI">Importing new ROIs</a><br></li>
-            <p>ROIs can be uploaded as a set of genomic ranges from files or can be generated within ChroKit by uploading a gene-list. Once loaded/generated, ROIs can be renamed, deleted or re-ordered.</p>
+            <p>ROIs can be uploaded as a set of genomic ranges from files, can be generated within ChroKit by uploading a gene-list or a list of sequence pattern occurrences in the genome. Once loaded/generated, ROIs can be renamed, deleted or re-ordered.</p>
         <ol>
 
 
@@ -76,8 +82,8 @@
                     <img src='../documentation_figures/fig1_table.png' width="15%"/>
                     <figcaption>Figure 1</figcaption>
                 </figure>
-                <p>To open BED/GTF/GFF files, go to the "ROIs" section (fig. 1a), under "From file" window (fig. 1b): files can be imported either through exploring the directory tree of the system by clicking the "Choose file" button (fig. 1c), or by providing the path to the file and then clicking the "Open file" button (fig. 1d). In both cases, it is possible to include/exclude the header when reading the file (fig. 1e) or it is possible to skip a defined number of lines (fig. 1f). BED/GTF/GFF files must be present on the system in which the application is running (for example, if ChroKit has been launched on a remote machine, the files must be present in that machine).
-                Once a file has been selected, the program checks whether the file is in a valid format and, if so, it will display a preview of the file on the right ("file preview", fig. 1g). The preview can be explored interactively. If the format is correct, the button "Import as ROI" will appear (fig. 1h); by clicking it, the file is imported into memory and a new ROI is created. </p>
+                <p>To open BED/GTF/GFF files, go to the "ROIs" section (fig. 2a), and select "Load a file of genomic coordinates (bed/gtf/gff)" (fig. 2b): files can be imported either through exploring the directory tree of the system by clicking the "Choose file from filesystem", or by providing the path to the file by selecting "Manually type the path of the file" (fig. 2c). In both cases, it is possible to include/exclude the header when reading the file (fig. 2d) or it is possible to skip a defined number of lines (fig. 2e). BED/GTF/GFF files must be present on the system in which the application is running (for example, if ChroKit has been launched on a remote machine, the files must be present in that machine).
+                Once a file has been selected, the program checks whether the file is in a valid format and, if so, it will display a preview of the file on the right ("file preview", fig. 2g). The preview can be explored interactively. If the format is correct, the button "Confirm and import as ROI" will appear (fig. 2h); by clicking it, the file is imported into memory and a new ROI is created. </p>
                 <figure>
                     <img src='../documentation_figures/fig2_ROIfromfile.png' width="50%"/>
                     <figcaption>Figure 2</figcaption>
@@ -91,16 +97,18 @@
 
                 <p>*<u>Note: to perform this operation, you need to have already loaded a genome assembly (see <a href="#Importassembly">Importing genome assemblies)</a></u>*</p>
 
-                <p>ROIs can also be imported from a custom list of genes (for example, a list of upregulated genes from RNA-Seq or genes belonging to specific ontological terms or a egne signature): in this case, the program will retrieve the coordinates of promoters, genebodies and transcription end sites (TES) for the provided list of genes. To do this, click "ROIs" on the side menu (fig. 3a) and go to the "From gene-list" window (fig. 3b). 
+                <p>ROIs can also be imported from a custom list of genes (for example, a list of upregulated genes from RNA-Seq or genes belonging to specific ontological terms or a gene signature): in this case, the program will retrieve the coordinates of promoters, genebodies and transcription end sites (TES) for the provided list of genes. To do this, click "ROIs" on the side menu (fig. 3a) and select "Get promoters, transcripts, TES coordinates of a list of genes" (fig. 3b). 
                 A gene-list can be imported in three different ways:</p>
                 <ul>
 
-                <li style="width:900px;text-align:justify"> Using a text file containing the list of genes, by searching through the directory tree. To do this, click the "Choose genelist" button (fig. 3c)</li>
-                <li style="width:900px;text-align:justify">Using a text file containing the list of genes, by providing the path to the file and then clicking "Open genelist" button (fig. 3d)</li>
-                <li style="width:900px;text-align:justify">Pasting directly the gene symbols, or other gene identifiers, into the text box in the dedicated window (fig. 3e); provide the name for the gene-list (fig. 3h) and then clicking "Import" button</li>
+
+				<li style="width:900px;text-align:justify">Pasting directly the gene symbols: select "Paste IDs/symbols" (fig. 3c), or other gene identifiers, into the text box in the dedicated window (fig. 3d); provide the name for the gene-list (fig. 3g) and then clicking "Import" button</li>
+                <li style="width:900px;text-align:justify"> Using a text file containing the list of genes, by searching through the directory tree. To do this, click "Choose gene list from filesystem" (fig. 3c)</li>
+                <li style="width:900px;text-align:justify">Using a text file containing the list of genes, by providing the path to the file. For this, click "Manually type the path of the file" (fig. 3c)</li>
+                
 
                 </ul>
-                <p>In all instances, it is possible to specify parameters before importing the list: the kind of identifiers provided (fig. 3f) and the maximum gene width allowed in bp (fig. 3g) (you can exclude extremely long genes, since they may cause memory problems). if "Mylist" is the name of the gene-list imported, three new ROIs are created:  "promoters_genelist_Mylist", "transcripts_genelist_Mylist" and "TES_genelist_Mylist". These ROIs are the coordinates of promoters, transcripts and TES of the genes imported.
+                <p>In all instances, it is possible to specify parameters before importing the list: the kind of identifiers provided (fig. 3e) and the maximum gene width allowed in bp (fig. 3f) (you can exclude extremely long genes, since they may cause memory problems). if "Mylist" is the name of the gene-list imported, three new ROIs are created:  "promoters_genelist_Mylist", "transcripts_genelist_Mylist" and "TES_genelist_Mylist". These ROIs are the coordinates of promoters, transcripts and TES of the genes imported.
                 </p>
 
                 <figure>
@@ -112,30 +120,42 @@
 
 
             <br>
+            <li style="font-size:20px;font-style:italic"><a id="ROIfrompattern">From sequence pattern</a><br></li>
+                
+                <p>*<u>Note: to perform this operation, you need to have already loaded a genome assembly (see <a href="#Importassembly">Importing genome assemblies)</a></u>*</p>
+
+                <p> ROIs can be created using a sequence pattern from the whole genome. Go to the "ROIs" section (fig. 4a) and select "Generate ROI from a sequence pattern in the genome" (fig. 4b) Then, select the sequence pattern using the IUPAC code (fig. 4c). Finally, choose the name of the new ROI (fig. 4d) and click "Create ROI" button. The genomic ranges of the new ROI will be the coordinates of all the pattern occurrences found.
+                A BSgenome package of the current genome assembly is required for the sequence information (for example, Bsgenome.Rnorvegicus.UCSC.rn4 is needed for rn4 assembly); if not yet installed in the system, it can be downloaded on-the-fly from bioconductor.</p>
+                <figure>
+                    <img src='../documentation_figures/fig3b_ROIfrompattern.png' width="50%"/>
+                    <figcaption>Figure 4</figcaption>
+                </figure> 
+
+            <br>
             <li style="font-size:20px;font-style:italic"><a id="deleteROI">Delete ROIs</a><br></li>
-                <p>ROIs (together with their associated enrichment files) can be deleted using the window "Loaded ROIs" (fig. 4a): select all the ROIs to delete and press the "Delete" button. This can be useful to free memory in the current session.</p>
+                <p>ROIs (together with their associated enrichment files) can be deleted using the window "Loaded ROIs" (fig. 5a): select all the ROIs to delete and press the "Delete" button. This can be useful to free memory in the current session.</p>
             <br>
             <li style="font-size:20px;font-style:italic"><a id="renameROI">Rename ROIs</a><br></li>
-                <p>To change the name of a ROI, use the window "Rename ROIs" (fig. 4b): select the ROI to be renamed, type the new name in the dedicated space and press "Rename" button. </p>
+                <p>To change the name of a ROI, use the window "Rename ROIs" (fig. 5b): select the ROI to be renamed, type the new name in the dedicated space and press "Rename" button. </p>
             <br>
             <li style="font-size:20px;font-style:italic"><a id="reorderROI">Reorder ROIs</a><br></li>
-                <p>To change the order in which ROIs appear in menus, plots and heatmaps, use the "Reorder ROIs" window (fig. 4c); for each ROI, assign the desired final ranking position and then click the "Reorder!"" button. </p>
+                <p>To change the order in which ROIs appear in menus, plots and heatmaps, use the "Reorder ROIs" window (fig. 5c); for each ROI, assign the desired final ranking position and then click the "Reorder!"" button. </p>
             <figure>
                 <img src='../documentation_figures/fig4_deleterenameROI.png' width="25%"/>
-                <figcaption>Figure 4</figcaption>
+                <figcaption>Figure 5</figcaption>
             </figure>            
         </ol>
 
 
         <br><br>
         <li style="font-size:24px;font-weight:bold"><a id="Importenrichments">Importing enrichment files</a><br></li>
-            <p>Signal or enrichment files, either in BAM or bigWIG format, can be imported from the "Enrichment files" section, found in the side menu (fig. 5a). This will open three  windows: "Import enrichment file", "Linked enrichment files" and  "Rename enrichment file".
-            In the "Import enrichment file" window it is possible to search through the directory tree by clicking "Choose file" button (fig. 5b). Alternativly, you can insert the path to the file and then click the "Open file" button (fig. 5c). Rather than loading the entire file in memory, the program opens the link (path) to the file. If the file is in BAM format, the corresponding bam index file (with extension *.bai) must be present in the same directory with the same name of the BAM file. Opened BAM/bigWIG file links are shown in the window "Linked enrichment files", on the right (fig. 5d): here it’s possible to view all the links to the enrichment files available and, if needed, remove those unnecessary. 
-            If needed it is possible to rename a file using the "Rename enrichment file" window on the right (fig. 5e). Note: bigWIG files cannot be used in Windows operating systems.</p>
+            <p>Signal or enrichment files, either in BAM or bigWIG format, can be imported from the "Enrichment files" section, found in the side menu (fig. 6a). This will open three  windows: "Import enrichment file", "Opened enrichment files" and  "Rename enrichment file".
+            In the "Import enrichment file" window it is possible to search through the directory tree by clicking "Choose one or more files from filesystem" and then "Select a file" button (fig. 6b). Alternativly, you can provide the path to the file by clicking "Manually type the path of a file" (fig. 6b). Rather than loading the entire file in memory, the program opens the link (path) to the file. If the file is in BAM format, the corresponding bam index file (with extension *.bai) must be present in the same directory with the same name of the BAM file. Opened BAM/bigWIG file links are shown in the window "Opened enrichment files", on the right (fig. 6c): here it’s possible to view all the links to the enrichment files available and, if needed, remove those unnecessary. 
+            If needed it is possible to rename a file using the "Rename enrichment file" window on the right (fig. 6d). Note: bigWIG files cannot be used in Windows operating systems.</p>
         <br>
         <figure>
             <img src='../documentation_figures/fig5_selectEnrichment.png' width="50%"/>
-            <figcaption>Figure 5</figcaption>
+            <figcaption>Figure 6</figcaption>
         </figure>
 
 
@@ -144,15 +164,15 @@
 
         <br><br>
         <li style="font-size:24px;font-weight:bold"><a id="Importassembly">Importing genome assemblies</a><br></li>
-            <p>*<u>Loading the genome assembly is required for the annotation of ROIs, for importing gene-lists and for gene ontology analyses (see <a href="#Importassembly">Importing genome assemblies)</a></u>*</p>
-            <p>Genome assembly can be imported by accessing the "Assembly" section, found in the side menu (fig. 6a).
-            Genomic position of promoters and transcripts of a specific genome assembly can be imported by choosing from the list of genome assemblies pre-loaded within Chrokit (fig. 6b). If a genome assembly is not installed in the system, it is possible to download it from bioConductor using the window "Download assemblies" on the right (fig. 6c).
-            After selecting an assembly, it is possible to choose the number of base pairs upstream and downstream the TSS and TES (fig. 6d). The user may also choose to import only those genes that have the annotated identifiers, as for instance gene IDs or gene symbols (fig. 6e). 
-            By clicking "Load assembly!" (fig. 6f) the user will generate ROIs: "promoters", "transcripts", "TES" of the specified genome assembly. Importantly, all the ROIs already in memory and those that will be imported subsequently within the same session, will be annotated automatically (each genomic range will be annotated to the nearest gene).</p>
+            <p>*<u>Loading the genome assembly is required for the annotation of ROIs, for importing gene-lists and for gene ontology analyses</a></u>*</p>
+            <p>Genome assembly can be imported by accessing the "Assembly" section, found in the side menu (fig. 7a).
+            Genomic position of promoters and transcripts of a specific genome assembly can be imported by choosing from the list of genome assemblies pre-loaded within Chrokit (fig. 7b). If a genome assembly is not installed in the system, it is possible to download it from bioConductor using the window "Download assemblies" on the right (fig. 7c).
+            After selecting an assembly, it is possible to choose the number of base pairs upstream and downstream the TSS and TES (fig. 7d). The user may also choose to import only those genes that have the annotated identifiers, as for instance gene IDs or gene symbols (fig. 7e). 
+            By clicking "Load assembly!" (fig. 7f) the user will generate ROIs: "promoters", "transcripts", "TES" of the specified genome assembly. Importantly, all the ROIs already in memory and those that will be imported subsequently within the same session, will be annotated automatically (each genomic range will be annotated to the nearest gene).</p>
             <p><i>In ChroKit, a genome assembly is considered as the union of the transcript database (for example <a href="https://bioconductor.org/packages/release/data/annotation/html/TxDb.Mmusculus.UCSC.mm9.knownGene.html">TxDb.Mmusculus.UCSC.mm9.knownGene</a>) that contains all the coordinates of annotated promoters and transcripts for that assembly, and the annotation database (for example <a href="https://bioconductor.org/packages/release/data/annotation/html/org.Mm.eg.db.html">org.Mm.eg.db</a>) for that organism to translate gene IDs into gene symbols and vice-versa.</i></p>
             <figure>
                 <img src='../documentation_figures/fig6_assembly.png' width="60%"/>
-                <figcaption>Figure 6</figcaption>
+                <figcaption>Figure 7</figcaption>
             </figure>            
     </ol>
 
@@ -161,13 +181,55 @@
 
     <br><br><br>
     <li style="font-size:32px;font-weight:bold"><a id="workwithdata">Work with data</a></li><br>
-        <p>Analyses of ROIs and their associated signals is performed within the "Work with data section". This consists of two subsections: (i) ROI management (fig. 7a), which allows operations on the genomic ranges and the association of signals to the ROIs and (ii) Genomics (fig. 7b), which allows standard genomic analyses of enrichments/signals within selected genomic regions. </p>
+        <p>Analyses of ROIs and their associated signals is performed within the "Work with data section". This consists of three subsections: (i) Associate enrichments (ii) (fig. 8a), to compute enrichments over ROIs; ROI management (fig. 8b), which allows operations on the genomic ranges and the association of signals to the ROIs and (ii) Genomics (fig. 8c), which allows standard genomic analyses of enrichments/signals within selected genomic regions. </p>
         <figure>
             <img src='../documentation_figures/fig7_sidemenu.png' width="10%"/>
-            <figcaption>Figure 7</figcaption>
+            <figcaption>Figure 8</figcaption>
         </figure> 
         <br><br>
         <ol>
+
+
+
+
+        <br>
+        <li style="font-size:24px;font-weight:bold"><a id="associateenrichments">Associate enrichments </a><br></li>
+        <p>*<u>Note: this step is required for all the analyses of enrichments</u>*</p>
+        <p>*<u>Note: it needs enrichment files (see <a href="#Importenrichments">how to import enrichment files</a>)</u>*</p>
+        <p>Click "Associate enrichments" in the side menu (fig. 9a), select the ROIs using the menu on the left (fig. 9b), choose the enrichment file(s) available in the window on the right (fig. 9c) and press the "Associate!" button (fig. 9d). 
+        If enrichment files are in BAM format, the enrichment calculated upon the association can be normalized (fig. 9e) in different ways:</p>
+
+        <ul>
+        <li style="width:900px;text-align:justify">No normalization: raw pileups won't be normalized</li>
+        <li style="width:900px;text-align:justify">By its library size: the number of reads will be divided by the size of their library and multiplied by 1 million</li>
+        <li style="width:900px;text-align:justify">By the library size of another signal: the number of reads will be divided by the library size of a user-defined enrichment file present in the list and multiplied by 1 million </li>
+        <li style="width:900px;text-align:justify">With a spike-in: the number of reads will be normalized by the library size of a user-defined enrichment file present in the list (spike-in). This number will be divided by the number of reads of control and multiplied by the number of reads of the spike-in of control. Finally, the number will be multiplied by 1 million. This is carried out using the following formula:<br> 
+            <i>spike-in reads in control*1000000/(spike-in reads*control reads)</i></li>
+        </ul>
+
+        <p>The association of enrichments to a ROI is one of the most time-consuming analyses, because it requires computational resources and the file(s) which are read from the disk in which they are stored (reading/writing on the disk can be slow). During this process, the pileup of reads for each base pair of the genomic ranges of a ROI is calculated. If a sufficient amount of RAM is available, it is possible to perform the computation in parallel increasing the number of cores. The number of cores can be set in the dedicated field (fig. 9f). Please leave 1 cores if you are unsure.
+        To free some memory, enrichment file(s) can be removed from a particular ROI by selecting the ROI (fig. 9b), the enrichment files to be removed (fig. 9g) and then clicking the "Remove" button. </p>
+
+        <figure>
+            <img src='../documentation_figures/fig15_associateEnrichments.png' width="65%"/>
+            <figcaption>Figure 9</figcaption>
+        </figure>
+
+        <p>According to the needs of visualization in graphs and heatmaps, enrichment files associated to ROIs can be renamed or reordered using "Rename/reorder enrichments" window. To rename an enrichment file associated to a ROI, use the "Rename/reorder enrichments" box: select a ROI using the menu (fig. 10a), select "Rename an enrichment" from the radiobutton (fig. 10b), an enrichment associated to the ROI (fig. 10c), type the new name of the enrichment in the field (fig. 10d); finally press the "Rename" button. If the enrichment file has been associated to multiple ROIs, its name will change in all these ROIs. </p>
+        <figure>
+            <img src='../documentation_figures/fig15b_renameEnrichments.png' width="30%"/>
+            <figcaption>Figure 10</figcaption>
+        </figure>
+
+        <p>To change the order of the enrichment files that appear in a ROI, select a ROI as before (fig. 11a), select "Reorder enrichments in the ROI" from the radiobutton (fig. 11b) and for each enrichment associated to the ROI, set the index that represent the desired final ranking (fig. 11c); finally press "Reorder!" button. </p>
+        <figure>
+            <img src='../documentation_figures/fig15c_reorderEnrichments.png' width="30%"/>
+            <figcaption>Figure 11</figcaption>
+        </figure>
+
+
+
+        <br><br>
         <li style="font-size:24px;font-weight:bold"><a id="ROImanagement">ROI management</a><br></li>
             <p>The subsection "ROI management" contains all the functions that allow a user to manage ROIs in an intuitive and straightforward way.</p>
             <ol>
@@ -175,28 +237,28 @@
 
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="newROIoverlaps">Create new ROIs from overlaps</a><br></li>
-                <p>To create new ROIs from the existing ones, by using different subsetting criteria, based on logical operations (union, overlap, not overlap...), click "ROI management" on the side menu (fig. 8a) and select the tab "Overlaps" (fig. 8b). The "Options" window lets the user choose the parameters of the overlaps: the minimum number of shared base pairs used to call the overlap between two genomic ranges (fig. 8c), whether to take overlapping intervals only on the same strand (fig. 8d), and allow the selection of the name of the new ROI generated by the ovelap (fig. 8e).</p>
+                <p>To create new ROIs from the existing ones, by using different subsetting criteria, based on logical operations (union, overlap, not overlap...), click "ROI management" on the side menu (fig. 12a) and select the tab "Overlaps" (fig. 12b). The "Options" window lets the user choose the parameters of the overlaps: the minimum number of shared base pairs used to call the overlap between two genomic ranges (fig. 12c), whether to take overlapping intervals only on the same strand (fig. 12d), and allow the selection of the name of the new ROI generated by the ovelap (fig. 12e).</p>
                 <figure>
                     <img src='../documentation_figures/fig8_overlaps.png' width="60%"/>
-                    <figcaption>Figure 8</figcaption>
+                    <figcaption>Figure 12</figcaption>
                 </figure>   
-                <p>In the "Combination of ROIs" window the user can select the ROIs for generating the combination of the overlap. The first column (fig. 8f) is used to select the reference ROI: if more than one ROI is selected, the user can choose whether to use the union or the intersection of the ROIs selected (fig. 6g). If only one starting ROI is selected as the reference ROI, the enrichment files associated with the ROI are preserved. If more ROIs are selected, the union or intersection will be considered for the reference ROI as in fig. 9.</p>              
+                <p>In the "Combination of ROIs" window the user can select the ROIs for generating the combination of the overlap. The first column (fig. 12f) is used to select the reference ROI: if more than one ROI is selected, the user can choose whether to use the union or the intersection of the ROIs selected (fig. 12g). If only one starting ROI is selected as the reference ROI, the enrichment files associated with the ROI are preserved. If more ROIs are selected, the union or intersection will be considered for the reference ROI as in fig. 13.</p>              
                 <figure>
                     <img src='../documentation_figures/fig9_intersection_union.png' width="35%"/>
-                    <figcaption>Figure 9</figcaption>
+                    <figcaption>Figure 13</figcaption>
                 </figure>
-                <p>The center panel is used to select the contrast ROI (e.g. the ROI that must overlap with the reference ROI) (fig. 8h). If multiple ROIs are selected, two overlap criteria can be chosen (fig. 8i), according to fig. 10.</p>
+                <p>The center panel is used to select the contrast ROI (e.g. the ROI that must overlap with the reference ROI) (fig. 12h). If multiple ROIs are selected, two overlap criteria can be chosen (fig. 12i), according to fig. 14.</p>
                 <figure>
                     <img src='../documentation_figures/fig10_inclusion_criteria.png' width="35%"/>
-                    <figcaption>Figure 10</figcaption>
+                    <figcaption>Figure 14</figcaption>
                 </figure>
-                <p>The panel on the right is used to exclude those genomic ranges that do not overlap with the reference ROI (fig. 8j). When multiple ROIs are selected, two exclusion criteria can be used (fig. 8k), as illustrated in fig. 11.</p>
+                <p>The panel on the right is used to exclude those genomic ranges that do not overlap with the reference ROI (fig. 12j). When multiple ROIs are selected, two exclusion criteria can be used (fig. 12k), as illustrated in fig. 15.</p>
                 <figure>
                     <img src='../documentation_figures/fig11_exclusion_criteria.png' width="35%"/>
-                    <figcaption>Figure 11</figcaption>
+                    <figcaption>Figure 15</figcaption>
                 </figure>                
                 <p>When all parameters are set, press the "Build the ROI!" button to build the new ROI.
-                In the example of figure 8, the user took the union of wt_ChIPSeq_Pol2.xls and yapmyc_ChIPSeq_MYC.xls, which overlaps with any range of either yapmyc_ChIPSeq_Pol2.xls and yapmyc_ChIPSeq_YAP.xls (union), and does not overlap with promoters.</p>
+                In the example of figure 12, the user took the union of wt_ChIPSeq_MYC.xls and wt_ChIPSeq_Pol2.xls, which overlaps with the common ranges of either yapmyc_ChIPSeq_MYC.xls and yapmyc_ChIPSeq_Pol2.xls (intersection), and does not overlap with any of promoters, transcripts or TES regions (union).</p>
 
 
 
@@ -205,20 +267,24 @@
                 <li style="font-size:20px;font-style:italic"><a id="modifyROI">Modify ROIs</a><br></li>
                 <p>*<u>Note: needs enrichment association for some operations (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
                 <p>*<u>Note: needs a loaded genome assembly for pattern searching (see <a href="#Importassembly">Importing genome assemblies)</a></u>*</p>
-                <p>In the "ROI manaegment" side menu (fig. 12a) The tab "Modify ROIs" (fig. 12b) contains a set of functions to quickly and easily modify the genomic ranges inside existing ROIs and save them as new ROIs. The user can perform several operations:</p>
+                <p>In the "ROI management" side menu (fig. 16a) The tab "Modify ROIs" (fig. 16b) contains a set of functions to quickly and easily modify the genomic ranges inside existing ROIs and save them as new ROIs. The user can perform several operations:</p>
                 
                 <ul>
-                <li style="width:900px;text-align:justify"> The "Resize" window can be used to resize the genomic ranges of the ROI to a fixed width(fig. 12c). Select the ROI to resize, the number of base pairs upstream and downstream the center of the ROI (or the TSS if the ROI is a promoter), the name of the new ROI and click "Create ROI". Enrichment files associated with the ROI are preserved only if the width of all of the ranges of the ROI of origin are reduced. Otherwise, the enrichment file association must be repeated. Changing the size of a ROI is useful for the optimal visualization of the enrichments through heatmaps or metagene profiles</li>
-                <li style="width:900px;text-align:justify">The "Center on summit" window is used to find the point of highest enrichment of a specific signal/enrichment (pileup) inside genomic coordinates (fig. 12d). Choose the ROI, one of the associated enrichments, the name of the new ROI that will be created and click "Create ROI" button. The genomic ranges of the new ROI will be of length=1, centered on the summits. This operation is useful for downstream analyses, such as motif finding</li>
-                <li style="width:900px;text-align:justify">The "Random sample" window can be used to create a random subset of a ROI (fig. 12e). Select the ROI to sample, select the fraction of genomic ranges to keep (or, alternatively, the raw number), select the name of the new ROI and click the "Create ROI" button. Usually, a random sample of the ROI is representative of the entire original ROI and can be used to keep the session fast and save memory</li>
-                <li style="width:900px;text-align:justify">The "Filter for width" window can be used to subset the genomic ranges of a ROI according to their width (fig. 12f). Select a ROI to filter and the minimum and maximum quantiles (or absolute values) of the widths as threshold, type the name for the new ROI and click "Create ROI". Genomic intervals having a width between the indicated max and min values will be retained</li>
-                <li style="width:900px;text-align:justify">The "Filter for enrichment" window can be used to subset the genomic ranges based on their enrichment (fig. 12g). Select the ROI to filter, one of the associated enrichments to use for filtering, the minimum and maximum quantiles for the enrichment as thresholds (or, alternatively, the raw numbers of minimum and maximum enrichments), type the name of the new ROI and click the "Create ROI" button</li>
-                <li style="width:900px;text-align:justify"> The "Extract patterns" window can be used to extract patterns from a ROI or from the whole genome (fig. 12h). Choose whether to extract a sequence pattern from an existing ROI or from the entire genome (fig. 12i). Then, select the sequence pattern using the IUPAC code (fig. 12j). If the strand information is available, it is possible to choose whether the pattern should be searched in a strand-specific or independent way. Finally, choose the name of the new ROI and click "Create ROI" button. The genomic ranges of the new ROI will be the coordinates of all the pattern occurrences found.
-                A BSgenome package of the current genome assembly is required for the sequence information (for example, Bsgenome.Rnorvegicus.UCSC.rn4 is needed for rn4 assembly); if not yet installed in the system, it can be downloaded on-the-fly from bioconductor (fig. 12k)</li>
+                <li style="width:900px;text-align:justify"> The "Resize" window can be used to resize the genomic ranges of the ROI (fig. 16c). Select the ROI to resize and the way to resize (fig. 16d):
+                <ul>	
+                <li style="width:700px;text-align:justify;list-style-type: upper-roman">"Resize using fixed value": will resize each genomic range of the selected ROI using a fixed number of base pairs upstream and downstream. The reference point from which resize the ranges can be set by the user (fig. 16e). Changing the size of a ROI is useful for the optimal visualization of the enrichments through heatmaps or metagene profiles</li>
+                <li style="width:700px;text-align:justify;list-style-type: upper-roman">"Resize using percentage of range width": the width of the genomic ranges of the selected ROI can be incremented or decremented of a specific percentage</li>
+				</ul>
+                <li style="width:900px;text-align:justify">The "Center on summit" window is used to find the point of highest enrichment of a specific signal/enrichment (pileup) inside genomic coordinates (fig. 16f). Choose the ROI, one of the associated enrichments, the name of the new ROI that will be created and click "Create ROI" button. The genomic ranges of the new ROI will be of length=1, centered on the summits. This operation is useful for downstream analyses, such as motif finding</li>
+                <li style="width:900px;text-align:justify">The "Random sample" window can be used to create a random subset of a ROI (fig. 16g). Select the ROI to sample, select the fraction of genomic ranges to keep (or, alternatively, the raw number), select the name of the new ROI and click the "Create ROI" button. Usually, a random sample of the ROI is representative of the entire original ROI and can be used to keep the session fast and save memory</li>
+                <li style="width:900px;text-align:justify">The "Filter for width" window can be used to subset the genomic ranges of a ROI according to their width (fig. 16h). Select a ROI to filter and the minimum and maximum quantiles (or absolute values) of the widths as threshold, type the name for the new ROI and click "Create ROI". Genomic intervals having a width between the indicated max and min values will be retained</li>
+                <li style="width:900px;text-align:justify">The "Filter for enrichment" window can be used to subset the genomic ranges based on their enrichment (fig. 16i). Select the ROI to filter, one of the associated enrichments to use for filtering, the minimum and maximum quantiles for the enrichment as thresholds (or, alternatively, the raw numbers of minimum and maximum enrichments), type the name of the new ROI and click the "Create ROI" button</li>
+                <li style="width:900px;text-align:justify"> The "Extract patterns" window can be used to extract patterns from a ROI (fig. 16j). Select the sequence pattern using the IUPAC code (fig. 16l). If the strand information is available, it is possible to choose whether the pattern should be searched in a strand-specific or independent way. Finally, choose the name of the new ROI and click "Create ROI" button. The genomic ranges of the new ROI will be the coordinates of all the pattern occurrences found.
+                A BSgenome package of the current genome assembly is required for the sequence information (for example, Bsgenome.Rnorvegicus.UCSC.rn4 is needed for rn4 assembly); if not yet installed in the system, it can be downloaded on-the-fly from bioconductor (fig. 16k)</li>
                 </ul>
                 <figure>
                     <img src='../documentation_figures/fig12_modifyROI.png' width="65%"/>
-                    <figcaption>Figure 12</figcaption>
+                    <figcaption>Figure 16</figcaption>
                 </figure>                
 
 
@@ -226,10 +292,10 @@
 
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="viewROI">View ROIs</a><br></li>
-                <p>Some properties of the ROIs can be quickly examined using the "View ROIs" tab (fig. 13a). Select one or multiple ROIs from the menu on the left ("ROI selection" window, fig. 13b), and look at the width’s distribution in each of the selected ROIs, or the number of ranges contained in each ROI (fig. 13c). If only one ROI is selected, it is also possible to view how many genomic ranges have a width greater than a specific length (fig. 13d). A  report shows which is the source of the ROI (all the passages that describe how it was created), this  can be used to keep track of how a ROI was created (fig. 13e).</p>
+                <p>Some properties of the ROIs can be quickly examined using the "View ROIs" tab (fig. 17a). Select one or multiple ROIs from the menu on the left ("ROI selection" window, fig. 17b), and look at the width’s distribution in each of the selected ROIs, or the number of ranges contained in each ROI (fig. 17c). If only one ROI is selected, it is also possible to view how many genomic ranges have a width greater than a specific length (fig. 17d). A  report shows which is the source of the ROI (all the passages that describe how it was created), this  can be used to keep track of how a ROI was created (fig. 17e).</p>
                 <figure>
                     <img src='../documentation_figures/fig13_viewROI.png' width="65%"/>
-                    <figcaption>Figure 13</figcaption>
+                    <figcaption>Figure 17</figcaption>
                 </figure> 
 
 
@@ -239,80 +305,37 @@
                 <li style="font-size:20px;font-style:italic"><a id="getROI">Get ROI</a><br></li>
                 <p>*<u>Note: needs genome assembly loaded for annotated genes (see <a href="#Importassembly">Importing genome assemblies)</u>*</p>
                 <p>*<u>Note: needs enrichment file association for enrichment information (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
-                <p>To get information about a ROI in a tabular format, click "ROI management" on the side menu (fig. 14a) and go to the "Get ROI" tab (fig. 14b). Select a ROI from the menu (fig. 14c) and the information to retrieve (fig. 14d), then click "Preview ROI". On the right window it is possible to browse the entire ROI interactively by playing with the input fields on the table (fig. 14e). This table can be downloaded as an *.xls file. 
-                It is also possible to get all the genes (IDs or symbols) within a specific distance from the midpoint of the genomic ranges of the ROI in bp , by clicking "Preview genes within window (unique IDs)" and by selecting the width of the window (fig. 14f).</p>
+                <p>To get information about a ROI in a tabular format, click "ROI management" on the side menu (fig. 18a) and go to the "Get ROI" tab (fig. 18b). Select a ROI from the menu (fig. 14c) and the kind of information to retrieve.</p>
+
+                <p><i>Features for each genomic range</i> (fig. 18d): retrieve all information associated to each genomic range of the selected ROI, for example the genomic coordinates, the nearest gene IDs or the enrichments associated (fig. 18e). By clicking "Preview ROI", the ROI with its information can be interactively explored in the right window (fig. 18f) or downloaded as *xls file.
                 <figure>
-                    <img src='../documentation_figures/fig14_getROI.png' width="65%"/>
-                    <figcaption>Figure 14</figcaption>
+                    <img src='../documentation_figures/fig14a_getROI_1.png' width="65%"/>
+                    <figcaption>Figure 18</figcaption>
                 </figure> 
+				</p>
 
-
-
-
-
-                <br>
-                <li style="font-size:20px;font-style:italic"><a id="associateenrichments">Associate enrichments </a><br></li>
-                <p>*<u>Note: this step is required for all the analyses of enrichments</u>*</p>
-                <p>*<u>Note: it needs enrichment files (see <a href="#Importenrichments">how to import enrichment files</a>)</u>*</p>
-                <p>Click "ROI management" in the side menu (fig. 15a), go to the "Associate enrichments" tab (fig. 15b), select the ROIs using the menu on the left (fig. 15c), choose the enrichment file(s) available in the window on the right (fig. 15d) and press the "Associate!" button (fig. 15e). 
-                If enrichment files are in BAM format, the enrichment calculated upon the association can be normalized (fig. 15f) in different ways:</p>
-
-                <ul>
-                <li style="width:900px;text-align:justify">No normalization: raw pileups won't be normalized</li>
-                <li style="width:900px;text-align:justify">By its library size: the number of reads will be divided by the size of their library and multiplied by 1 million</li>
-                <li style="width:900px;text-align:justify">By the library size of another signal: the number of reads will be divided by the library size of a user-defined enrichment file present in the list and multiplied by 1 million </li>
-                <li style="width:900px;text-align:justify">With a spike-in: the number of reads will be normalized by the library size of a user-defined enrichment file present in the list (spike-in). This number will be divided by the number of reads of control and multiplied by the number of reads of the spike-in of control. Finally, the number will be multiplied by 1 million. This is carried out using the following formula:<br> 
-                    <i>spike-in reads in control*1000000/(spike-in reads*control reads)</i></li>
-                </ul>
-
-                <p>The association of enrichments to a ROI is one of the most time-consuming analyses, because it requires computational resources and the file(s) which are read from the disk in which they are stored (reading/writing on the disk can be slow). During this process, the pileup of reads for each base pair of the genomic ranges of a ROI is calculated. If a sufficient amount of RAM is available, it is possible to perform the computation in parallel increasing the number of cores. The number of cores can be set in the dedicated field (fig. 15g). 
-                To free some memory, enrichment file(s) can be removed from a particular ROI by selecting the ROI, the enrichment files to be removed and then clicking the "Remove" button (fig. 15h). </p>
-                <p>According to the needs of visualization in graphs and heatmaps, enrichment files associated to ROIs can be renamed or reordered using "Rename/reorder enrichments" window. To rename an enrichment file associated to a ROI, use the "Rename enrichments" section: select a ROI using the menu (fig. 15i), an enrichment associated to it (fig. 15j), type the new name of the enrichment in the field (fig. 15k), and press the "Rename" button. If the enrichment file has been associated to multiple ROIs, its name will change in all these ROIs. 
-                To change the order of the enrichment files that appear in a ROI, select a ROI as before (fig. 15i) and use the "Reorder enrichments" section: for each file associated to the ROI, set the index that represent the desired final ranking (fig. 15l) and press "Reorder!" button. </p>
+				<p>
+                <i>Gene list inside genomic window</i> (fig. 19a): get all the genes (IDs or symbols, fig. 19b) within a specific distance from the midpoint of the genomic ranges of the ROI. The width of the window can be set (fig. 19c).
                 <figure>
-                    <img src='../documentation_figures/fig15_associateEnrichments.png' width="65%"/>
-                    <figcaption>Figure 15</figcaption>
-                </figure>
+                    <img src='../documentation_figures/fig14b_getROI_2.png' width="65%"/>
+                    <figcaption>Figure 19</figcaption>
+                </figure> 
+                </p>
 
 
-
-
-                <br>
-                <li style="font-size:20px;font-style:italic"><a id="ontology">Gene ontology analyses</a><br></li>
-                <p>*<u>Note: it needs a loaded assembly (see <a href="#Importassembly">Importing genome assemblies</a>)</u>*</p>
-                <p>*<u>Note: if needed, additional signatures in GMT format can be loaded in the "signatures" directory of the program</u>*</p>
-                <p>This analysis performs a hypergeometric test, for each gene-list annotated to the selected ROIs and for each ontological term in the database. As "universe" the test uses the union of the genes of all the signatures selected as the database. Signatures are in GMT format and are contained in the "signatures" directory of the source code of the program. Signatures from <a href="https://www.gsea-msigdb.org/gsea/msigdb/">MSigDB</a> are already pre-loaded in the program.
-                To carry out gene ontology analyses, click "ROI management" on the side menu (fig. 16a) and go to the "GO analyses" tab (fig. 16b). Select: </p>
-
-                <ul>
-                <li style="width:900px;text-align:justify">One or more ROIs, or a custom list of genes (fig. 16c,d). If ROIs are selected, it is possible to choose whether to take the nearest gene associated with each range of the ROIs or all the genes within a certain genomic window from those ranges (the extent of the window can be set by the user, fig. 16 e)</li>
-                <li style="width:900px;text-align:justify">The signatures to query (fig. 16f)</li>
-                <li style="width:900px;text-align:justify">The ordering of output of significant ontologies (clustering or ranking based on significance) (fig. 16g)</li>
-                <li style="width:900px;text-align:justify">The minimum and maximum size for signatures (fig. 16h) </li>
-                </ul>
-
-                <p>Finally click "GO!" to run the analysis. The results of the analysis will be shown on the right, in the "GO plot" and "GO table" windows.
-                "GO plot" (fig. 16i) will show a graphic output of the -log10 adjusted p-value of the hypergeometric test of the significant signatures of the database. The output will be a barplot if a single ROI or a custom gene-list was selected as input, or a heatmap if multiple ROIs were selected. The graphical output in "GO plot" window is interactive: by clicking one bar (if a barplot is displayed) or one cell (if a heatmap is displayed) (fig. 16j), the genes in the inputs which are also contained in the ontological terms will be shown on the right. "GO table", instead, will output an interactive table with all results of the analysis, which can also be downloaded as a tab-delimited text file (fig. 16k).</p>
-                
+                <p>
+				<i>Edit notes of the ROI</i> (fig. 20a): view/edit manually the information of a selected ROI.
                 <figure>
-                    <img src='../documentation_figures/fig16_ontology_part1.png' width="85%"/>
-                    <figcaption>Figure 16</figcaption> 
-                </figure>                
+                    <img src='../documentation_figures/fig14c_getROI_3.png' width="65%"/>
+                    <figcaption>Figure 20</figcaption>
+                </figure>  				
+                </p>
 
-                <p>The parameters to filter the results can be set using "Filtering" tab in the "Parameters" window (fig. 17a). Here, the user can set:</p>
+     			</p>
 
-                <ul>
-                <li style="width:900px;text-align:justify">The significance threshold for the maximum value of the color scale (fig. 17b). This threshold is used only when the output is a heatmap. Changing the threshold will modify the color scale saturation</li>
-                <li style="width:900px;text-align:justify">The minimum gene ratio allowed (fig. 17c). This sets a minimum threshold based on the fraction of query genes found within the searched ontological term</li>
-                <li style="width:900px;text-align:justify">The significance threshold (fig. 17d): minimum -log10 adjusted p-value in at least one of the ROIs selected in the input</li>
-                <li style="width:900px;text-align:justify">The top statistically significant terms that will be shown (fig. 17e)</li>
-                <li style="width:900px;text-align:justify">The colors of the color scale (if the output is a heatmap, fig. 17f)</li>
-                </ul>
 
-                <figure>
-                    <img src='../documentation_figures/fig17_ontology_part2.png' width="70%"/>
-                    <figcaption>Figure 17</figcaption>
-                </figure>
+
+
 
 
 
@@ -320,27 +343,36 @@
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="prepareROI">Prepare ROI for heatmap</a><br></li>
                 <p>*<u>Note: For some operations it needs loaded enrichments (see <a href="#Importenrichments">how to import enrichment files</a>)</u>*</p>
-                <p>This tab can be used to streamline the preparation of a ROI to be used as reference for heatmaps (<a href="#digitalheat">position-based</a> or <a href="#analogheat">enrichment-based</a>). This involves multiple steps that otherwise would have been carried out manually. Click "ROI management" on side menu (fig. 18a) and select "Prepare ROI for heatmap" tab (fig. 18b). Here you will choose:</p>
+                <p>This tab can be used to streamline the preparation of a ROI to be used as reference for heatmaps (<a href="#digitalheat">position-based</a> or <a href="#analogheat">enrichment-based</a>). This involves multiple steps that otherwise would have been carried out manually. Click "ROI management" on side menu (fig. 21a) and select "Prepare ROI for heatmap" tab (fig. 21b). Here you will choose:</p>
 
                 <ul>
-                <li style="width:900px;text-align:justify">The ROI to examine in the heatmap (fig. 18c)</li>
-                <li style="width:900px;text-align:justify">The fraction of genomic ranges to keep (to save memory) (fig. 18d)</li>
-                <li style="width:900px;text-align:justify">Whether to center each range of the selected ROI on the signal summits (if "Yes", you will choose among available enrichments to calculate summits) (fig. 18e)</li>
-                <li style="width:900px;text-align:justify">The width of the genomic ranges of the selected ROI (fig. 18f)</li>
-                <li style="width:900px;text-align:justify">The enrichments to associate to the ROI (for enrichment-based heatmaps) (fig. 18g)</li>
-                <li style="width:900px;text-align:justify">The number of cores for computing the enrichments (fig. 18h)</li>
-                <li style="width:900px;text-align:justify">The name of the new ROI (fig. 18i)</li>
+                <li style="width:900px;text-align:justify">The ROI to examine in the heatmap (fig. 21c)</li>
+                <li style="width:900px;text-align:justify">The fraction of genomic ranges to keep (to save memory) (fig. 21d)</li>
+                <li style="width:900px;text-align:justify">Whether to center each range of the selected ROI on the signal summits (if "Yes", you will choose among available enrichments to calculate summits) (fig. 21e)</li>
+                <li style="width:900px;text-align:justify">The width of the genomic ranges of the selected ROI (fig. 21f)</li>
+                <li style="width:900px;text-align:justify">The enrichments to associate to the ROI (for enrichment-based heatmaps) (fig. 21g)</li>
+                <li style="width:900px;text-align:justify">The number of cores for computing the enrichments (fig. 21h)</li>
+                <li style="width:900px;text-align:justify">The name of the new ROI (fig. 21i)</li>
 
                 </ul>
                 <p>After selecting the desired of option, the new ROI is generated by clicking on "Create ROI". This ROI is ready to be  used as input for heatmaps.</p>
 
                 <figure>
                     <img src='../documentation_figures/fig18_prepareROIheatmap.png' width="45%"/>
-                    <figcaption>Figure 18</figcaption>
+                    <figcaption>Figure 21</figcaption>
                 </figure>
 
 
-            </ol>    
+            </ol> 
+
+
+
+
+
+
+
+
+
         <br><br>
         <li style="font-size:24px;font-weight:bold"><a id="genomics">Genomics</a><br></li>
             <p>The section "Genomics" contains all the functionalities to produce publication-quality plots starting from a ROI that has been created or modified. Downloaded PDF file are editable, while data can be downloaded in a tabular format and used to carry out downstream statistical analyses.</p>
@@ -351,11 +383,11 @@
                 <li style="font-size:20px;font-style:italic"><a id="singleROI">Analyze a single ROI</a><br></li>
                 <p>*<u>Note: It needs genome assembly (see <a href="#Importassembly">how to import a genome assembly</a>)</u>*</p>   
                 <p>*<u>Note: Some analyses require association of enrichment files (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
-                <p>To examine a single ROI, click "Genomics" in the side menu (fig. 19a) and select the "Single Evaluation" tab  (fig. 19b). On the left panel, select the ROI to examine (fig. 19c) and click the "Update plot" button. On the right panel the program will display the fraction of genomic ranges of the ROI that falls into promoters, genebodies and intergenic regions, either as a piechart or as a barplot (fig. 19d), together with the width’s distribution of the genomic ranges in promoters, genebodies and intergenic regions (fig. 19e). 
-                If an enrichment file has been associated with the ROI, it can be selected in the menu (fig. 19f); in this case, two more outputs are displayed by the application: the boxplots (fig. 19g) and the profiles (fig. 19h) of the enrichments inside promoters, genebodies and intergenic regions. The user has the option of choosing between two normalization method (1) library normalization (rpm: reads per million) or (2) library size and length of the genomic region (rpm/bp: reads per million divided by the number of base pair of the genomic region) (fig. 19i).</p>
+                <p>To examine a single ROI, click "Genomics" in the side menu (fig. 22a) and select the "Single Evaluation" tab  (fig. 22b). On the left panel, select the ROI to examine (fig. 22c) and click the "Update plot" button. On the right panel the program will display the fraction of genomic ranges of the ROI that falls into promoters, genebodies and intergenic regions, either as a piechart or as a barplot (fig. 22d), together with the width’s distribution of the genomic ranges in promoters, genebodies and intergenic regions (fig. 22e). 
+                If an enrichment file has been associated with the ROI, it can be selected in the menu (fig. 22f); in this case, two more outputs are displayed by the application: the boxplots (fig. 22g) and the profiles (fig. 22h) of the enrichments inside promoters, genebodies and intergenic regions. The user has the option of choosing between two normalization method (1) library normalization (rpm: reads per million) or (2) library size and length of the genomic region (rpm/bp: reads per million divided by the number of base pair of the genomic region) (fig. 22i).</p>
                 <figure>
                     <img src='../documentation_figures/fig19_singleEval.png' width="70%"/>
-                    <figcaption>Figure 19</figcaption>
+                    <figcaption>Figure 22</figcaption>
                 </figure>
 
 
@@ -364,39 +396,39 @@
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="pairwiseOverlap">Pairwise overlaps</a><br></li>
                 <p>*<u>Note: some of the analyses need enrichment association to one or both ROIs (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
-                <p>To compare two ROIs, click "Genomics" on the side menu (fig. 20a) and go to the "Pairwise overlaps" tab (fig. 20b). Here, select:</p>
+                <p>To compare two ROIs, click "Genomics" on the side menu (fig. 23a) and go to the "Pairwise overlaps" tab (fig. 23b). Here, select:</p>
                 
                 <ul>
-                <li style="width:900px;text-align:justify">The two ROIs (e.g. ROI-1 and ROI-2) (fig. 20c)</li>
-                <li style="width:900px;text-align:justify">The minimum number of shared base pairs used to call the overlap (fig. 20g)</li>
-                <li style="width:900px;text-align:justify">The log2 transformation of the enrichments (this option works if enrichment files are associated to either ROI-1 or ROI-2, fig. 20h)</li>
-                <li style="width:900px;text-align:justify">The normalization: whether to consider the total reads (normalized by library size, rpm) or the read density (normalized by library size and the length of the genomic regions, rpm/bp) (this option works if enrichment files are associated to either ROI-1 or ROI-2, fig. 20i)</li>
-                <li style="width:900px;text-align:justify">The colors for the items displayed in the plots (fig. 20j)</li>
-                <li style="width:900px;text-align:justify">The information that will be shown in the scatterplot (e.g. whether to show the regions of ROI-1, ROI-2 or those in common) (fig. 20k)</li>
+                <li style="width:900px;text-align:justify">The two ROIs (e.g. ROI-1 and ROI-2) (fig. 23c)</li>
+                <li style="width:900px;text-align:justify">The minimum number of shared base pairs used to call the overlap (fig. 23g)</li>
+                <li style="width:900px;text-align:justify">The log2 transformation of the enrichments (this option works if enrichment files are associated to either ROI-1 or ROI-2, fig. 23h)</li>
+                <li style="width:900px;text-align:justify">The normalization: whether to consider the total reads (normalized by library size, rpm) or the read density (normalized by library size and the length of the genomic regions, rpm/bp) (this option works if enrichment files are associated to either ROI-1 or ROI-2, fig. 23i)</li>
+                <li style="width:900px;text-align:justify">The colors for the items displayed in the plots (fig. 23j)</li>
+                <li style="width:900px;text-align:justify">The information that will be shown in the scatterplot (e.g. whether to show the regions of ROI-1, ROI-2 or those in common) (fig. 23k)</li>
                 </ul>
 
-                <p>Once the "Update plot" button is clicked,  the program will display the overlap between the two ROIs, either as a barplot or as a Venn diagram ("Overlap" window, fig. 20d). If enrichment files are associated with ROIs, they can be selected in the menu (fig. 20e); in this case, additional outputs will be displayed in the window on the right ("Overlap and enrichment" window, fig. 20f).</p>
+                <p>Once the "Update plot" button is clicked,  the program will display the overlap between the two ROIs, either as a barplot or as a Venn diagram ("Overlap" window, fig. 23d). If enrichment files are associated with ROIs, they can be selected in the menu (fig. 23e); in this case, additional outputs will be displayed in the window on the right ("Overlap and enrichment" window, fig. 23f).</p>
                 <figure>
                     <img src='../documentation_figures/fig20_pairwiseOverlap.png' width="70%"/>
-                    <figcaption>Figure 20</figcaption>
+                    <figcaption>Figure 23</figcaption>
                 </figure>                
 
                 <p>These items are:</p>
 
                 <ul>
-                <li style="width:900px;text-align:justify">A boxplot representing the signal enrichment both in overlapping genomic regions and in regions exclusively present in the two ROIs (fig. 20f)</li>
-                <li style="width:900px;text-align:justify">A scatterplot of the correlation of the enrichments associated to the ROIs selected; overlapping and non-overlapping regions are shown in different colors. For this plot, both enrichments must be associated with both ROIs selected (fig. 21)</li>
-                <li style="width:900px;text-align:justify">A plot representing the overlap of regions of the two ROIs using enrichments as thresholds (fig. 22). This can be used to evaluate if the degree of overlap of two ROI is related to the signals intensity. The threshold n is progressively increased taking the top n% enriched genomic regions to calculate the overlap. The plot displays both the percentile threshold applied to a single ROI (light red and light grey points of the plot) and the percentile threshold applied to both ROIs (dark red and dark grey points of the plot)</li>
+                <li style="width:900px;text-align:justify">A boxplot representing the signal enrichment both in overlapping genomic regions and in regions exclusively present in the two ROIs (fig. 23f)</li>
+                <li style="width:900px;text-align:justify">A scatterplot of the correlation of the enrichments associated to the ROIs selected; overlapping and non-overlapping regions are shown in different colors. For this plot, both enrichments must be associated with both ROIs selected (fig. 24)</li>
+                <li style="width:900px;text-align:justify">A plot representing the overlap of regions of the two ROIs using enrichments as thresholds (fig. 25). This can be used to evaluate if the degree of overlap of two ROI is related to the signals intensity. The threshold n is progressively increased taking the top n% enriched genomic regions to calculate the overlap. The plot displays both the percentile threshold applied to a single ROI (light red and light grey points of the plot) and the percentile threshold applied to both ROIs (dark red and dark grey points of the plot)</li>
                 </ul>
                 <p>If only one of the two ROIs has enrichment files associated, the output will be partial and limited to the data available.</p>
                 <figure>
                     <img src='../documentation_figures/fig21_scatterOverlap.png' width="25%"/>
-                    <figcaption>Figure 21</figcaption>
+                    <figcaption>Figure 24</figcaption>
                 </figure> 
                 <br>
                 <figure>
                     <img src='../documentation_figures/fig22_CalibrarionOverlap.png' width="25%"/>
-                    <figcaption>Figure 22</figcaption>
+                    <figcaption>Figure 25</figcaption>
                 </figure> 
 
 
@@ -405,41 +437,41 @@
 
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="digitalheat">Evaluating multiple overlaps (Position-based heatmap)</a><br></li>
-                <p>To address the overlap between multiple ROIs, click "Genomics" on the side menu (fig. 23a) and go to the "position-based heatmap" tab (fig. 23b).</p>
+                <p>To address the overlap between multiple ROIs, click "Genomics" on the side menu (fig. 26a) and go to the "position-based heatmap" tab (fig. 26b).</p>
                 <figure>
                     <img src='../documentation_figures/fig25_digitalHeat.png' width="70%"/>
-                    <figcaption>Figure 23</figcaption>
+                    <figcaption>Figure 26</figcaption>
                 </figure> 
-                <p>On the left panel ("Parameters" window, fig. 24), select: </p>
+                <p>On the left panel ("Parameters" window, fig. 27), select: </p>
                 <ul>
-                <li style="width:900px;text-align:justify">The reference ROI(s) (the "master" ROI(s)) on which all the overlaps will be calculated (fig. 24a)</li>
-                <li style="width:900px;text-align:justify">The ROIs to use for the overlaps ("ROIs to view", fig. 24b): the overlaps will be calculated between each of these ROIs within the regions defined by the master ROI(s)</li>
-                <li style="width:900px;text-align:justify">The order in which the overlaps of the ROIs selected will appear in the heatmap (fig. 24c) </li>
-                <li style="width:900px;text-align:justify">To cluster the heatmap, select which ROIs will drive the clustering (fig. 24d), as well as the kind of clustering (fig. 24e). Additional context-dependent  parameters will appear, according to the selected clustering method</li>
-                <li style="width:900px;text-align:justify">The number of bins (fig. 24f). This will determine the resolution of the displayed regions within the heatmap</li>
+                <li style="width:900px;text-align:justify">The reference ROI(s) (the "master" ROI(s)) on which all the overlaps will be calculated (fig. 27a)</li>
+                <li style="width:900px;text-align:justify">The ROIs to use for the overlaps ("ROIs to view", fig. 27b): the overlaps will be calculated between each of these ROIs within the regions defined by the master ROI(s)</li>
+                <li style="width:900px;text-align:justify">The order in which the overlaps of the ROIs selected will appear in the heatmap (fig. 27c) </li>
+                <li style="width:900px;text-align:justify">To cluster the heatmap, select which ROIs will drive the clustering (fig. 27d), as well as the kind of clustering (fig. 27e). Additional context-dependent  parameters will appear, according to the selected clustering method</li>
+                <li style="width:900px;text-align:justify">The number of bins (fig. 27f). This will determine the resolution of the displayed regions within the heatmap</li>
                 </ul>
-                <p>To limit the overlap computation only for ranges belonging to the same strand, thick the appropriate button (fig. 24g)</p>
+                <p>To limit the overlap computation only for ranges belonging to the same strand, thick the appropriate button (fig. 27g)</p>
                 <figure>
                     <img src='../documentation_figures/fig23_parameters_digitalHeat.png' width="20%"/>
-                    <figcaption>Figure 24</figcaption>
+                    <figcaption>Figure 27</figcaption>
                 </figure>
 
                 <p>By clicking the "Update plot" button, three different outputs will be displayed in the right window ("Heatmap", "Jaccard idx" and "Overlap frequency bias" windows):</p>
 
                 <ul>
-                <li style="width:900px;text-align:justify">Heatmap. This is the position-based heatmap ("Heatmap" window, fig. 25a) displaying genomic ranges of the master ROIs as defined by the user. (Note: by definition, if a user selects the same ROI both as reference and to view, the overlap will be 100%)</li>
-                <li style="width:900px;text-align:justify">Jaccard idx. a heatmap of the jaccard index of each pair of ROIs examined. (Note: this plot is generated if only one master ROI is selected) (fig. 25b)</li>
-                <li style="width:900px;text-align:justify">Overlap frequency bias. A plot showing the frequency of the overlap in each bin of the heatmap (requires at least 2 bins) (fig. 25c)</li>
+                <li style="width:900px;text-align:justify">Heatmap. This is the position-based heatmap ("Heatmap" window, fig. 28a) displaying genomic ranges of the master ROIs as defined by the user. (Note: by definition, if a user selects the same ROI both as reference and to view, the overlap will be 100%)</li>
+                <li style="width:900px;text-align:justify">Jaccard idx. a heatmap of the jaccard index of each pair of ROIs examined. (Note: this plot is generated if only one master ROI is selected) (fig. 28b)</li>
+                <li style="width:900px;text-align:justify">Overlap frequency bias. A plot showing the frequency of the overlap in each bin of the heatmap (requires at least 2 bins) (fig. 28c)</li>
                 </ul>
-                <p>If the heatmap has been clustered and only one master ROI has been selected, a colored barplot showing the clusters will appear at the left of the heatmap (fig. 25d). If the user clicks on one of these clusters, a new menu will appear on the right (fig. 25e). The menu  will show the number of genomic regions displayed in the heatmap and the total number of ranges (i.e. the sum of all ranges of selected ROIs), how many ranges are contained in the selected cluster and an input field that can be used to generate a new ROI from the ranges of the selected cluster.</p>
+                <p>If the heatmap has been clustered and only one master ROI has been selected, a colored barplot showing the clusters will appear at the left of the heatmap (fig. 28d). If the user clicks on one of these clusters, a new menu will appear on the right (fig. 28e). The menu  will show the number of genomic regions displayed in the heatmap and the total number of ranges (i.e. the sum of all ranges of selected ROIs), how many ranges are contained in the selected cluster and an input field that can be used to generate a new ROI from the ranges of the selected cluster.</p>
                 <figure>
                     <img src='../documentation_figures/fig24_output_digitalHeat.png' width="60%"/>
-                    <figcaption>Figure 25</figcaption>
+                    <figcaption>Figure 28</figcaption>
                 </figure>
-                <p>Within the "advanced" tab of the parameters (fig. 26a), the user can choose a random sample of the master ROI to show in the heatmap (default=2000 genomic ranges, fig. 26b), the colors of the heatmap (fig. 26c) and whether to show the percentage instead of the absolute values in the plot of positional overlaps (fig. 26d).</p>
+                <p>Within the "advanced" tab of the parameters (fig. 29a), the user can choose a random sample of the master ROI to show in the heatmap (default=2000 genomic ranges, fig. 29b), the colors of the heatmap (fig. 29c) and whether to show the percentage instead of the absolute values in the plot of positional overlaps (fig. 29d).</p>
                 <figure>
                     <img src='../documentation_figures/fig26_advancedPar_digitalHeat.png' width="15%"/>
-                    <figcaption>Figure 26</figcaption>
+                    <figcaption>Figure 29</figcaption>
                 </figure>
 
                 <p>Tip: A convenient way to prepare one or more ROIs for plotting the position-based heatmap is to use the "Prepare ROI for heatmap" tab in "ROI management" section (see <a href="#prepareROI">how to prepare a ROI for heatmap</a>).</p>
@@ -452,41 +484,41 @@
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="analogheat">Evaluating signals in ROIs through enrichment-based heatmaps</a><br></li>
                 <p>*<u>Note: it needs the association of enrichments to ROIs (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
-                <p>Signals associated to ROIs can be visualized using enrichment-based heatmaps. Here, the enrichments are displayed for each single genomic range of the ROI, using a color scale. To plot a heatmap, click "Genomics" on the side menu (fig. 27a) and go to the "enrichment-based heatmap" tab (fig. 27b); select:</p>
+                <p>Signals associated to ROIs can be visualized using enrichment-based heatmaps. Here, the enrichments are displayed for each single genomic range of the ROI, using a color scale. To plot a heatmap, click "Genomics" on the side menu (fig. 30a) and go to the "enrichment-based heatmap" tab (fig. 30b); select:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The ROI(s) (fig. 27c)</li>
-                <li style="width:900px;text-align:justify">The enrichments associated with the selected ROI(s) (fig. 27d). Note: an enrichment will appear as available only if it has been previously associated to all the selected ROIs</li>
-                <li style="width:900px;text-align:justify">The order in which the enrichments will be displayed in the heatmap (fig. 27e)</li>
-                <li style="width:900px;text-align:justify">The order of the genomic ranges. By default, the content of the heatmap will be ranked according to the enrichment file chosen by the user; however, a clustering can be applied to better separate genomic regions with similar features. This can be done using the input menu (fig. 27f) in which advanced parameters for the clustering are displayed dynamically</li>
-                <li style="width:900px;text-align:justify">The number of bins for dividing the genomic regions and change resolution (default=50) (fig. 27g) </li>
+                <li style="width:900px;text-align:justify">The ROI(s) (fig. 30c)</li>
+                <li style="width:900px;text-align:justify">The enrichments associated with the selected ROI(s) (fig. 30d). Note: an enrichment will appear as available only if it has been previously associated to all the selected ROIs</li>
+                <li style="width:900px;text-align:justify">The order in which the enrichments will be displayed in the heatmap (fig. 30e)</li>
+                <li style="width:900px;text-align:justify">The order of the genomic ranges. By default, the content of the heatmap will be ranked according to the enrichment file chosen by the user; however, a clustering can be applied to better separate genomic regions with similar features. This can be done using the input menu (fig. 30f) in which advanced parameters for the clustering are displayed dynamically</li>
+                <li style="width:900px;text-align:justify">The number of bins for dividing the genomic regions and change resolution (default=50) (fig. 30g) </li>
                 </ul>
 
-                <p>Once the "Update plot" button is clicked, the heatmap will appear on the right panel ("Heatmap" window, fig. 27h). If only one ROI was selected, the different clusters are displayed as a colored bars placed on the left of the heatmap (fig. 27i).
+                <p>Once the "Update plot" button is clicked, the heatmap will appear on the right panel ("Heatmap" window, fig. 30h). If only one ROI was selected, the different clusters are displayed as a colored bars placed on the left of the heatmap (fig. 30i).
                 The heatmap is interactive: when a user selects a specific area of interest with the mouse (pointing and dragging), the enrichments corresponding to that area are visualized in different plots. These include:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The read density profiles of the enrichments in the selected regions (fig. 27j)</li>
-                <li style="width:900px;text-align:justify">The boxplot of the enrichments, in read density, of each genomic range in the selected area. This boxplot can be either stratified by ROI (thus comparing different enrichments in the same ROI, fig. 27k) or by enrichment (thus comparing the same enrichment in different ROIs, fig. 27l) </li>
-                <li style="width:900px;text-align:justify">Heatmaps representing the pairwise correlation (fig. 27m) or partial correlation (fig. 27n) of all the enrichments (based on pearson correlation coefficient). This graph is plotted only when the selected area involves a single ROI. For each pair of enrichments, the confounding factors for the partial correlation computation are all the other enrichments considered in the selected area</li>
+                <li style="width:900px;text-align:justify">The read density profiles of the enrichments in the selected regions (fig. 30j)</li>
+                <li style="width:900px;text-align:justify">The boxplot of the enrichments, in read density, of each genomic range in the selected area. This boxplot can be either stratified by ROI (thus comparing different enrichments in the same ROI, fig. 30k) or by enrichment (thus comparing the same enrichment in different ROIs, fig. 30l) </li>
+                <li style="width:900px;text-align:justify">Heatmaps representing the pairwise correlation (fig. 30m) or partial correlation (fig. 30n) of all the enrichments (based on pearson correlation coefficient). This graph is plotted only when the selected area involves a single ROI. For each pair of enrichments, the confounding factors for the partial correlation computation are all the other enrichments considered in the selected area</li>
                 </ul>
                 <p>All the above interactive elements can be generated also by clicking on a cluster, as described for digital heatmaps (see <a href="#digitalheat">above</a>).
-                To extract the ROI corresponding to a subset of genomic ranges with particular features (for example, those belonging to a cluster), select the specific area of interest with the mouse (by point and drag). The input form will appear on the right of the heatmap (fig. 27o); to create the new ROI, click the "Import ROI" button. 
-                The heatmap and all the plots generated by the selection of a specific area can be downloaded as PDF files (fig. 27p).</p>
+                To extract the ROI corresponding to a subset of genomic ranges with particular features (for example, those belonging to a cluster), select the specific area of interest with the mouse (by point and drag). The input form will appear on the right of the heatmap (fig. 30o); to create the new ROI, click the "Import ROI" button. 
+                The heatmap and all the plots generated by the selection of a specific area can be downloaded as PDF files (fig. 30p).</p>
                 <figure>
                     <img src='../documentation_figures/fig27_analogHeat.png' width="90%"/>
-                    <figcaption>Figure 27</figcaption>
+                    <figcaption>Figure 30</figcaption>
                 </figure>
-                <p>Advanced parameters can be chosen using the dedicated tab (fig. 28a), such as:</p>
+                <p>Advanced parameters can be chosen using the dedicated tab (fig. 31a), such as:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The random fraction of genomic regions shown in the heatmap (default=2000) (fig. 28b)</li>
-                <li style="width:900px;text-align:justify">Whether to use log2 of the enrichment values in boxplots, profiles and correlation heatmaps (fig. 28c)</li>
-                <li style="width:900px;text-align:justify">Whether the maximum value for color saturation is referred to each single enrichment (by choosing "Individual") or the union of all the enrichments (by choosing "Uniform") (fig. 28d)</li>
-                <li style="width:900px;text-align:justify">The quantile of enrichment at which the color intensity is maximal. This is done by moving the slider input, changing interactively the maximum value which limits the color scale (fig. 28e)</li>
-                <li style="width:900px;text-align:justify">The color palette of the heatmap: the user can select a single color for all enrichments displayed ("global color") or different color scales for each enrichment ("custom colors") (fig. 28f)</li>
-                <li style="width:900px;text-align:justify">Whether to color the boxplots according to groups (clusters or different master ROIs) identified in the heatmap instead of using different colors for all the enrichments displayed (which is the default option) (fig. 28g)</li>
+                <li style="width:900px;text-align:justify">The random fraction of genomic regions shown in the heatmap (default=2000) (fig. 31b)</li>
+                <li style="width:900px;text-align:justify">Whether to use log2 of the enrichment values in boxplots, profiles and correlation heatmaps (fig. 31c)</li>
+                <li style="width:900px;text-align:justify">Whether the maximum value for color saturation is referred to each single enrichment (by choosing "Individual") or the union of all the enrichments (by choosing "Uniform") (fig. 31d)</li>
+                <li style="width:900px;text-align:justify">The quantile of enrichment at which the color intensity is maximal. This is done by moving the slider input, changing interactively the maximum value which limits the color scale (fig. 31e)</li>
+                <li style="width:900px;text-align:justify">The color palette of the heatmap: the user can select a single color for all enrichments displayed ("global color") or different color scales for each enrichment ("custom colors") (fig. 31f)</li>
+                <li style="width:900px;text-align:justify">Whether to color the boxplots according to groups (clusters or different master ROIs) identified in the heatmap instead of using different colors for all the enrichments displayed (which is the default option) (fig. 31g)</li>
                 </ul>
                 <figure>
                     <img src='../documentation_figures/fig28_advancedPar_analogHeat.png' width="17%"/>
-                    <figcaption>Figure 28</figcaption>
+                    <figcaption>Figure 31</figcaption>
                 </figure>
 
                 <p>Tip: a convenient way to prepare one or more ROIs for plotting the enrichment-based heatmap is to use the "Prepare ROI for heatmap" tab in "ROI management" section (see <a href="#prepareROI">how to prepare a ROI for heatmap</a>).</p>
@@ -497,27 +529,27 @@
                 <br>
                 <li style="font-size:20px;font-style:italic"><a id="enrichmentinROI">Advanced analyses of enrichments</a><br></li> 
                 <p>*<u>Note: it needs the association of enrichments to ROIs (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
-                <p>Further enrichment-based analyses can be performed by clicking "Genomics" on the side menu (fig. 29a) and using the tab "enrichments in ROIs" (fig. 29b).  Note: here, enrichments are calculated using all the genomic regions of a ROI. 
+                <p>Further enrichment-based analyses can be performed by clicking "Genomics" on the side menu (fig. 32a) and using the tab "enrichments in ROIs" (fig. 32b).  Note: here, enrichments are calculated using all the genomic regions of a ROI. 
                 On the left panel ("Parameters" window) select:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The ROI(s) to examine (fig. 29c)</li>
-                <li style="width:900px;text-align:justify">One or more associated enrichment files (fig. 29d). Note: an enrichment will appear as available only if it has been previously associated to all the selected ROIs</li>
-                <li style="width:900px;text-align:justify">The number of bins (fig. 29e)</li>
-                <li style="width:900px;text-align:justify">The normalization (total reads, rpm or read density, rpm/bp) (fig. 29f)</li>
-                <li style="width:900px;text-align:justify">The log2 transformation of the data (fig. 29g)</li>
-                <li style="width:900px;text-align:justify">The method used for the correlation (spearman or Pearson) (fig. 29h)</li>
-                <li style="width:900px;text-align:justify">Whether to group the colors of the boxplots according to the stratification (either by ROI or by enrichment) (fig. 29i)</li>
+                <li style="width:900px;text-align:justify">The ROI(s) to examine (fig. 32c)</li>
+                <li style="width:900px;text-align:justify">One or more associated enrichment files (fig. 32d). Note: an enrichment will appear as available only if it has been previously associated to all the selected ROIs</li>
+                <li style="width:900px;text-align:justify">The number of bins (fig. 32e)</li>
+                <li style="width:900px;text-align:justify">The normalization (total reads, rpm or read density, rpm/bp) (fig. 32f)</li>
+                <li style="width:900px;text-align:justify">The log2 transformation of the data (fig. 32g)</li>
+                <li style="width:900px;text-align:justify">The method used for the correlation (spearman or Pearson) (fig. 32h)</li>
+                <li style="width:900px;text-align:justify">Whether to group the colors of the boxplots according to the stratification (either by ROI or by enrichment) (fig. 32i)</li>
                 </ul>
                 <p>Then click the "Update plot" button. The panels on the right will display the outputs, in particular:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The profiles of the enrichment ("Profiles" window, fig. 29j). This informs on how reads are distributed, on average, along the genomic ranges of the ROI(s)</li>
-                <li style="width:900px;text-align:justify">The boxplot of the enrichments ("Boxplots" window). This barplot can be stratified by region of interest or by enrichment (fig. 29k). It is also possible to download the raw data (in tabular format) of the boxplots, in order to perform downstream statistical analyses</li>
-                <li style="width:900px;text-align:justify">The heatmaps of pairwise correlation or partial correlation of the enrichments (for this output, only one ROI must be selected) ("Correlations" window, fig. 29l)</li>
-                <li style="width:900px;text-align:justify">By clicking one square corresponding to the pairwise (partial) correlation of the heatmap mentioned above, a scatterplot will appear ("Scatterplot" window), showing the correlation or partial correlation of a pair of enrichments inside the same ROI (fig. 29m)</li>
+                <li style="width:900px;text-align:justify">The profiles of the enrichment ("Profiles" window, fig. 32j). This informs on how reads are distributed, on average, along the genomic ranges of the ROI(s)</li>
+                <li style="width:900px;text-align:justify">The boxplot of the enrichments ("Boxplots" window). This barplot can be stratified by region of interest or by enrichment (fig. 32k). It is also possible to download the raw data (in tabular format) of the boxplots, in order to perform downstream statistical analyses</li>
+                <li style="width:900px;text-align:justify">The heatmaps of pairwise correlation or partial correlation of the enrichments (for this output, only one ROI must be selected) ("Correlations" window, fig. 32l)</li>
+                <li style="width:900px;text-align:justify">By clicking one square corresponding to the pairwise (partial) correlation of the heatmap mentioned above, a scatterplot will appear ("Scatterplot" window), showing the correlation or partial correlation of a pair of enrichments inside the same ROI (fig. 32m)</li>
                 </ul>
                 <figure>
                     <img src='../documentation_figures/fig29_enrichInROI.png' width="90%"/>
-                    <figcaption>Figure 29</figcaption>
+                    <figcaption>Figure 32</figcaption>
                 </figure>
 
 
@@ -529,26 +561,67 @@
                 <p>*<u>Note: it needs an imported gene-list (see <a href="#ROIfromgenelist">how to import a gene-list</a>)</u>*</p>
                 <p>*<u>Note: it needs enrichment association to promoters, transcripts, TES of the gene-list (see <a href="#associateenrichments">how to associate enrichment files</a>)</u>*</p>
                 <p>In this section the user can create metagene representations of the enrichments of specific features (i.e. signals) in genes subsets. For this purpose, gene sets previously imported are parceled into three ROIs: promoters_genelist_YYY, transcripts_genelist_YYY, TES_genelist_YYY corresponding to promoters, gene bodies and TES of the list of genes named YYY. 
-                Click "Genomics" on the side menu (fig. 30a), then the "Metagene profiles" tab (fig. 30b). Select:</p>
+                Click "Genomics" on the side menu (fig. 33a), then the "Metagene profiles" tab (fig. 33b). Select:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">One or more lists of genes in the input panel ("Parameters" window, fig. 30c) </li>
-                <li style="width:900px;text-align:justify">One or more enrichment files associated to them (fig. 30d). Note: enrichment files must be associated to both promoters, transcripts and TES of the gene-list</li>
-                <li style="width:900px;text-align:justify">The number of bins for the metagene plot. By default, it is set on 150 bins (fig. 30e)</li>
-                <li style="width:900px;text-align:justify">Whether to plot the mean or the median of the enrichments (fig. 30f)</li>
-                <li style="width:900px;text-align:justify">The log2 transformation on the data (fig. 30g)</li>
-                <li style="width:900px;text-align:justify">Whether to represent the enrichments as total number of reads normalized by library size (rpm) or total number of reads normalized by library size and gene length (rpm/bp) (fig. 30h)</li>
-                <li style="width:900px;text-align:justify">The fraction of outlier values to exclude in the cumulative plots of the TSS/genebody reads and stalling index (fig. 30i)</li>
+                <li style="width:900px;text-align:justify">One or more lists of genes in the input panel ("Parameters" window, fig. 33c) </li>
+                <li style="width:900px;text-align:justify">One or more enrichment files associated to them (fig. 33d). Note: enrichment files must be associated to both promoters, transcripts and TES of the gene-list</li>
+                <li style="width:900px;text-align:justify">The number of bins for the metagene plot. By default, it is set on 150 bins (fig. 33e)</li>
+                <li style="width:900px;text-align:justify">Whether to plot the mean or the median of the enrichments (fig. 33f)</li>
+                <li style="width:900px;text-align:justify">The log2 transformation on the data (fig. 33g)</li>
+                <li style="width:900px;text-align:justify">Whether to represent the enrichments as total number of reads normalized by library size (rpm) or total number of reads normalized by library size and gene length (rpm/bp) (fig. 33h)</li>
+                <li style="width:900px;text-align:justify">The fraction of outlier values to exclude in the cumulative plots of the TSS/genebody reads and stalling index (fig. 33i)</li>
                 </ul>
                 <p>Once the "Update plot" button is clicked, the following output windows will be displayed on the right:</p>
                 <ul>
-                <li style="width:900px;text-align:justify">The metagene profile of the enrichment of specific features along the selected gene-lists ("Profiles" window, fig. 30j). The plot shows the enrichments within the transcripts, plus and additional 30% upstream and downstream the transcription start sites (TSS) and transcription end sites (TES), respectively</li>
-                <li style="width:900px;text-align:justify">In the second section ("TSS enrichment", "Genebodies enrichment" and "TES enrichment" windows, fig. 30k), boxplots of reads enrichment in TSS, genebodies and TES are shown. Note: the genomic intervals around TSS and TES are defined when the genome assembly is imported/loaded (see <a href="#Importassembly">how to import a genome assembly</a>)</li>
-                <li style="width:900px;text-align:justify">The last section of the output ("TSS ranked enrichments", "Genebodies ranked enrichments" and "Stalling Index" window, fig. 30l), shows plots of the ranked enrichments for each gene in TSS, genebodies and the stalling index (SI=reads promoters/reads genebodies+TES)</li>
+                <li style="width:900px;text-align:justify">The metagene profile of the enrichment of specific features along the selected gene-lists ("Profiles" window, fig. 33j). The plot shows the enrichments within the transcripts, plus and additional 33% upstream and downstream the transcription start sites (TSS) and transcription end sites (TES), respectively</li>
+                <li style="width:900px;text-align:justify">In the second section ("TSS enrichment", "Genebodies enrichment" and "TES enrichment" windows, fig. 33k), boxplots of reads enrichment in TSS, genebodies and TES are shown. Note: the genomic intervals around TSS and TES are defined when the genome assembly is imported/loaded (see <a href="#Importassembly">how to import a genome assembly</a>)</li>
+                <li style="width:900px;text-align:justify">The last section of the output ("TSS ranked enrichments", "Genebodies ranked enrichments" and "Stalling Index" window, fig. 33l), shows plots of the ranked enrichments for each gene in TSS, genebodies and the stalling index (SI=reads promoters/reads genebodies+TES)</li>
                 </ul>
                 <figure>
                     <img src='../documentation_figures/fig30_metagene.png' width="90%"/>
-                    <figcaption>Figure 30</figcaption>
+                    <figcaption>Figure 33</figcaption>
                 </figure>
+
+
+
+                <br>
+                <li style="font-size:20px;font-style:italic"><a id="ontology">Gene ontology analyses</a><br></li>
+                <p>*<u>Note: it needs a loaded assembly (see <a href="#Importassembly">Importing genome assemblies</a>)</u>*</p>
+                <p>*<u>Note: if needed, additional signatures in GMT format can be loaded in the "signatures" directory of the program</u>*</p>
+                <p>This analysis performs a hypergeometric test, for each gene-list annotated to the selected ROIs and for each ontological term in the database. As "universe" the test uses the union of the genes of all the signatures selected as the database. Signatures are in GMT format and are contained in the "signatures" directory of the source code of the program. Signatures from <a href="https://www.gsea-msigdb.org/gsea/msigdb/">MSigDB</a> are already pre-loaded in the program.
+                To carry out gene ontology analyses, click "ROI management" on the side menu (fig. 34a) and go to the "GO analyses" tab (fig. 34b). Select: </p>
+
+                <ul>
+                <li style="width:900px;text-align:justify">One or more ROIs, or a custom list of genes (fig. 34c,d). If ROIs are selected, it is possible to choose whether to take the nearest gene associated with each range of the ROIs or all the genes within a certain genomic window from those ranges (the extent of the window can be set by the user, fig. 34 e)</li>
+                <li style="width:900px;text-align:justify">The signatures to query (fig. 34f)</li>
+                <li style="width:900px;text-align:justify">The ordering of output of significant ontologies (clustering or ranking based on significance) (fig. 34g)</li>
+                <li style="width:900px;text-align:justify">The minimum and maximum size for signatures (fig. 34h) </li>
+                </ul>
+
+                <p>Finally click "GO!" to run the analysis. The results of the analysis will be shown on the right, in the "GO plot" and "GO table" windows.
+                "GO plot" (fig. 34i) will show a graphic output of the -log10 adjusted p-value of the hypergeometric test of the significant signatures of the database. The output will be a barplot if a single ROI or a custom gene-list was selected as input, or a heatmap if multiple ROIs were selected. The graphical output in "GO plot" window is interactive: by clicking one bar (if a barplot is displayed) or one cell (if a heatmap is displayed) (fig. 34j), the genes in the inputs which are also contained in the ontological terms will be shown on the right. "GO table", instead, will output an interactive table with all results of the analysis, which can also be downloaded as a tab-delimited text file (fig. 34k).</p>
+                
+                <figure>
+                    <img src='../documentation_figures/fig16_ontology_part1.png' width="85%"/>
+                    <figcaption>Figure 34</figcaption> 
+                </figure>                
+
+                <p>The parameters to filter the results can be set using "Filtering" tab in the "Parameters" window (fig. 35a). Here, the user can set:</p>
+
+                <ul>
+                <li style="width:900px;text-align:justify">The significance threshold for the maximum value of the color scale (fig. 35b). This threshold is used only when the output is a heatmap. Changing the threshold will modify the color scale saturation</li>
+                <li style="width:900px;text-align:justify">The minimum gene ratio allowed (fig. 35c). This sets a minimum threshold based on the fraction of query genes found within the searched ontological term</li>
+                <li style="width:900px;text-align:justify">The significance threshold (fig. 35d): minimum -log10 adjusted p-value in at least one of the ROIs selected in the input</li>
+                <li style="width:900px;text-align:justify">The top statistically significant terms that will be shown (fig. 35e)</li>
+                <li style="width:900px;text-align:justify">The colors of the color scale (if the output is a heatmap, fig. 35f)</li>
+                </ul>
+
+                <figure>
+                    <img src='../documentation_figures/fig17_ontology_part2.png' width="70%"/>
+                    <figcaption>Figure 35</figcaption>
+                </figure>
+
+
 
 
 
@@ -557,18 +630,18 @@
     </ol>
     <br><br><br>
     <li style="font-size:32px;font-weight:bold"><a id="saveload">Save your progress</a><br></li>
-    <p>To save a session, use "Save/Load" subsection in "Save your progress" section (fig. 31a) and then click the "Save" button (fig. 31b). Chrokit sessions are saved as *.rds files, which tipically occupy at most few hundreds of megabytes in memory. To open a saved session, click the "Load button" (fig. 31c) and select the session in the file system. Session files can be shared and opened by ChroKit from other computers without the need of the original input files and all the operations can be performed, including ROI subsetting and plotting. The exception will be those operations/analyses that will require new association of enrichment files to ROI. </p>
+    <p>To save a session, use "Save/Load" subsection in "Save your progress" section (fig. 36a) and then click the "Save" button (fig. 36b). Chrokit sessions are saved as *.rds files, which tipically occupy at most few hundreds of megabytes in memory. To open a saved session, click the "Load button" (fig. 36c) and select the session in the file system. Session files can be shared and opened by ChroKit from other computers without the need of the original input files and all the operations can be performed, including ROI subsetting and plotting. The exception will be those operations/analyses that will require new association of enrichment files to ROI. </p>
     <figure>
-        <img src='../documentation_figures/fig31_saveload.png' width="50%"/>
-        <figcaption>Figure 31</figcaption>
+        <img src='../documentation_figures/fig31_saveload.png' width="15%"/>
+        <figcaption>Figure 36</figcaption>
     </figure>
 
 
     <br><br><br>
     <li style="font-size:32px;font-weight:bold"><a id="performance">Performances</a><br></li>
     <p>ChroKit was designed to be intuitive and fast. The saving/loading a session and the enrichment files association are the two most time-consuming operations during the analyses, which can take from several seconds to up to a couple of minutes. 
-    The time required to save or load a session depends on the size of the session (the number of enrichment files associated to ROIs and the size of those ROIs) and the read/write speed of the disk. The time required to associate an enrichment file depends on the size of the ROI, the read/write speed of the disk and the amount of RAM. Be sure to have enough RAM to open a session file: this typically means having RAM at least about 30/50 times the size of the rds session file. The amount of RAM used by a session is displayed on the side menu.
-    To use ChroKit, make sure to have at least 8 Gb of RAM.</p>
+    The time required to save or load a session depends on the size of the session (the number of enrichment files associated to ROIs and the size of those ROIs) and the read/write speed of the disk. The time required to associate an enrichment file depends on the size of the ROI, the read/write speed of the disk and the amount of RAM. <br>
+	The amount of RAM used by a session is displayed on the side menu; thanks to a double data compression architecture, ChroKit requires only about 4 Gb of RAM to process NGS data.</p>
 
 
 
