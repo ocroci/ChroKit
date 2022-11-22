@@ -1,5 +1,6 @@
 
 
+
 ###react to help buttons:
 #options
 observeEvent(input$msg_newRois_options, {
@@ -100,25 +101,32 @@ observeEvent(input$maketheROI, {
           #selectedbam=getBAMlist(ROIvariables$listROI[[pos]])
           ####newenrichimplementation####
           selectedbam=Enrichlist$rawcoverage[[pos]]
+          selecteddecryptkey=Enrichlist$decryptkey[[pos]]
           selectednormfact=Enrichlist$normfactlist[[pos]]
           ################################
         }else{
           selectedbam=list()
+          selecteddecryptkey=list()
           ####newenrichimplementation####
           selectednormfact=list()
           ################################
         }
 
         if (nchar(input$ROIname)>=1){
+          #if null (no multiple ROI selected or contrast), attrib. a random value, does not matter
+          if(is.null(input$choiceROI)) {METHOD="union"} else{METHOD=input$choiceROI}
+          if(is.null(input$choiceoverlapROI)) {CRITERION1="permissive"} else{CRITERION1=input$choiceoverlapROI}
+          if(is.null(input$choicenotoverlapROI)) {CRITERION2="union"} else {CRITERION2=input$choicenotoverlapROI}
 
           roigeneration=suppressWarnings(generateROI(selectedranges,selectedfix,overlapregions,notoverlapregions,
-                        input$choiceROI,input$choiceoverlapROI, input$choicenotoverlapROI,bamlist=selectedbam,minbp=input$minOverlapNEWROI,strandSpecific=input$StrandSpecOverlapNEWROI))
-         
+                        method=METHOD,criterion1=CRITERION1, criterion2=CRITERION2,bamlist=selectedbam,decryptkeylist=selecteddecryptkey,minbp=input$minOverlapNEWROI,strandSpecific=input$StrandSpecOverlapNEWROI))
+
           ROI=roigeneration[[1]]
 
           if(length(ROI)>0){
             BAMlist=roigeneration[[2]]
-            newfix=roigeneration[[3]]
+            decryptkeylist=roigeneration[[3]]
+            newfix=roigeneration[[4]]
 
             #if union or intersection (input$choiceROI) // if selectedranges >0,
             #reannotate the ROI because it changed
@@ -138,6 +146,7 @@ observeEvent(input$maketheROI, {
             }
             ####newenrichimplementation####
             Enrichlist$rawcoverage[[input$ROIname]]=BAMlist
+            Enrichlist$decryptkey[[input$ROIname]]=decryptkeylist
             Enrichlist$normfactlist[[input$ROIname]]=selectednormfact
             ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -254,153 +263,227 @@ observeEvent(input$resizeROI,{
           if (!is.null(input$selectROItoresize)){
             if (input$selectROItoresize!="transcripts"){
               #resize with input$sliderUpstreamROI and input$sliderDownstreamROI
-              #check if new size is greater. If so, destroy BAM files matrix list from ROI object
-              # (be smart and re-calculate with bam files the missing parts)
-              #if both down and up are smaller, resize range and BAMlist (if not null)
+              #check if new size is greater. 
+              #if both down and up are smaller, resize range
+              #enrichments associated cannot be preserved due to LZ4
 
-              #nomi=lapply(ROIvariables$listROI,getName)
               pos=match(input$selectROItoresize,nomi)
               roi=getRange(ROIvariables$listROI[[pos]])
               oldSource=getSource(ROIvariables$listROI[[pos]])
-              fix=start(getFixed(ROIvariables$listROI[[pos]]))
-              
-              #bamlist=getBAMlist(ROIvariables$listROI[[pos]])
-              ####newenrichimplementation####
-              bamlist=Enrichlist$rawcoverage[[pos]]
-              normvals=Enrichlist$normfactlist[[pos]]
-              ################################
-
-
-
+              fix=start(getFixed(ROIvariables$listROI[[pos]]))   
               #split positive or undetermined strand from negative strand
               pos_positive=as.logical(!strand(roi)=="-")
               pos_negative=as.logical(strand(roi)=="-")
-              #remove ranges that would have negative starts with new width in positive strand
-              idx=(fix-input$sliderUpstreamROI)>0
-              idx_positive_and_good=pos_positive & idx
-              #negative strand
-              idx=(fix-input$sliderDownstreamROI)>0
-              idx_negative_and_good=pos_negative & idx
-              idx_positive_or_negative_good=idx_positive_and_good|idx_negative_and_good
-              roi=roi[idx_positive_or_negative_good]
-              fix=fix[idx_positive_or_negative_good]
-              bamlist=lapply(bamlist,function(i) {i[idx_positive_or_negative_good]})
 
-              pos_positive=as.logical(!strand(roi)=="-")
-              pos_negative=as.logical(strand(roi)=="-")
-              roi_positive=roi[pos_positive]
-              roi_negative=roi[pos_negative]
-              fix_positive=fix[pos_positive]
-              fix_negative=fix[pos_negative]
-              bamlist_positive=lapply(bamlist,function(i) {i[pos_positive]})
-              bamlist_negative=lapply(bamlist,function(i) {i[pos_negative]})
+              if (input$chooseResizeType=="fixedVal"){
+                if (input$choosePointResize=="fromMid"){
+                  #remove ranges that would have negative starts with new width in positive strand
+                  idx=(fix-input$sliderUpstreamROI)>0
+                  idx_positive_and_good=pos_positive & idx
+                  #negative strand
+                  idx=(fix-input$sliderDownstreamROI)>0
+                  idx_negative_and_good=pos_negative & idx
+                  idx_positive_or_negative_good=idx_positive_and_good|idx_negative_and_good
+                  roi=roi[idx_positive_or_negative_good]
+                  fix=fix[idx_positive_or_negative_good]
 
-              #resize positivee strand:
-              oldstarts_positive=start(roi_positive)
-              oldends_positive=end(roi_positive)
-              oldstarts_negative=start(roi_negative)
-              oldends_negative=end(roi_negative)
-              
-              newstart=input$sliderUpstreamROI
-              newend=input$sliderDownstreamROI
+                  pos_positive=as.logical(!strand(roi)=="-")
+                  pos_negative=as.logical(strand(roi)=="-")
+                  roi_positive=roi[pos_positive]
+                  roi_negative=roi[pos_negative]
+                  fix_positive=fix[pos_positive]
+                  fix_negative=fix[pos_negative]
 
-              toadd=paste("resized to window [-",input$sliderUpstreamROI,"; +",input$sliderDownstreamROI,"] from the centre",sep="")
+                  #resize positive strand:
+                  oldstarts_positive=start(roi_positive)
+                  oldends_positive=end(roi_positive)
+                  oldstarts_negative=start(roi_negative)
+                  oldends_negative=end(roi_negative)
+                  
+                  newstart=input$sliderUpstreamROI
+                  newend=input$sliderDownstreamROI
 
-              #resize plus strand
-              start(roi_positive)=fix_positive-newstart
-              end(roi_positive)=fix_positive+newend
-              #resize negative strand
-              start(roi_negative)=fix_negative-newend
-              end(roi_negative)=fix_negative+newstart
-              #join in the original roi
-              roi[pos_positive]=roi_positive
-              roi[pos_negative]=roi_negative
-              newfix=getFixed(ROIvariables$listROI[[pos]])[idx_positive_or_negative_good]
-              newflag=getFlag(ROIvariables$listROI[[pos]])
-              #ROIvariables$listROI[[pos]]=setRange(ROIvariables$listROI[[pos]],roi)
-              #ROIvariables$listROI[[pos]]=setFix(ROIvariables$listROI[[pos]],newfix)
-              newrange=roi
+                  toadd=paste("resized to window [-",input$sliderUpstreamROI,"; +",input$sliderDownstreamROI,"] from the centre",sep="")
 
-              #to be checked when BAM files will be available
-              if (length(bamlist)>0){
-                #if not everything is less than the old size in any position, reset BAMlist!
-                if (! (all((fix_positive-oldstarts_positive) >= newstart) & all((oldends_positive-fix_positive)>= newend) )
-                          | !(all((fix_negative-oldstarts_negative) >= newend) & all((oldends_negative-fix_negative)>= newstart) )    ){
-                  #reset BAMlist or improve only the delta margins of already existing matrixes
-                  #ROIvariables$listROI[[pos]]=resetBAMlist(ROIvariables$listROI[[pos]])
-                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Removed ',input$selectROItoresize,' associated BAMs, because new size > old size...<br>',sep="")
-                  newBAMlist=list()
-                  ####newenrichimplementation####
-                  normvals=list()
-                  ################################
-                }else{
-                  toadd=paste(toadd,"(kept associated BAMs)")
-                  #split - and + for BAM resize 
-                 
-                  shiftleft_positive= (fix_positive-oldstarts_positive)- newstart
-                  shiftright_positive=(oldends_positive-fix_positive)-newend
+                  #resize plus strand
+                  start(roi_positive)=fix_positive-newstart
+                  end(roi_positive)=fix_positive+newend
+                  #resize negative strand
+                  start(roi_negative)=fix_negative-newend
+                  end(roi_negative)=fix_negative+newstart
+                  #join in the original roi
+                  roi[pos_positive]=roi_positive
+                  roi[pos_negative]=roi_negative
+                  newfix=getFixed(ROIvariables$listROI[[pos]])[idx_positive_or_negative_good] 
+                  newrange=roi
 
-
-                  if (any(pos_positive)){
-                    bamlistnew_positive=lapply(1:length(bamlist_positive),function(i) {
-                      #cut also BAM file if some ranges have a resize that will lead to a negative start
-                      x=bamlist_positive[[i]]
-                      slicedbam=lapply(1:length(x), function(k) {
-                                            return(x[[k]] [(shiftleft_positive[k]+1): (length(x[[k]])-shiftright_positive[k]) ])
-                                            })
-                      return(slicedbam)
-                    } )
-
+                  if(length(unique(fix_positive-oldstarts_positive))==1 & length(unique(oldends_positive-fix_positive))==1){
+                    logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']<br>',sep="")
+                    print(paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']',sep=""))
+                  }else{
+                    logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI with original widths<br>',sep="")
+                    print(paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI with original widths',sep=""))
                   }
 
-                  shiftleft_negative= (fix_negative-oldstarts_negative)- newend
-                  shiftright_negative=(oldends_negative-fix_negative)-newstart
+                }else if (input$choosePointResize=="fromStart"){
+
+                  #structure:
+
+                  #             start          end
+                  #---------------|-------------|------ +
+
+                  #        upstr.  downstr.
+                  #-------|-------*----------|--------- + (* is the new fixed point) 
 
 
-                  if (any(pos_negative)){
-                    bamlistnew_negative=lapply(1:length(bamlist_negative),function(i) {
-                      #cut also BAM file if some ranges have a resize that will lead to a negative start
-                      x=bamlist_negative[[i]]
-                      slicedbam=lapply(1:length(x), function(k) {
-                                            return(x[[k]] [(shiftleft_negative[k]+1): (length(x[[k]])-shiftright_negative[k]) ])
-                                            })
-                      return(slicedbam)
-                    } )                    
-                  }
+                  #             start          end
+                  #---------------|-------------|------------- -
+
+                  #                      downstr.   upstr.
+                  #---------------------|-------*----------|-- - (* is the new fixed point) 
+
+                  #remove ranges that would have negative starts with new width in positive strand
+                  idx=(start(roi)-input$sliderUpstreamROI)>0
+                  idx_positive_and_good=pos_positive & idx
+                  #negative strand
+                  idx=(end(roi)-input$sliderDownstreamROI)>0
+                  idx_negative_and_good=pos_negative & idx
+                  idx_positive_or_negative_good=idx_positive_and_good|idx_negative_and_good
+                  roi=roi[idx_positive_or_negative_good]
+                  pos_positive=as.logical(!strand(roi)=="-")
+                  pos_negative=as.logical(strand(roi)=="-")
+                  roi_positive=roi[pos_positive]
+                  roi_negative=roi[pos_negative]
+                  #resize positive strand:
+                  oldstarts_positive=start(roi_positive)
+                  oldends_positive=end(roi_positive)
+                  oldstarts_negative=start(roi_negative)
+                  oldends_negative=end(roi_negative)
+                  
+                  newstart=input$sliderUpstreamROI
+                  newend=input$sliderDownstreamROI
+
+                  toadd=paste("resized to window [-",input$sliderUpstreamROI,"; +",input$sliderDownstreamROI,"] from the start",sep="")
+
+                  #resize plus strand
+                  start(roi_positive)=oldstarts_positive-newstart
+                  end(roi_positive)=oldstarts_positive+newend
+                  #resize negative strand
+                  start(roi_negative)=oldends_negative-newend
+                  end(roi_negative)=oldends_negative+newstart
+                  #join in the original roi
+                  roi[pos_positive]=roi_positive
+                  roi[pos_negative]=roi_negative
+
+                  newfix=roi
+                  start(newfix)[pos_positive]=end(newfix)[pos_positive]=oldstarts_positive
+                  start(newfix)[pos_negative]=end(newfix)[pos_negative]=oldends_negative
+                  newrange=roi
+                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI (resized ',newstart,'bp upstream and ',newend,' bp downstream from start) from ',input$selectROItoresize,' ROI<br>',sep="")
+                  print(paste('Created ',input$ROInameResize,' ROI (resized ',newstart,'bp upstream and ',newend,' bp from start) from ',input$selectROItoresize,' ROI',sep=""))             
 
 
+                
+                }else if (input$choosePointResize=="fromEnd"){
 
-                  #join bamlistnew_positive and bamlistnew_negative back to bamlist
-                  bamlistnew=lapply(1:length(bamlist),function(i) {
-                    x=bamlist[[i]]
-                    if (any(pos_positive)){
-                      x[pos_positive]=bamlistnew_positive[[i]]
-                    }
-                    
-                    if (any(pos_negative)){
-                      x[pos_negative]=bamlistnew_negative[[i]]
-                    }
-                    return(x)
-                  })
+                  #structure:
 
-                  names(bamlistnew)=names(bamlist)
-                  newBAMlist=bamlistnew
-                  #ROIvariables$listROI[[pos]]=setBAMlist(ROIvariables$listROI[[pos]],bamlistnew)
+                  #             start          end
+                  #---------------|-------------|------ -
 
-                  #x is single list of baseCoverage (BAM)
-                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Conserved ',input$selectROItoresize,' associated BAMs, because new size < old size...<br>',sep="")
+                  #        downstr. upstr.
+                  #-------|-------*----------|--------- - (* is the new fixed point) 
+
+
+                  #             start          end
+                  #---------------|-------------|------------- +
+
+                  #                      upstr.   downstr.
+                  #---------------------|-------*----------|-- + (* is the new fixed point) 
+
+
+                 #remove ranges that would have negative starts with new width in positive strand
+                  idx=(end(roi)-input$sliderUpstreamROI)>0
+                  idx_positive_and_good=pos_positive & idx
+                  #negative strand
+                  idx=(start(roi)-input$sliderDownstreamROI)>0
+                  idx_negative_and_good=pos_negative & idx
+                  idx_positive_or_negative_good=idx_positive_and_good|idx_negative_and_good
+                  roi=roi[idx_positive_or_negative_good]
+                  pos_positive=as.logical(!strand(roi)=="-")
+                  pos_negative=as.logical(strand(roi)=="-")
+                  roi_positive=roi[pos_positive]
+                  roi_negative=roi[pos_negative]
+                  #resize positive strand:
+                  oldstarts_positive=start(roi_positive)
+                  oldends_positive=end(roi_positive)
+                  oldstarts_negative=start(roi_negative)
+                  oldends_negative=end(roi_negative)
+                  
+                  newstart=input$sliderUpstreamROI
+                  newend=input$sliderDownstreamROI
+
+                  toadd=paste("resized to window [-",input$sliderUpstreamROI,"; +",input$sliderDownstreamROI,"] from the end",sep="")
+
+                  #resize plus strand
+                  start(roi_positive)=oldends_positive-newstart
+                  end(roi_positive)=oldends_positive+newend
+                  #resize negative strand
+                  start(roi_negative)=oldstarts_negative-newend
+                  end(roi_negative)=oldstarts_negative+newstart
+                  #join in the original roi
+                  roi[pos_positive]=roi_positive
+                  roi[pos_negative]=roi_negative
+
+                  newfix=roi
+                  start(newfix)[pos_positive]=end(newfix)[pos_positive]=oldends_positive
+                  start(newfix)[pos_negative]=end(newfix)[pos_negative]=oldstarts_negative
+                  newrange=roi
+                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI (resized ',newstart,'bp upstream and ',newend,' bp downstream from end) from ',input$selectROItoresize,' ROI<br>',sep="")
+                  print(paste('Created ',input$ROInameResize,' ROI (resized ',newstart,'bp upstream and ',newend,' bp downstream from end) from ',input$selectROItoresize,' ROI',sep=""))             
+
+
                 }
               }else{
-                newBAMlist=list()
-                ####newenrichimplementation####
-                normvals=list()
-                ################################
+                valueperc=input$chooseWidthPercResize
+                value=floor(width(roi)* (valueperc/100) /2)
+                if(input$choosePointResize=="increment"){
+                  #independently on the strand
+                  idx=(start(roi)-value)>0
+                  roi=roi[idx]
+                  fix=fix[idx] 
+                  value=value[idx]
+                  newfix=getFixed(ROIvariables$listROI[[pos]])[idx] 
+                  #resize 
+                  start(roi)=start(roi)-value
+                  end(roi)=end(roi)+value
+                  newrange=roi 
+                  toadd=paste("Incremented width (",input$chooseWidthPercResize,"% from the centre)",sep="")                 
+                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI (resized, incremented ',valueperc,' % from center) from ',input$selectROItoresize,' ROI<br>',sep="")
+                  print(paste('Created ',input$ROInameResize,' ROI (resized, incremented ',valueperc,' % from center) from ',input$selectROItoresize,' ROI',sep=""))
+                }else{
+                  start(roi)=start(roi)+value
+                  end(roi)=end(roi)-value    
+                  newfix=getFixed(ROIvariables$listROI[[pos]])
+                  newrange=roi 
+                  toadd=paste("Decremented width (",input$chooseWidthPercResize,"% from the centre)",sep="")                 
+                  logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI (resized, decremented ',valueperc,' % from center) from ',input$selectROItoresize,' ROI<br>',sep="")
+                  print(paste('Created ',input$ROInameResize,' ROI (resized, decremented ',valueperc,' % from center) from ',input$selectROItoresize,' ROI',sep=""))             
+                }
+
+
               }
 
+
+
+
+
+              newflag=getFlag(ROIvariables$listROI[[pos]])
               newSource=c(oldSource,list(toadd))
               ####newenrichimplementation####
-              Enrichlist$rawcoverage[[input$ROInameResize]]=newBAMlist
-              Enrichlist$normfactlist[[input$ROInameResize]]=normvals
+              Enrichlist$rawcoverage[[input$ROInameResize]]=list()
+              Enrichlist$decryptkey[[input$ROInameResize]]=list()
+              Enrichlist$normfactlist[[input$ROInameResize]]=list()
               ################################
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                             name=input$ROInameResize,
@@ -411,13 +494,7 @@ observeEvent(input$resizeROI,{
                                             source=newSource) 
 
 
-              if(length(unique(fix_positive-oldstarts_positive))==1 & length(unique(oldends_positive-fix_positive))==1){
-                logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']<br>',sep="")
-                print(paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']',sep=""))
-              }else{
-                logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI with original widths<br>',sep="")
-                print(paste('Created ',input$ROInameResize,' ROI [-',input$sliderUpstreamROI,'; +',input$sliderDownstreamROI,'] from ',input$selectROItoresize,' ROI with original widths',sep=""))
-              }
+
             }else{
               #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Are you trying to resize transcripts around midpoint? You cannot.<br></font>',sep="")
               sendSweetAlert(
@@ -500,6 +577,7 @@ observeEvent(input$SummitROI,{
           ####newenrichimplementation####
           #we have to find maximum enrichment point. Raw cov w/o normalization is ok
           bam=Enrichlist$rawcoverage[[pos]]
+          key=Enrichlist$decryptkey[[pos]]
           #normvals=Enrichlist$normfactlist[[pos]]
           ################################
           oldSource=getSource(roi)
@@ -509,10 +587,13 @@ observeEvent(input$SummitROI,{
           if (!is.null(getbam)){
             #bam=getBAMlist(roi)
             pos2=match(input$selectBAMtoCenterSummit,getbam)
-            bamselected=bam[[pos2]]
+            bamselected_tmp=bam[[pos2]]
+            keyselected=key[[pos2]]
+            #decrypt to integer for calculating summit
+            #bamselected=decryptcov( list(bamselected_tmp,keyselected),chunk=length(bamselected_tmp))
             toadd=paste("Centered on summit using",input$selectBAMtoCenterSummit,"enrichment (range width=1)")
             #use the function to select summit:
-            newrange=summitFromBaseCoverage(Object=getRange(roi),baseCoverageOutput=bamselected)
+            newrange=summitFromBaseCoverage(Object=getRange(roi),baseCoverageOutput=bamselected_tmp,keys=keyselected)
 
             ##this ROI is not a subset, but is a new ROI. Re-annotate if DB present (not FALSE, not null)
             if(length(DATABASEvariables$currentASSEMBLY)>0){
@@ -529,6 +610,7 @@ observeEvent(input$SummitROI,{
             }
             ####newenrichimplementation####
             Enrichlist$rawcoverage[[input$ROInameSummit]]=list()
+            Enrichlist$decryptkey[[input$ROInameSummit]]=list()
             Enrichlist$normfactlist[[input$ROInameSummit]]=list()
             ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -604,6 +686,7 @@ observeEvent(input$FilterROI,{
           ####newenrichimplementation####
           #we have to find maximum enrichment point. Raw cov w/o normalization is ok
           bam=Enrichlist$rawcoverage[[pos]]
+          keyvals=Enrichlist$decryptkey[[pos]]
           normvals=Enrichlist$normfactlist[[pos]]
           ################################
           getbam=names(bam)
@@ -612,12 +695,20 @@ observeEvent(input$FilterROI,{
             #filter based not normalized coverage should be ok (it's a fraction, not abs number)
             #bam=getBAMlist(roi)
             pos2=match(input$selectBAMtoFilter,getbam)
-            bamselected=bam[[pos2]]  
-            sums=unlist(lapply(bamselected,sum))
+            bamselected_tmp=bam[[pos2]]  
+            keyselected=keyvals[[pos2]]
+            norm_selected=normvals[[pos2]]
+            
+            sums=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bamselected_tmp,Nbins=1,Snorm=FALSE,key=keyselected,norm_factor=norm_selected)
+            #bamselected=decryptcov( list(bamselected_tmp,keyselected),chunk=length(bamselected_tmp))
+            #sums=unlist(lapply(bamselected,sum))
+            #sums=sums*norm_selected
+            
             #find the position in which sums is > than input$absoluteFilter1
             # and < input$absoluteFilter2
             #then make the new roi, with input$ROInameFilter name, newrange is old range in 
             #position in which sums > input$absoluteFilter; new fix is the old fix, new flag is the old flag
+
             selectedPositions1=sums>input$absoluteFilter1
             selectedPositions2=sums<input$absoluteFilter2
             
@@ -631,10 +722,12 @@ observeEvent(input$FilterROI,{
 
             if(length(newrange)>0){
               newBAMlist=list()
+              newkeylist=list()
               for(i in 1:length(bam)){
                 newBAMlist[[i]]=bam[[i]][selectedPositions]
+                newkeylist[[i]]=keyvals[[i]][selectedPositions]
               }
-              names(newBAMlist)=getbam
+              names(newBAMlist)=names(newkeylist)=getbam
               newfix=getFixed(roi)[selectedPositions]
               newflag=getFlag(roi)
               perc=round(tabForMessage["TRUE"]/length(selectedPositions)*100,2)
@@ -643,9 +736,9 @@ observeEvent(input$FilterROI,{
 
               ####newenrichimplementation####
               Enrichlist$rawcoverage[[input$ROInameFilter]]=newBAMlist
+              Enrichlist$decryptkey[[input$ROInameFilter]]=newkeylist
               Enrichlist$normfactlist[[input$ROInameFilter]]=normvals
               ################################ 
-
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                               name=input$ROInameFilter,
                                               range=newrange,
@@ -751,17 +844,21 @@ observeEvent(input$FilterROIWIDTH,{
               ####newenrichimplementation####
               #we have to find maximum enrichment point. Raw cov w/o normalization is ok
               bams=Enrichlist$rawcoverage[[pos]]
+              keyvals=Enrichlist$decryptkey[[pos]]
               normvals=Enrichlist$normfactlist[[pos]]
               ################################
 
               if(length(bams)>0){
                 newBAMlist=list()
+                newkeylist=list()
                 for(i in 1:length(bams)){
                   newBAMlist[[i]]=bams[[i]][selectedPositions]
+                  newkeylist[[i]]=keyvals[[i]][selectedPositions]
                 }
-                names(newBAMlist)=names(bams)            
+                names(newBAMlist)=names(newkeylist)=names(bams)            
               }else{
                 newBAMlist=list()
+                newkeylist=list()
               }
               
               newfix=getFixed(roi)[selectedPositions]
@@ -772,6 +869,7 @@ observeEvent(input$FilterROIWIDTH,{
 
               ####newenrichimplementation####
               Enrichlist$rawcoverage[[input$ROInameFilterWIDTH]]=newBAMlist
+              Enrichlist$decryptkey[[input$ROInameFilterWIDTH]]=newkeylist
               Enrichlist$normfactlist[[input$ROInameFilterWIDTH]]=normvals
               ################################ 
 
@@ -877,16 +975,20 @@ observeEvent(input$SampleROI,{
             ####newenrichimplementation####
             #we have to find maximum enrichment point. Raw cov w/o normalization is ok
             bams=Enrichlist$rawcoverage[[pos]]
+            keys=Enrichlist$decryptkey[[pos]]
             normvals=Enrichlist$normfactlist[[pos]]
             ################################
             if(length(bams)>0){
               newBAMlist=list()
+              newkeylist=list()
               for(i in 1:length(bams)){
                 newBAMlist[[i]]=bams[[i]][selectedPositions]
+                newkeylist[[i]]=keys[[i]][selectedPositions]
               }
-              names(newBAMlist)=names(bams)            
+              names(newBAMlist)=names(newkeylist)=names(bams)            
             }else{
               newBAMlist=list()
+              newkeylist=list()
             }
             
             newfix=getFixed(roi)[selectedPositions]
@@ -897,6 +999,7 @@ observeEvent(input$SampleROI,{
             newSource=c(oldSource,list(toadd))
             ####newenrichimplementation####
             Enrichlist$rawcoverage[[input$ROInameSample]]=newBAMlist
+            Enrichlist$decryptkey[[input$ROInameSample]]=newkeylist
             Enrichlist$normfactlist[[input$ROInameSample]]=normvals
             ################################ 
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -962,7 +1065,9 @@ observeEvent(input$SampleROI,{
 },ignoreInit=TRUE)
 
 
-
+# toListenDOWNLOADbsgenome <- reactive({
+#     list(input$DownloadBSgenome,input$DownloadBSgenome2)
+# })
 #download BSgenome selected; when done, set the variable ($currentORG and import library)
 observeEvent(input$DownloadBSgenome,{
   asm=DATABASEvariables$currentASSEMBLY
@@ -1000,14 +1105,13 @@ observeEvent(input$DownloadBSgenome,{
 
   #install the correct BSgenome package
 
-
   # tryCatch({
   if (checkBiocConnection()){
     if(R35){
       print(paste("updating bioconductor packages to the version",bioCversion))
       BiocManager::install(version = bioCversion,ask=FALSE,force=TRUE)
       print(paste("Downloading",BSstring,"..."))
-      BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE)
+      BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE,type="source")
     }else{
       print(paste("Downloading",BSstring,"..."))
       biocLite(BSstring,suppressUpdates=TRUE,ask=FALSE)
@@ -1036,14 +1140,11 @@ observeEvent(input$DownloadBSgenome,{
   }
 
 
-
- #  },
-
+},ignoreInit=TRUE)
 
 
-  
 
-})
+
 
 
 
@@ -1082,147 +1183,118 @@ observeEvent(input$ExtractPatternROI,{
                 pattern_splitted=="D" | pattern_splitted=="H" | pattern_splitted=="V" | pattern_splitted=="N"
           if(all(check)){
             #check if, if fromGenome selected, pattern shuld be >=4 bp
-            allowedpattern=TRUE
-            if(input$choiceWherePattern=="fromGenome"){
-              checkComplexity=pattern_splitted!="N" &pattern_splitted!="." &pattern_splitted!="-"
-              if( sum(checkComplexity)<4){
-                allowedpattern=FALSE
-              }
-            }
-            if(allowedpattern){
-              #check if ROI name is ok
-              nottobe=c("promoters","transcripts","TES")
-              if(!(any(input$ROInamePattern == nottobe)) & nchar(input$ROInamePattern)>0){
-                #check if ROI name is *****_genelist_....
-                nottobe2=c("promoters_genelist_","transcripts_genelist_","TES_genelist_")
-                if(!grepl(nottobe2[1],input$ROInamePattern) &!grepl(nottobe2[2],input$ROInamePattern) & !grepl(nottobe2[3],input$ROInamePattern)){
-                  #now check if ROI name already present
-                  nomi=unlist(lapply(ROIvariables$listROI,getName))
-                  if(!input$ROInamePattern %in% nomi){
-                    #execute. Extract range with pattern (Flag="pattern").
-                    #BAM file is NULL (no sense to keep enrichment of 6-10 bp...)
-                    #shuld re-annotate ranges (DB is present by definition at this point)
-                    #fix is the center of new range (center of the pattern)
-                    #source: add "extracted CNNTACGT from *** ROI (both/s-specific)"
 
+            
+            #check if ROI name is ok
+            nottobe=c("promoters","transcripts","TES")
+            if(!(any(input$ROInamePattern == nottobe)) & nchar(input$ROInamePattern)>0){
+              #check if ROI name is *****_genelist_....
+              nottobe2=c("promoters_genelist_","transcripts_genelist_","TES_genelist_")
+              if(!grepl(nottobe2[1],input$ROInamePattern) &!grepl(nottobe2[2],input$ROInamePattern) & !grepl(nottobe2[3],input$ROInamePattern)){
+                #now check if ROI name already present
+                nomi=unlist(lapply(ROIvariables$listROI,getName))
+                if(!input$ROInamePattern %in% nomi){
+                  #execute. Extract range with pattern (Flag="pattern").
+                  #BAM file is NULL (no sense to keep enrichment of 6-10 bp...)
+                  #shuld re-annotate ranges (DB is present by definition at this point)
+                  #fix is the center of new range (center of the pattern)
+                  #source: add "extracted CNNTACGT from *** ROI (both/s-specific)"
 
-
-                    if(isvalid(input$strandOptsPattern)){
-                      if(input$strandOptsPattern=="bothStrands"){
-                        both=TRUE
-                      }else{
-                        both=FALSE
-                      }
-                    }else{
+                  if(isvalid(input$strandOptsPattern)){
+                    if(input$strandOptsPattern=="bothStrands"){
                       both=TRUE
-                    }
-
-                    if(input$choiceWherePattern=="fromGenome"){
-                      both=TRUE
-                    }
-
-                    toadd=paste("extracting of ",pattern," pattern",sep="")
-                    if(both){
-                      toadd=paste(toadd," searched in both strands",sep="")
                     }else{
-                      toadd=paste(toadd," searched in strand-specific way",sep="")
+                      both=FALSE
                     }
-
-                    if(input$choiceWherePattern=="fromROI"){
-                      pos=match(input$selectROItoExtractPattern,nomi)
-                      roi=ROIvariables$listROI[[pos]]
-                      roi_range=getRange(roi)
-                      oldSource=getSource(roi)
-                      newSource=c(oldSource,list(toadd))
-                      #apply the function extractPattern:
-                      extracted=suppressWarnings(extractPattern(Subject=roi_range,BSgenomeDB=eval(parse(text=BSstring)),pattern=pattern,bothstrands=both))
-                      
-                    }else{
-                      newSource=list(toadd)
-                      extracted=suppressWarnings(extractPattern(Subject=NULL,BSgenomeDB=eval(parse(text=BSstring)),pattern=pattern,bothstrands=both))
-                    }
-
-
-
-                    if(length(extracted)>0){
-                      #find Fix of new ranges (midpoint)
-                      newFix=resize(extracted,fix="center",width=1)
-                      #annotate this new ROI. By definition at this point we have the database
-                      nomi=unlist(lapply(ROIvariables$listROI,getName))
-                      pos_promo=match("promoters",nomi)
-                      promo=ROIvariables$listROI[[pos_promo]]
-                      fix_promoters=getFixed(promo)
-                      annotatedpart=suppressWarnings(distanceFromTSS3(Object=extracted,Tss=fix_promoters,criterion="midpoint"))
-                      elementMetadata(extracted)=annotatedpart
-                      ####newenrichimplementation####
-                      #new ROI imported has no list of enrichments at the beginning! => initialization
-                      Enrichlist$rawcoverage[[input$ROInamePattern]]=list()
-                      Enrichlist$normfactlist[[input$ROInamePattern]]=list()
-                      ################################
-                      ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
-                                                      name=input$ROInamePattern,
-                                                      range=extracted,
-                                                      fixed=newFix,
-                                                      BAMlist=list(),
-                                                      flag="Pattern",
-                                                      source=newSource)
-                      if(input$choiceWherePattern=="fromGenome"){
-                        print(paste(input$ROInamePattern," ROI created, ",toadd," from entire genome",sep=""))
-                      }else{
-                        print(paste(input$ROInamePattern," ROI created, ",toadd," from ",input$selectROItoExtractPattern," ROI",sep=""))
-                      }
-                      
-                      
-                    }else if (length(extracted)==0 & !is.null(extracted)){
-                      sendSweetAlert(
-                        session = session,
-                        title = "Empty ROI produced",
-                        text = paste("pattern '",pattern,"' is not present in any range of ROI ",input$selectROItoExtractPattern,sep=""),
-                        type = "error"
-                      ) 
-                    #if it's NULL, it means that any chromosome format is not recognised in BSgenome DB                    
-                    }else if (length(extracted)==0 & is.null(extracted)){
-                      sendSweetAlert(
-                        session = session,
-                        title = "chromosome names format not ok",
-                        text = paste("Chromosome names of the ROI does not match those within BSgenome database. Check the format of the
-                                    ROI, using 'get ROI' tab, looking at the correct chromosome names",sep=""),
-                        type = "error"
-                      )  
-                    }
-
                   }else{
+                    both=TRUE
+                  }
+
+                  toadd=paste("extracting of ",pattern," pattern",sep="")
+                  if(both){
+                    toadd=paste(toadd," searched in both strands",sep="")
+                  }else{
+                    toadd=paste(toadd," searched in strand-specific way",sep="")
+                  }
+
+
+                  pos=match(input$selectROItoExtractPattern,nomi)
+                  roi=ROIvariables$listROI[[pos]]
+                  roi_range=getRange(roi)
+                  oldSource=getSource(roi)
+                  newSource=c(oldSource,list(toadd))
+                  #apply the function extractPattern:
+                  extracted=suppressWarnings(extractPattern(Subject=roi_range,BSgenomeDB=eval(parse(text=BSstring)),pattern=pattern,bothstrands=both))
+
+                  if(length(extracted)>0){
+                    #find Fix of new ranges (midpoint)
+                    newFix=resize(extracted,fix="center",width=1)
+                    #annotate this new ROI. By definition at this point we have the database
+                    nomi=unlist(lapply(ROIvariables$listROI,getName))
+                    pos_promo=match("promoters",nomi)
+                    promo=ROIvariables$listROI[[pos_promo]]
+                    fix_promoters=getFixed(promo)
+                    annotatedpart=suppressWarnings(distanceFromTSS3(Object=extracted,Tss=fix_promoters,criterion="midpoint"))
+                    elementMetadata(extracted)=annotatedpart
+                    ####newenrichimplementation####
+                    #new ROI imported has no list of enrichments at the beginning! => initialization
+                    Enrichlist$rawcoverage[[input$ROInamePattern]]=list()
+                    Enrichlist$decryptkey[[input$ROInamePattern]]=list()
+                    Enrichlist$normfactlist[[input$ROInamePattern]]=list()
+                    ################################
+                    ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
+                                                    name=input$ROInamePattern,
+                                                    range=extracted,
+                                                    fixed=newFix,
+                                                    BAMlist=list(),
+                                                    flag="Pattern",
+                                                    source=newSource)
+
+                    print(paste(input$ROInamePattern," ROI created, ",toadd," from ",input$selectROItoExtractPattern," ROI",sep=""))
+            
+                  }else if (length(extracted)==0 & !is.null(extracted)){
                     sendSweetAlert(
                       session = session,
-                      title = "ROI already present",
-                      text = "A ROI with the same name already exists; use a different name",
+                      title = "Empty ROI produced",
+                      text = paste("pattern '",pattern,"' is not present in any range of ROI ",input$selectROItoExtractPattern,sep=""),
                       type = "error"
-                    )                  
+                    ) 
+                  #if it's NULL, it means that any chromosome format is not recognised in BSgenome DB                    
+                  }else if (length(extracted)==0 & is.null(extracted)){
+                    sendSweetAlert(
+                      session = session,
+                      title = "chromosome names format not ok",
+                      text = paste("Chromosome names of the ROI does not match those within BSgenome database. Check the format of the
+                                  ROI, using 'get ROI' tab, looking at the correct chromosome names",sep=""),
+                      type = "error"
+                    )  
                   }
+
                 }else{
                   sendSweetAlert(
                     session = session,
-                    title = "Bad ROI name",
-                    text = "New ROI cannot be named 'promoters_genelist_*','transcripts_genelist_*' or 'TES_genelist_*', because are reserved names",
+                    title = "ROI already present",
+                    text = "A ROI with the same name already exists; use a different name",
                     type = "error"
-                  )                
+                  )                  
                 }
               }else{
                 sendSweetAlert(
                   session = session,
                   title = "Bad ROI name",
-                  text = "File name for the new ROI is missing, or you are trying to use reserved names: 'promoters','transcripts' or 'TES'",
+                  text = "New ROI cannot be named 'promoters_genelist_*','transcripts_genelist_*' or 'TES_genelist_*', because are reserved names",
                   type = "error"
-                )             
+                )                
               }
             }else{
               sendSweetAlert(
                 session = session,
-                title = "Pattern not valid",
-                text = "The sequence pattern must be >= 4 not-N-letters when searching the entire genome. Try to add more letters (that are not 'N')",
+                title = "Bad ROI name",
+                text = "File name for the new ROI is missing, or you are trying to use reserved names: 'promoters','transcripts' or 'TES'",
                 type = "error"
-              ) 
+              )             
             }
+          
     
           }else{
             sendSweetAlert(
@@ -1254,7 +1326,7 @@ observeEvent(input$ExtractPatternROI,{
       sendSweetAlert(
         session = session,
         title = "Missing database",
-        text = "You must select a genome assembly. Go to 'Database' section to import a genome assembly",
+        text = "You must select a genome assembly. Go to 'Assembly' section to import a genome assembly",
         type = "error"
       )       
     }
@@ -1271,6 +1343,15 @@ observeEvent(input$ExtractPatternROI,{
 
 
 
+
+
+
+
+
+
+
+
+
 ####################################################################################
 ####################################################################################
 #view ROI tab
@@ -1279,112 +1360,119 @@ observeEvent(input$ExtractPatternROI,{
 
 
 ###react to help buttons:
-#select ROI to visualize
-observeEvent(input$msg_viewRois_selectRoi, {
-  boxHelpServer(msg_viewRois_selectRoi)
+#box help
+observeEvent(input$msg_quickviewROIs, {
+  boxHelpServer(msg_quickviewROIs)
 })
-#visualization
-observeEvent(input$msg_viewRois_visualization, {
-  boxHelpServer(msg_viewRois_visualization)
+#help options for view ROI
+observeEvent(input$help_BED_viewoptions, {
+  boxHelpServer(help_BED_viewoptions)
 })
-#information
-observeEvent(input$msg_viewRois_information, {
-  boxHelpServer(msg_viewRois_information)
-})
+
+
+
+
+
+
+
 
 #view ROI
 # view stat (width, number) ranges
-observeEvent(input$updatechoiceROI,{
+observe({
   set.seed(123)
-  #response to checkbutton. Now check if there is at least one ROI selected and at least one ROI exists in 
-  # the list of ROI
+  
+  if (!isvalid(input$chooseROIvisualiz)|!isvalid(input$confirmviewROI)){
+    output$viewROImaterial<-renderPlot ({NULL})
+    output$saveviewpeaksROImaterial<-renderUI ({NULL})
+    return()
+  }
 
-  if (length(input$confirmviewROI)>0 & length(ROIvariables$listROI)){
-    #now, if length(input$confirmviewROI)==1 (one and only one selected, we have a selected ROI => sliderinput for quantile width)
-    nomi=unlist(lapply(ROIvariables$listROI,getName))
-
-    selection=list()
-    for (i in 1:length(input$confirmviewROI)){
-        pos2=match(input$confirmviewROI[i],nomi)
-        selection[[i]]=getRange(ROIvariables$listROI[[pos2]])
-    }
-    lun=unlist(lapply(selection,length))
-
-    #continue only if all ROIs selected have length >0
-    if (all(lun>0)){
-      if (length(input$confirmviewROI)==1){
-        pos=match(input$confirmviewROI,nomi)   
-
-        ROIvariables$selected=getRange(ROIvariables$listROI[[pos]])
-        lungh=length(ROIvariables$selected)
-
-        ROIvariables$selectedname=paste(nomi[pos]," (",lungh,")",sep="")
-        
-      }else{
-        ROIvariables$selected=NULL
-        ROIvariables$selectedname=NULL     
-      }
-      #here we have >=1 selected ROI => plot in any case density (with different colors) and barplot for peak number
-      #have to set the densities and colors. then select the max(x) and max (y) for the blank plot
-      ROIvariables$listfordensity=list()
-      ROIvariables$listselected=list()
-      ROIvariables$listselectednames=list()
-      for (i in 1:length(input$confirmviewROI)){
-        pos=match(input$confirmviewROI[i],nomi)
-        ROIvariables$listselected[[i]]=getRange(ROIvariables$listROI[[pos]])
-        lungh=length(ROIvariables$listselected[[i]])
-
-        ROIvariables$listselectednames[[i]]=paste(nomi[pos]," (",lungh,")",sep="")
-        x=ROIvariables$listselected[[i]]
-        ROIvariables$listfordensity[[i]]=density(log2(width( x  )))
-
-      }
-
-      n=length(input$confirmviewROI)
-      #ROIvariables$colorsfordensity <- distinctColorPalette(n)
-      qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
-      col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-      ROIvariables$colorsfordensity <-sample(col_vector, n)
-
-      ROIvariables$changed=ROIvariables$changed+1
-
-      #download button for PDF peak number 
-      output$saveviewpeaksnumberROI=renderUI({downloadButton('saveviewpeaksnumberROIbutton', 'Get PDF')})
-      output$saveviewpeakswidthROI=renderUI({downloadButton('saveviewpeakswidthROIbutton', 'Get PDF')})
-
-    }else{
-      ROIvariables$colorsfordensity=NULL
-      ROIvariables$listfordensity=NULL
-      ROIvariables$listselected=NULL
-      ROIvariables$listselectednames=NULL
-      ROIvariables$selected=NULL
-      ROIvariables$selectedname=NULL 
-      output$saveviewpeaksnumberROI<-renderUI({NULL})
-      output$saveviewpeakswidthROI<-renderUI({NULL})
-      ROIvariables$changed=ROIvariables$changed+1
-      logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red"> All GRanges selected must have length >0<br></font>',sep="")
-    }
-
-
-  }else{
-    ROIvariables$colorsfordensity=NULL
-    ROIvariables$listfordensity=NULL
-    ROIvariables$listselected=NULL
-    ROIvariables$listselectednames=NULL
-    ROIvariables$selected=NULL
-    ROIvariables$selectedname=NULL
-    output$saveviewpeaksnumberROI<-renderUI({NULL}) 
-    output$saveviewpeakswidthROI<-renderUI({NULL})
-    ROIvariables$changed=ROIvariables$changed+1
+  nomi=unlist(lapply(isolate(ROIvariables$listROI),getName))
+  selection=list()
+  for (i in 1:length(input$confirmviewROI)){
+      pos2=match(input$confirmviewROI[i],nomi)
+      selection[[i]]=getRange(isolate(ROIvariables$listROI)[[pos2]])
+  }
+  lun=unlist(lapply(selection,length))
+  #continue only if all ROIs selected have length >0
+  if (!all(lun>0)){
+    output$viewROImaterial<-renderPlot({NULL})
+    output$saveviewpeaksROImaterial=renderUI({NULL})
     sendSweetAlert(
       session = session,
       title = "Missing ROI",
       text = "Select at least one ROI",
       type = "error"
     )
+    return()
   }
 
-},ignoreInit=TRUE)
+
+  #here we have >=1 selected ROI => plot in any case density (with different colors) and barplot for peak number
+  #have to set the densities and colors. then select the max(x) and max (y) for the blank plot
+  listfordensity=list()
+  listselected=list()
+  listselectednames=list()
+  for (i in 1:length(input$confirmviewROI)){
+    pos=match(input$confirmviewROI[i],nomi)
+    listselected[[i]]=getRange(isolate(ROIvariables$listROI)[[pos]])
+    lungh=length(listselected[[i]])
+    listselectednames[[i]]=paste(nomi[pos]," (",lungh,")",sep="")
+    x=listselected[[i]]
+    listfordensity[[i]]=density(log2(width( x  )))
+  }
+
+  n=length(input$confirmviewROI)
+  colorsfordensity=colors_list[1:n]
+  ROIvariables$colorsfordensity<-colorsfordensity
+  ROIvariables$listfordensity=listfordensity
+  ROIvariables$listselected=listselected
+  ROIvariables$listselectednames=listselectednames
+  if (input$chooseROIvisualiz=="ROIwidth"){
+        
+    if (!is.null(listfordensity) & length(listfordensity)>0){
+      coords=lapply(listfordensity,function(k) {return(list(k$x,k$y))})
+      coordsx=unlist(lapply(coords,"[[",1))
+      coordsy=unlist(lapply(coords,"[[",2))
+      xmax=max(coordsx)
+      xmin=min(coordsx)
+      ymax=max(coordsy)
+      ymin=min(coordsy)
+      leg=unlist(listselectednames)
+
+      output$viewROImaterial<-renderPlot ( {
+        par(mar=c(4,4,4,1))
+        plot(1, type="n", xlab="log2 width", ylab="probability", xlim=c(xmin, xmax), ylim=c(ymin, ymax),main="frequency plot width")
+        for (i in 1:length(listfordensity)){
+          lines(listfordensity[[i]],col=colorsfordensity[[i]],lwd=3)
+        }
+        legend("topright",leg,col=unlist(colorsfordensity),lty=1,lwd=3,bty = "n")
+      })
+    }else{
+      output$viewROImaterial<-renderPlot ( {
+        NULL
+        #plot(1, type="n", xlab="log2 width", ylab="density",main="no ROI selected")
+      })
+    }
+
+    
+    output$saveviewpeaksROImaterial=renderUI({downloadButton('saveviewpeakswidthROIbutton', 'Get PDF')})
+
+  }else{
+    output$viewROImaterial<-renderPlot({
+      par(mar=c(15,5,1,1))
+      peaknumberlist=unlist(lapply(listselected,length))
+      names(peaknumberlist)=listselectednames
+      barplot (peaknumberlist,las=2,col=unlist(colorsfordensity))
+      mtext(side=2, text="Intervals number", line=4)
+      
+    })
+    #download button for PDF peak number 
+    output$saveviewpeaksROImaterial=renderUI({downloadButton('saveviewpeaksnumberROIbutton', 'Get PDF')})        
+  }
+
+
+})
 
 
 
@@ -1422,11 +1510,11 @@ output$saveviewpeakswidthROIbutton<-downloadHandler(
     ymax=max(coordsy)
     ymin=min(coordsy)
     leg=unlist(ROIvariables$listselectednames)
-    plot(1, type="n", xlab="log2 width", ylab="density", xlim=c(xmin, xmax), ylim=c(ymin, ymax),main="frequency plot width")
+    plot(1, type="n", xlab="log2 width", ylab="probability", xlim=c(xmin, xmax), ylim=c(ymin, ymax),main="frequency plot width")
     for (i in 1:length(ROIvariables$listfordensity)){
-      lines(ROIvariables$listfordensity[[i]],col=ROIvariables$colorsfordensity[[i]],lwd=2)
+      lines(ROIvariables$listfordensity[[i]],col=ROIvariables$colorsfordensity[[i]],lwd=3)
     }
-    legend("topright",leg,col=unlist(ROIvariables$colorsfordensity),lty=1,lwd=2,bty = "n")
+    legend("topright",leg,col=unlist(ROIvariables$colorsfordensity),lty=1,lwd=3,bty = "n")
 
     dev.off()
   } 
@@ -1452,13 +1540,24 @@ output$saveviewpeakswidthROIbutton<-downloadHandler(
 
 ###react to help buttons:
 #ROI selection
-observeEvent(input$msg_getRois_roiSelection, {
-  boxHelpServer(msg_getRois_roiSelection)
+observeEvent(input$msg_getRois_BOX, {
+  boxHelpServer(msg_getRois_BOX)
 })
-#table explore 
-observeEvent(input$msg_getRois_preview, {
-  boxHelpServer(msg_getRois_preview)
+
+#help each range option
+observeEvent(input$help_BED_getroi_eachGR, {
+  boxHelpServer(help_BED_getroi_eachGR)
 })
+#help genomic window option
+observeEvent(input$help_BED_getroi_genomicWindow, {
+  boxHelpServer(help_BED_getroi_genomicWindow)
+})
+#help genomic window value
+observeEvent(input$help_BED_getroi_windowvalue, {
+  boxHelpServer(help_BED_getroi_windowvalue)
+})
+
+
 
 
 observeEvent(input$showdataframeROI,{
@@ -1470,6 +1569,7 @@ observeEvent(input$showdataframeROI,{
     ####newenrichimplementation####
     #we have to find maximum enrichment point. Raw cov w/o normalization is ok
     bams=Enrichlist$rawcoverage[[pos]]
+    keys=Enrichlist$decryptkey[[pos]]
     normvals=Enrichlist$normfactlist[[pos]]
     ################################
     #build the dataframe (df) to show according to the various checks in the input
@@ -1501,21 +1601,22 @@ observeEvent(input$showdataframeROI,{
       #bams=getBAMlist(ROI)
       bamnames=names(bams)
       pos=match(input$ROIoptionsToViewENRICHMENTS,bamnames)
-      bams_selected=bams[pos]
+      bams_selected_tmp=bams[pos]
+      keys_selected=keys[pos]
       #summed values must be normalized for the normalization factor
       normvals_selected=normvals[pos]
       if(nc==1){
-        megalist=lapply(1:length(bams_selected),function(i) {
-          summ=sapply(bams_selected[[i]],sum)
-          summ=sum*normvals_selected[[i]]
+        megalist=lapply(1:length(bams_selected_tmp),function(i) {
+
+          summ=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bams_selected_tmp[[i]],Nbins=1,Snorm=FALSE,key=keys_selected[[i]],norm_factor=normvals_selected[[i]])
+
           return(summ)          
         })
       }else{
         decision=0
         tryCatch({
-          megalist=mclapply(1:length(bams_selected),function(i) {
-            summ=sapply(bams_selected[[i]],sum)
-            summ=summ*normvals_selected[[i]]
+          megalist=mclapply(1:length(bams_selected_tmp),function(i) {
+            summ=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bams_selected_tmp[[i]],Nbins=1,Snorm=FALSE,key=keys_selected[[i]],norm_factor=normvals_selected[[i]])
             return(summ)          
           },mc.cores=nc)
 
@@ -1529,9 +1630,8 @@ observeEvent(input$showdataframeROI,{
         })
 
         if(decision==0){
-          megalist=lapply(1:length(bams_selected),function(i) {
-            summ=sapply(bams_selected[[i]],sum)
-            summ=summ*normvals_selected[[i]]
+          megalist=lapply(1:length(bams_selected_tmp),function(i) {
+            summ=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bams_selected_tmp[[i]],Nbins=1,Snorm=FALSE,key=keys_selected[[i]],norm_factor=normvals_selected[[i]])
             return(summ)          
           })            
         }
@@ -1539,7 +1639,7 @@ observeEvent(input$showdataframeROI,{
 
       #append to dataframe the sum of the enrichments
       for (i in 1:length(megalist)){
-        name=names(bams_selected)[i]
+        name=names(bams_selected_tmp)[i]
         df[,ncol(df)+1]=as.character(megalist[[i]])
         colnames(df)[ncol(df)]=paste("enrichment_",name,sep="")
       } 
@@ -1683,7 +1783,7 @@ observeEvent(input$showgenelistWindowROI,{
         sendSweetAlert(
           session = session,
           title = "Annotated elements not found",
-          text = "Promoters of a specific genome assembly not found, but you need them: go to 'Databases' section and choose a genome assembly",
+          text = "Promoters of a specific genome assembly not found, but you need them: go to 'Assembly' section and choose a genome assembly",
           type = "error"
         ) 
 
@@ -1720,6 +1820,55 @@ observeEvent(input$showgenelistWindowROI,{
     ) 
   }
 },ignoreInit=TRUE)
+
+
+
+
+
+
+#view /download notes for ROI is in MANIPULATE roi advanced menu
+
+#here, add view/edit notes of a ROI (the source)
+observeEvent(input$saveNotesROI,{
+  #check on the existence of ROIs
+  if(length(ROIvariables$listROI)>0 & length(input$selectROItoEditNotes)>0){
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    pos=match(input$selectROItoEditNotes,nomi)
+    ROI=ROIvariables$listROI[[pos]]
+    #get value from input$ROInotes (text) and put as source for the ROI named by input$selectROItoEditNotes
+    newsource=input$ROInotes
+    ROI@source=as.list(newsource)
+    ROIvariables$listROI[[pos]]=ROI
+  }else{
+    sendSweetAlert(
+      session = session,
+      title = "ROI not selected",
+      text = "You didn't select a ROI",
+      type = "error"
+    )    
+  }
+},ignoreInit=TRUE)
+
+#here, download text file of the notes of the ROI (source)
+output$downloadNotesROI<- downloadHandler(
+  filename=function() {paste('ROInotes.txt', sep='')},
+  content=function(file) {
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    pos=match(input$selectROItoEditNotes,nomi)
+    ROI=ROIvariables$listROI[[pos]]
+    source_ROI=getSource(ROI)
+    #download the source of the ROI saved, NOT the text actually written on the textArea    
+    print("Downloading ROI source")
+    fileConn<-file(file)
+
+    writeLines(unlist(source_ROI), fileConn)
+    close(fileConn)
+  }
+)
+
+
+
+
 
 
 #observer for download of peaks
@@ -1782,8 +1931,10 @@ observeEvent(input$confirmBAMDeassociate,{
 
       ####newenrichimplementation####
       tempbam=Enrichlist$rawcoverage
+      tempkey=Enrichlist$decryptkey
       tempnorm=Enrichlist$normfactlist
       bams=tempbam[[pos[i]]]
+      keys=tempkey[[pos[i]]]
       normvals=tempnorm[[pos[i]]]
       ###############################  
 
@@ -1794,12 +1945,15 @@ observeEvent(input$confirmBAMDeassociate,{
 
       ####newenrichimplementation####
       bams[pos2]<-NULL
+      keys[pos2]<-NULL
       normvals[pos2]<-NULL
       if(is.null(bams)){
         bams=list()
+        keys=list()
         normvals=list()
       }
       tempbam[[pos[i]]]=bams
+      tempkey[[pos[i]]]=keys
       tempnorm[[pos[i]]]=normvals
       ###############################
 
@@ -1809,9 +1963,12 @@ observeEvent(input$confirmBAMDeassociate,{
       # } 
       ####newenrichimplementation####
       Enrichlist$rawcoverage<-NULL
+      Enrichlist$decryptkey<-NULL
       Enrichlist$normfactlist<-NULL
+      gc()
 
       Enrichlist$rawcoverage=tempbam
+      Enrichlist$decryptkey=tempkey
       Enrichlist$normfactlist=tempnorm
 
 
@@ -1848,24 +2005,20 @@ observeEvent(input$confirmBAMassociate,{
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$selectROItoBAMassociate,nomi)
     ROIs=ROIvariables$listROI[pos] 
-    ####newenrichimplementation####
-    rawvals=Enrichlist$rawcoverage[pos]
-    normvals=Enrichlist$normfactlist[pos]
-    ###############################
     totallist=list()   
      
     #now for each of these ROIs selected,find BAM (among all those selected) to associate with:
     for(i in 1:length(ROIs)){
-      bampresent=names(rawvals)
       ####newenrichimplementation####
-      enrichpresent=names(rawvals[[i]])
+      enrichpresent=names(Enrichlist$rawcoverage[pos][[i]])
       ###############################     
       allbams=names(BAMvariables$listBAM)
-      remaining=setdiff(allbams,bampresent)
-      #find the requested enrichment over the remaining enrichments
-      remaining_selected=remaining[match(input$selectBAMtoassociate,remaining)]
+      remaining=setdiff(allbams,enrichpresent)
+
       #if no BAM associatable with that ROI, simply skip
-      if(!all(is.na(remaining_selected))){
+      if(length(remaining)>0){
+        #find the requested enrichment over the remaining enrichments
+        remaining_selected=remaining[match(input$selectBAMtoassociate,remaining)]
         #remove those that are NA:
         remaining_selected=remaining_selected[!is.na(remaining_selected)]
         pos2=match(remaining_selected,names(BAMvariables$listBAM))
@@ -1876,8 +2029,32 @@ observeEvent(input$confirmBAMassociate,{
       }else{
 
       }
+
+
     }
-    rm(rawvals)
+
+
+
+    #HERE the check for feasibility considering the RAM available. Sum width of all genomic ranges * number of coverage
+    ###########################################################################################
+    totalBPtobecoveraged=sum(sapply(lapply(lapply(totallist,getRange),width),sum))
+    #here, let's suppose an average compression of 2x from the total number of bp (1-byte encryption) (assumption!)
+    totalRAMtobeused=totalBPtobecoveraged/2
+
+    avRAM=availRAM()
+    if (totalRAMtobeused/1000000>avRAM){
+      #not enough RAM for final storage: exit with message
+      print(paste("available RAM:",avRAM,"not enough. Predict to occupy about",totalRAMtobeused/1000000))
+      sendSweetAlert(
+        session = session,
+        title = "Not enough memory",
+        text = "The RAM available seems not enough for the coverage. Try to reduce the number of ROI or the number of enrichment files for the coverage, or remove enrichment files aready associated.",
+        type = "error"
+      )          
+      return()   
+    }
+    ###########################################################################################
+
 
     if(!is.null(input$selectMethodForNorm)){
 	    if(input$selectMethodForNorm=="librarysize"){
@@ -1933,22 +2110,29 @@ observeEvent(input$confirmBAMassociate,{
           }          
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
-
-            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
-            nfact=singlecover[[2]]
+            rangetocov=getRange(totallist[[i]])
+            #here use chunksforassociate function to determine the number of chunks
+            nchunks=chunksforassociate(rangetocov)
+            singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                      signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+            nfact=singlecover[[3]]
+            decryptkey=singlecover[[2]]
             singlecover=singlecover[[1]]
+
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
-              temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
-              temproi=setRange(totallist[[i]],temprange)
-              singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
-              nfact=singlecover[[2]]
+              temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+              #temproi=setRange(totallist[[i]],temprange)
+              singlecover=GRbaseCoverage2(Object=temprange,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                      signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+              nfact=singlecover[[3]]
+              decryptkey=singlecover[[2]]
               singlecover=singlecover[[1]]              
             }
 
             print (paste("coverage",names(totallist)[i]))
-            return(list(singlecover,nfact))
+            return(list(singlecover,decryptkey,nfact))
           }else{
             rangetransc=getRange(totallist[[i]])
             thirtypercent=round((width(rangetransc)/10)*3)
@@ -1956,21 +2140,26 @@ observeEvent(input$confirmBAMassociate,{
             #this could cause problems in the future...
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
+            #here use chunksforassociate function to determine the number of chunks
+            nchunks=chunksforassociate(rangetransc)
             singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
-            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
-            nfact=singlecover[[2]]
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks=nchunks)
+            nfact=singlecover[[3]]
+            decryptkey=singlecover[[2]]
             singlecover=singlecover[[1]]
+            
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(rangetransc,to="NCBI")
               singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
-            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
-              nfact=singlecover[[2]]
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks)
+              nfact=singlecover[[3]]
+              decryptkey=singlecover[[2]]
               singlecover=singlecover[[1]]
             }
             print (paste("coverage",names(totallist)[i]))
-            return(list(singlecover,nfact))
+            return(list(singlecover,decryptkey,nfact))
           }
         })#,mc.cores=nc)  
 
@@ -1991,21 +2180,26 @@ observeEvent(input$confirmBAMassociate,{
        
           #here put check if transcripts:
           if(getFlag(totallist[[i]])!="transcriptFlag"){
-            singlecover=cover(Object=totallist[[i]],signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
-            nfact=singlecover[[2]]
+            rangetocov=getRange(totallist[[i]])
+            singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                  signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=1)
+            nfact=singlecover[[3]]
+            decryptkey=singlecover[[2]]
             singlecover=singlecover[[1]]            
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
-              temprange=convertNomenclatureGR(getRange(totallist[[i]]),to="NCBI")
-              temproi=setRange(totallist[[i]],temprange)
-              singlecover=cover(Object=temproi,signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike)
-              nfact=singlecover[[2]]
+              temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+              #temproi=setRange(totallist[[i]],temprange)
+              singlecover=GRbaseCoverage2(Object=temprange,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                      signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=1)
+              nfact=singlecover[[3]]
+              decryptkey=singlecover[[2]]
               singlecover=singlecover[[1]]            
             }
 
             print (paste("coverage",names(totallist)[i]))
-            return(list(singlecover,nfact))
+            return(list(singlecover,decryptkey,nfact))
           }else{
             rangetransc=getRange(totallist[[i]])
             thirtypercent=round((width(rangetransc)/10)*3)
@@ -2013,24 +2207,27 @@ observeEvent(input$confirmBAMassociate,{
             #this could cause problems in the future...
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
             rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
-            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
-            nfact=singlecover[[2]]
+            singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks=1)
+            nfact=singlecover[[3]]
+            decryptkey=singlecover[[2]]
             singlecover=singlecover[[1]]            
             #if all(singlecover==0) -> change nomenclature
             if(verifyzerocov(singlecover)){
               print ("cov is 0s... converting nomelclature to NCBI for coverage...")
               temprange=convertNomenclatureGR(rangetransc,to="NCBI")
               singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
-            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06)
-              nfact=singlecover[[2]]
+            												signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks=1)
+              nfact=singlecover[[3]]
+              decryptkey=singlecover[[2]]
               singlecover=singlecover[[1]]
             }
             print (paste("coverage",names(totallist)[i]))
-            return(list(singlecover,nfact))
+            return(list(singlecover,decryptkey,nfact))
           }
         },mc.cores=newnc)  
 
       }
+
 
 
       if(Normmethod=="lib"){
@@ -2044,22 +2241,27 @@ observeEvent(input$confirmBAMassociate,{
       		input$ctrlNormalizer," as control and ",input$ctrlSpikeinNormalizer," as control spike-in",sep="")
       }
 
-
+      
       ##now attrib to each ROI the correct enrichments just calculated
       nameROIs=sapply(totallist,getName)
       finallist2=lapply(finallist,"[[",1)
-      normfinallist=lapply(finallist,"[[",2)
+      finaldecryptkeylist=lapply(finallist,"[[",2)
+      normfinallist=lapply(finallist,"[[",3)
+
       splittedresultlist=split(finallist2,nameROIs)
+      splittedkeylist=split(finaldecryptkeylist,nameROIs)
+      splittednormlist=split(normfinallist,nameROIs)
       rm(finallist2)
       splittedtotallist=split(totallist,nameROIs)
       #"for each ROI selected for enrich. computation..."
       for(i in 1:length(splittedresultlist)){
+        
         #previouslist=getBAMlist(splittedtotallist[[i]][[1]])
-
         ####newenrichimplementation####
         nme=getName(splittedtotallist[[i]][[1]])
         roilocation=match(nme,names(Enrichlist$rawcoverage))
         previousrawvals=Enrichlist$rawcoverage[[roilocation]]
+        previousdecryptkey=Enrichlist$decryptkey[[roilocation]]
         previousnormvals=Enrichlist$normfactlist[[roilocation]]
         ###############################
 
@@ -2067,7 +2269,7 @@ observeEvent(input$confirmBAMassociate,{
         #get from bamlist the name
         pos=match(realnames,BAMvariables$listBAM)
         toname=names(BAMvariables$listBAM)[pos]
-        names(splittedresultlist[[i]])=toname
+        names(splittedresultlist[[i]])=names(splittedkeylist[[i]])=names(splittednormlist[[i]])=toname
         #here, check if some finallist2 was NULL.
         notnulls=!(sapply(splittedresultlist[[i]],is.null))
         #print message of something is NULL
@@ -2082,16 +2284,21 @@ observeEvent(input$confirmBAMassociate,{
 
 
         splittedresultlist_notnull=splittedresultlist[[i]][notnulls]
+        splittedkeylist_notnull=splittedkeylist[[i]][notnulls]
+        splittednormlist_notnull=splittednormlist[[i]][notnulls]
         #finalfinallist=c(previouslist,splittedresultlist_notnull)
 
 
         ####newenrichimplementation####
         #to be modified
         finalrawvals=c(previousrawvals,splittedresultlist_notnull)
-        names(normfinallist)=names(splittedresultlist_notnull)
-        finalnormvals=c(previousnormvals,normfinallist)
+        finaldecryptkeylist=c(previousdecryptkey,splittedkeylist_notnull)
+        finalnormvals=c(previousnormvals,splittednormlist_notnull)
+        
+        
         rm(previousrawvals)
         rm(previousnormvals)
+        rm(previousdecryptkey)
         ###############################
         #which ROI?
         posROI=match(names(splittedresultlist)[i],nomi)
@@ -2100,13 +2307,18 @@ observeEvent(input$confirmBAMassociate,{
         ####newenrichimplementation####
         #fill enrichlist
         Enrichlist$rawcoverage[[posROI]]=finalrawvals
+        Enrichlist$decryptkey[[posROI]]=finaldecryptkeylist
         Enrichlist$normfactlist[[posROI]]=finalnormvals
         ################################
 
+
         rm(finalrawvals)
         rm(finalnormvals)
+        rm(finaldecryptkeylist)
         #rm(finalfinallist)
         rm(splittedresultlist_notnull)
+        rm(splittedkeylist_notnull)
+        rm(splittednormlist_notnull)
         
         for(k in toname){
           logvariables$msg[[length(logvariables$msg)+1]]=paste('Associated ',k,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,'<br>',sep="")
@@ -2114,6 +2326,7 @@ observeEvent(input$confirmBAMassociate,{
         print(paste('Associated ',toname,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,sep=""))
       }
       rm(splittedresultlist)
+
       print("forcing gc...")
       print(gc())  
       #alert the user that the block of files has been associated corectly to ROIs
@@ -2197,6 +2410,7 @@ observeEvent(input$renameBAM,{
       roi=ROIvariables$listROI[[pos]]
       ####newenrichimplementation####
       rawvals=Enrichlist$rawcoverage[[pos]]
+      keyvals=Enrichlist$decryptkey[[pos]]
       normvals=Enrichlist$normfactlist[[pos]]
       ###############################
       getbam=names(rawvals)  
@@ -2213,6 +2427,7 @@ observeEvent(input$renameBAM,{
               oldname=getbam[pos2]
               names(bamselected)[pos2]=input$newBAMname
               names(Enrichlist$rawcoverage[[i]])=names(bamselected)
+              names(Enrichlist$decryptkey[[i]])=names(bamselected)
               names(Enrichlist$normfactlist[[i]])=  names(bamselected)            
               #ROIvariables$listROI[[i]]=setBAMlist(ROIvariables$listROI[[i]],bamselected)
             }
@@ -2246,6 +2461,7 @@ observeEvent(input$reorderBAM,{
     roi=ROIvariables$listROI[[pos]]
     ####newenrichimplementation####
     rawvals=Enrichlist$rawcoverage[[pos]]
+    keyvals=Enrichlist$decryptkey[[pos]]
     normvals=Enrichlist$normfactlist[[pos]]
     ###############################
     getbam=names(rawvals)  
@@ -2266,10 +2482,12 @@ observeEvent(input$reorderBAM,{
         ord=listprovv
         #reorder BAM 
         rawvals=rawvals[order(ord)]
+        keyvals=keyvals[order(ord)]
         normvals=normvals[order(ord)]
 
 
         Enrichlist$rawcoverage[[pos]]=rawvals
+        Enrichlist$decryptkey[[pos]]=keyvals
         Enrichlist$normfactlist[[pos]]=normvals
         #ROIvariables$listROI[[pos]]=setBAMlist(ROIvariables$listROI[[pos]],rawvals)
         
@@ -2295,761 +2513,6 @@ observeEvent(input$reorderBAM,{
 
 
 
-
-
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-# GO gene ontology analysis
-##############################################################################
-##############################################################################
-##############################################################################
-##############################################################################
-
-
-###react to help buttons:
-#parameters
-observeEvent(input$msg_goAnalysis_parameters, {
-  boxHelpServer(msg_goAnalysis_parameters)
-})
-#GO plot
-observeEvent(input$msg_goAnalysis_goPlot, {
-  boxHelpServer(msg_goAnalysis_goPlot)
-})
-
-#GO table
-observeEvent(input$msg_goAnalysis_goTable, {
-  boxHelpServer(msg_goAnalysis_goTable)
-})
-
-
-
-
-
-toListenGO <- reactive({
-    list(input$doTheGO)#,input$doTheGO2)
-})
-
-observeEvent(toListenGO(),{
-  if(!isvalid(input$minSizeGO)|!isvalid(input$maxSizeGO)){
-    #numeric input not valid
-    sendSweetAlert(
-      session = session,
-      title = "Geneset size thresholds not valid",
-      text = "Min or Max geneset size thresholds are not valid",
-      type = "error"
-    ) 
-    return() 
-  }
-  #check if any geneset was selected!!
-  if(isvalid(input$selectedGenesetsGO)){
-    #if selected ROI:
-    # if valid input$chooseCriteriaROIGO, ROI ok, otherwise ROI not seelcted or no DB or no ROI
-    #if selected fromcutomGenelist
-    # testarea must not be empty. If no DB, must be symbols
-    if(input$chooseSourceGO=="fromROI"){
-
-      if(!isvalid(input$selectROIGO)){
-        sendSweetAlert(
-          session = session,
-          title = "No ROI selected",
-          text = "You have to select at least one ROI",
-          type = "error"
-        )          
-        return()
-      }
-
-      if(isvalid(input$chooseCriteriaROIGO)){
-        #create list for gene lists in input (n= number of ROI selected)
-        inputGeneList=as.list(rep(NA,length(input$selectROIGO)))
-        names(inputGeneList)=input$selectROIGO
-        nomi=unlist(lapply(ROIvariables$listROI,getName))
-        pos=match(input$selectROIGO,nomi)
-        ROI=ROIvariables$listROI[pos]
-
-
-        if(input$chooseCriteriaROIGO=="windowGene"){
-          if(isvalid(input$WindowROIGO)){
-            print( paste("GO analysis in genomic window from", paste(input$selectROIGO,collapse="; ")) )
-
-            pospromo=match("promoters",nomi)
-            ROIpromo=ROIvariables$listROI[[pospromo]]
-            fixedpromo=getFixed(ROIpromo)
-
-            #open the window around the Fix of promoters (TSSs), for example for 10kb window:
-            #                         10k  10k      
-            #promoters:             |----|----|       |----|----|
-            promo=suppressWarnings(unique(resize(fixedpromo,width=input$WindowROIGO*2,fix="center")))
-            #if (!is.null(ROI)) {}
-            for (i in 1:length(ROI)){
-              #center the range in the Fixed point
-              range=getFixed(ROI[[i]])
-
-              ov=suppressWarnings(countOverlaps(promo,range))
-              #WARNING: more than one midpoint of grange can be associated with the same
-              # promoter!!
-              #extract gene id of overlapping promoters with that window
-              promo_selected=promo[ov>0]
-
-              emd=as.data.frame(elementMetadata(promo_selected))
-              symbols=unique(as.character(emd$symbol))
-              inputGeneList[[i]]=symbols
-            }
-
-          }else{
-            #window not valid
-            sendSweetAlert(
-              session = session,
-              title = "Genomic window not valid",
-              text = "The genomic window is empty or is not a number",
-              type = "error"
-            )
-            return()
-          }
-          
-        }else{
-          #nearest gene, assign symbols in inputGeneList elements
-          print( paste("GO analysis of nearest genes annotated to", paste(input$selectROIGO,collapse="; ")) )
-          for (i in 1:length(ROI)){
-            range=getRange(ROI[[i]])
-            emd=as.data.frame(elementMetadata(range))
-            symbols=unique(as.character(emd$symbol))
-            inputGeneList[[i]]=symbols
-          }
-
-        }
-      }else{
-        #no ROI, no ROI selected or no database (ROI not annotated)
-        sendSweetAlert(
-          session = session,
-          title = "No database or no ROI",
-          text = "Be sure to select at least one ROI and that a genome assembly is active. Go to 'Databases' section for that",
-          type = "error"
-        )   
-        return()
-        
-      }
-
-    }else{
-      #here, chosen custom gene list instead of ROI
-      if(isvalid(input$pastedGenesGO)){
-        print("GO analysis from a pasted set of genes")
-        genelist=strsplit(input$pastedGenesGO,split="\n")[[1]]
-        uniquegenelist=unique(genelist)
-        lostinunique=length(genelist)-length(uniquegenelist)
-        print (paste(lostinunique," genes lost because duplicated",sep=""))
-        if(isvalid(input$chooseIDgeneGO)){
-
-          nomi=unlist(lapply(ROIvariables$listROI,getName))
-          pospromo=match("promoters",nomi)
-          ROIpromo=ROIvariables$listROI[[pospromo]]
-          rangepromo=getFixed(ROIpromo)
-          emd=as.data.frame(elementMetadata(rangepromo))
-
-          #here, take promoters and translate ***-> to symbols
-          if(input$chooseIDgeneGO=="entrez"){
-            #gene_id column
-            pos=match(uniquegenelist,emd$gene_id)
-          }else if(input$chooseIDgeneGO=="ensembl"){
-            #ensembl_id column
-            pos=match(uniquegenelist,emd$ensembl_id)
-          }else if(input$chooseIDgeneGO=="refseq"){
-            #refSeq_id column
-            pos=match(uniquegenelist,emd$refSeq_id)
-          }else{
-            #match with itself, but same capital letters
-            pos=match(toupper(uniquegenelist),toupper(emd$symbol))
-          }
-          translatedSymbols=as.character(emd[pos,]$symbol)
-
-        }else{
-          #only symbols shuld be provided
-          translatedSymbols=uniquegenelist
-        }
-
-
-        translatedSymbols=translatedSymbols[!is.na(translatedSymbols)]
-        if(length(translatedSymbols)<1){
-          #no match found... problems
-          sendSweetAlert(
-            session = session,
-            title = "Invalid genes",
-            text = "Are you sure to have typed the correct gene IDs or symbols in the text area? Maybe you put spaces or the wrong kind of IDs",
-            type = "error"
-          )
-          return()
-        }
-
-
-
-        inputGeneList=as.list(rep(NA,1))
-        names(inputGeneList)="custom_gene_list"
-        inputGeneList[[1]]=translatedSymbols
-
-      }else{
-        sendSweetAlert(
-          session = session,
-          title = "Empty/not valid genes",
-          text = "I didn't find genes in the text area or those genes are not valid IDs/names",
-          type = "error"
-        )         
-        return()
-      }
-      
-    }
-
-    #from here, we have the list of gene symbols to query
-    #?parallel GO on elements of inputGeneList
-    #read geneSets files and store them in logvariables$temporary_GMTstorage list
-    #the elements of this list correspond to gene sets and are NA at the beginning
-    posSets=match(input$selectedGenesetsGO,names(GenesetsGMT))
-    SetsToRead=GenesetsGMT[posSets]
-    allterms=as.list(rep(NA,length(input$selectedGenesetsGO)))
-    names(allterms)=names(SetsToRead)
-    
-    #do it in parallel even if reading files?
-    for(i in 1:length(SetsToRead)){
-      if(!is.na(logvariables$temporary_GMTstorage[names(SetsToRead)[i]])){
-        #take cached values from temporary file
-        allterms[[names(SetsToRead)[i]]]<-logvariables$temporary_GMTstorage[[names(SetsToRead)[i]]]
-      }else{
-        #read the geneset GMT file ex-novo
-        GMT=readGMT(SetsToRead[[i]])
-        logvariables$temporary_GMTstorage[[names(SetsToRead)[i]]]=GMT
-        allterms[[names(SetsToRead)[i]]]<-GMT
-      }
-    }
-
-    #union of all genesets of all categories
-    terms=do.call("rbind",allterms)
-    dt=data.table(terms)
-    dt=unique(dt)
-    termsdt=as.data.frame(unique(dt))
-    
-    ##################################################
-    #calculate how many genes are correctly found
-    allgenes=toupper(Reduce("union",inputGeneList))
-    identif=match(allgenes,as.character(termsdt$gene))
-    ##################################################
-
-
-
-    #now use the GO function for each roi or for genelist. Try in parallel
-    minsizeGO=input$minSizeGO
-    maxsizeGO=input$maxSizeGO
-    #execeute the GO in parallel. If nc==1 (maybe windows OS) use lapply
-    #be careful! if window gene, block of current range could be 0!!
-    if(nc==1){
-      reslist=lapply(1:length(inputGeneList),function(i){
-        currentblock=inputGeneList[[i]]
-        #transform uppercase 
-        currentblock=toupper(currentblock)
-        if (length(currentblock)>1){
-          #do the GO with hypergeometric test
-          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
-        }else{
-          res=NULL
-        }
-        return(res)
-      })
-    }else{
-      reslist=mclapply(1:length(inputGeneList),function(i){
-        currentblock=inputGeneList[[i]]
-        #transform uppercase 
-        currentblock=toupper(currentblock)
-        if (length(currentblock)>1){
-          #do the GO with hypergeometric test
-          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
-        }else{
-          res=NULL
-        }
-        return(res)
-      },mc.cores=nc)      
-    }
-
-
-    names(reslist)=names(inputGeneList)
-    #union of all terms resulting from all ROIs (if ROIs). If null, padj is the max(1) for each term.
-    #if all NULL, return problem with sweetalert
-    unionterms=lapply(reslist,rownames)
-    unionterms=unlist(unionterms)
-    unionterms=unique(unionterms)
-    
-    #union of all blocks in single df. Terms not present: put NA as genes, 0 as ratio, 1 as padj
-    #collector of all dfs
-    final_list=as.list(rep(NA,length(reslist)))
-    #names(final_list)=names(reslist)
-    #for loop is enough efficient, because at most we have 10/20 ROIs...
-    tofillNULL=c("NA",0,1)
-    for(i in 1:length(reslist)){
-      #for each ROI, fill entire unionterms, if NULL, fill with NA, 0, 1
-      #extract info from result
-      tempres=reslist[[i]]
-      tempdf=data.frame(matrix(rep(tofillNULL,length(unionterms)),byrow=TRUE,ncol=3))
-      rownames(tempdf)=unionterms
-      tempdf[,1]=as.character(tempdf[,1])
-      tempdf[,2]=as.numeric(tempdf[,2])
-      tempdf[,3]=as.numeric(tempdf[,3])
-      if(!is.null(tempres)){
-        #fill if the term is present with real values
-        partres=reslist[[i]][,c(2,7,10)]
-        partres[,1]=as.character(partres[,1])
-        colnames(partres)=colnames(tempdf)=paste(names(reslist)[i],c("Genes","gene_ratio","padj"),sep="_")
-        pos=match(unionterms,rownames(reslist[[i]]))
-        pos2=pos[!is.na(pos)]
-        tempdf[!is.na(pos),]=partres[pos2,]
-
-      }
-      final_list[[i]]=tempdf
-    }
-    finaldf=do.call("cbind",final_list)
-
-
-
-    ######## ORDERING THE MATRIX ######
-
-
-
-
-    mat=finaldf
-    #extract -log10 padj values of the matrix 
-    #this block can remain. It is removing NA,infinite from matrix and creating padj matrix
-    #the important thing is that the order keeps the same
-    partdfpadj=mat[,grepl("_padj$",colnames(mat)),drop=FALSE]
-    partdfpadj=-log10(partdfpadj)
-    #remove inf and NA values
-    posNA=apply(partdfpadj,1,function(i){any(is.na(i))})
-    posInf=apply(partdfpadj,1,function(i){any(is.infinite(i))})
-    partdfpadj=partdfpadj[!posNA & !posInf,,drop=FALSE]
-    mat=mat[!posNA & !posInf,,drop=FALSE]
-
-    ########################################################################
-	  ########################################################################
-	  ########################################################################
-	  #in this part rank or cluster the matrix (put the desired ordering according to the inputs)
-	  chooseOrderingGO=input$chooseOrderingGO
-	  clustertypeGO=input$clustertypeGO
-    
-
-
-	  #if clustering is valid and selected,
-	  #respond interactively to the kind of clustering,
-	  #otherwise, rank
-
-
-	  RANKING=TRUE
-	  ## if number of genelists are <=2 , only ranking! clustering won't make sense
-	  if(ncol(partdfpadj)>1 &nrow(partdfpadj)>2 & isvalid(chooseOrderingGO)){
-	    if(chooseOrderingGO=="clustering"){
-	      RANKING=FALSE
-	    }else{
-	      RANKING=TRUE          
-	    }
-	  }else{
-	    RANKING=TRUE
-	  }
-
-	  
-	  if(RANKING){
-	    #ranking. We don't have a matrix, we will do simple barplot
-	    # maxvals=apply(partdfpadj,1,max)
-	    # ord=order(-maxvals)
-	    print ("ranking")
-		  maxvals=apply(partdfpadj,1,max)
-		  ord=order(-maxvals)
-	  }else{
-  		clustnumGO=input$clustnumGO
-  		clustrandomstartsGO=input$clustrandomstartsGO
-  		clustnumiterationsGO=input$clustnumiterationsGO
-  		distmethodGO=input$distmethodGO
-  		clustmethodGO=input$clustmethodGO
-	  	if (!isvalid(clustertypeGO)){
-	  	  print ("clsuter not valid")
-	  	  return()
-	  	}
-	  	if( !(isvalid(clustnumGO)&isvalid(clustrandomstartsGO)&isvalid(clustnumiterationsGO) ) &
-	  		 !(isvalid(distmethodGO)&isvalid(clustmethodGO))){
-	  	  print ("cluster parameters not valid")
-	  	  return()	
-	  	}
-
-	  	provv1=apply(partdfpadj, 2, as.list)
-	  	matlist=lapply(provv1,as.matrix)
-			#here,clustering. Use Kmeans or hierarchical, according to what has been chosen
-	    if(clustertypeGO=="kmean"){
-	      #do kmean
-	      print ("kmean clustering")
-	      clustobj=clusterMatrixKmeans(matlist=matlist,clustinds=1:length(matlist),numberclusters=clustnumGO,
-	      														startingpoints=clustrandomstartsGO,iter=clustnumiterationsGO)
-
-	    }else{
-	      #do hierarchical
-	      print ("h clustering")
-	      clustobj=clusterMatrix(matlist=matlist,clustinds=1:length(matlist),distmethod=distmethodGO,clustmethod=clustmethodGO)
-	    	
-	    } 
-	  ord=clustobj$ord
-	  }
-	  ########################################################################
-	  ########################################################################
-	  ########################################################################
-	  #whatever os the ordering (ranking, kmean, hclust..), order the matrix!
-	  partdfpadj=partdfpadj[ord,,drop=FALSE]
-	  mat=mat[ord,,drop=FALSE]
-
-
-	  #save variables to be used later in other reactive contexts
-    toplot$GOvariables$tempmat=mat
-    toplot$GOvariables$temppadj=partdfpadj
-    toplot$GOvariables$termsdt=termsdt
-
-  }else{
-    #no geneset selected
-    sendSweetAlert(
-      session = session,
-      title = "No geneset selected",
-      text = "You have to select at least one geneset from the menu",
-      type = "error"
-    )     
-  }
-
-},ignoreInit=TRUE)
-
-
-
-##observer for GO plot/table from toplot$GOvariables$tempmat matrix
-observe({
-
-  #here the reactive variables of the observer. If they are not satisfied,
-  #return immediately
-
-
-  #observer using reactive parameters
-  if(!is.null(toplot$GOvariables$tempmat)){
-    mat=toplot$GOvariables$tempmat
-    partdfpadj=toplot$GOvariables$temppadj
-    padjthresh=10^(-(input$log10padjGO))
-    generatiothresh=input$quantileGeneRatioGO
-    topN=input$topNGO
-    
-    #here,filter the results according to parameters, and topN.
-    #topN: keep the topN hits based on the best padj in all the ROIs queried.
-    # padjthresh: save hit if any of ROI have a padj that is ok for this threshold
-    #maybe one of the 2 can be removed if text of genesets in the plot is reduced
-    pos_tokeep=filterGOres(GOres=mat,padjthresh=padjthresh,generatiothresh=generatiothresh,topN=topN)
-    mat=mat[pos_tokeep,,drop=FALSE]
-    partdfpadj=partdfpadj[pos_tokeep,,drop=FALSE]
-
-    #reset selected genes from the previous analysis
-    output$GenesClicked<-renderText({NULL})
-    output$showGenesClicked<-renderUI({NULL}) 
-    output$showTermClicked<-renderUI({NULL})
-    
-    #if real matrix, heatmap, otherwise barplot
-    if(min(dim(mat))>0){
-      
-      #here we should filter also padj matrix... or recreate it from filtered matrix...
-      toplot$GOvariables$partdfpadj=partdfpadj
-      toplot$GOvariables$completemat=mat
-
-      if(ncol(partdfpadj)>1){
-        #multiplying factor for height(n ROIs,=>ncol)
-        if(ncol(partdfpadj)<10){
-          factormult=10/ncol(partdfpadj)
-        }else{
-          factormult=1
-        }
-        #multiplying factor for width(n ontologies,=>nrow)
-        if(nrow(partdfpadj)<30){
-          factormult2=30/nrow(partdfpadj)
-        }else{
-          factormult2=1
-        }
-
-        trasp=as.matrix(partdfpadj)
-
-
-        output$plotOntology<-renderPlot({
-          colorpal=input$colorScaleGO 
-          scaleQuantile=input$scaleQuantileGO
-          brk=201
-          trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)
-          colorsplitted=strsplit(colorpal,split="_")[[1]]
-          palette=colorRampPalette(colorsplitted)(n=brk-1)
-          par(mar = rep(0, 4))
-          image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", 
-                ylab = "",col=palette,xlim=c(0,nrow(trasp)*factormult2),ylim=c(0,ncol(trasp)*factormult),useRaster=FALSE  )
-          #lines for the columns
-          for(csep in 1:nrow(trasp)){
-            rect(xleft = csep , ybottom = rep(0,length(csep)), 
-              xright = csep  + 0.01, 
-              ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
-              col = "black", border = "black"
-            )
-          }
-          #lines for the rows
-          for (csep2 in 1:ncol(trasp)){
-            rect(xleft = rep(0,length(csep2))  , ybottom = csep2 , 
-              xright = rep(nrow(trasp) , csep2), 
-              ytop = csep2 +0.01, lty = 1, lwd = 1, 
-              col = "black", border = "black")
-          }        
-        })
-
-        #left names of ROIs
-        output$plotMaterialLeft<-renderPlot({
-
-          par(mar = rep(0, 4))
-          plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i",yaxs="i")
-          #have to start from x coordinate of the half of first cell to half of the last
-          numbersample=ncol(partdfpadj)
-          if(numbersample<10){
-            #divide by 10 and multiply by number sample
-            newmax=(1/10)*numbersample
-            halfcellwidthmin=(newmax/numbersample)/2
-            halfcellwidthmax=newmax-halfcellwidthmin
-
-          }else{
-            halfcellwidthmin=(1/numbersample)/2
-            halfcellwidthmax=1-halfcellwidthmin
-          }
-          cextext=0.8
-          text(y=seq(halfcellwidthmin, halfcellwidthmax ,length.out=numbersample),labels=rev(colnames(partdfpadj)),x=rep(1,numbersample),cex=cextext,adj=1  )
-        })
-
-
-        #plot color legend (only if heatmap)
-        output$colorScaleGO<-renderPlot({    
-          scaleQuantile=input$scaleQuantileGO
-          trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)          
-          brk=201
-          palette_col=input$colorScaleGO 
-            
-            if(palette_col=="rainbow"){
-              my_palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n = brk-1))
-            }else{
-              colorsplitted=strsplit(palette_col,split="_")[[1]]
-              my_palette <- colorRampPalette(colorsplitted)(n = brk-1 )
-            }
-            color.bar2(my_palette, min=round(0),max=round(max(trasp),2))                    
-
-        })
-        output$saveheatmapGO<-renderUI({downloadButton('saveheatmapGObutton', 'Get PDF')})
-      }else{
-
-        #left axis
-        output$plotMaterialLeft<-renderPlot({
-       
-          if(nchar(round(max(partdfpadj[,1])))>2){
-            maxval=max(partdfpadj[,1])
-            labs=seq(0, maxval, round(max(partdfpadj[,1],1)/8))
-          }else{
-            maxval=round(max(partdfpadj[,1]),3)
-            labs=seq(0, maxval , signif(max(partdfpadj[,1],1)/8,digits=2)   )
-          }
-          #labs=c(labs,signif(max(partdfpadj[,1]),digits=2))
-          maxpoint=labs[length(labs)] /maxval
-          ats=seq(0,maxpoint,(1/(length(labs))))
-
-          ats[1]=ats[1]+0.01
-          ats[length(ats)]=ats[length(ats)]-0.01
-          par(mar = c(0,0,0,0))
-          plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i", yaxs="i")
-
-          axis(side=2, labels=labs,at=ats,pos=.98)
-          text(x=0.80,y=0.5,las=2,label="-log10 padj",srt = 90)
-        })
-
-        output$plotOntology<-renderPlot({
-          par(mar = c(0,0,0,0))
-          if(nrow(partdfpadj)<30){
-            factormult2=30/nrow(partdfpadj)
-          }else{
-            factormult2=1
-          }
-          
-          barplot(partdfpadj[,1],names=rownames(partdfpadj),las=2,ylab="-log10 padj",ylim=c(0,max(partdfpadj[,1])),xlim=c(0,nrow(partdfpadj)*factormult2),xaxt = 'n', yaxt = 'n',xaxs="i",space=rep(0,nrow(partdfpadj)))
-        })  
-
-        #no color scale if barplot
-        output$colorScaleGO<-renderPlot({NULL})
-        output$saveheatmapGO<-renderUI({downloadButton('savebarplotGObutton', 'Get PDF')})
-      }
-
-      #prepare table to show and download
-      toshow=mat  
-      toshow$Term=rownames(mat)
-      #rerder cols, Gene list must be at the end
-      pospadj=which(grepl("_padj$",colnames(toshow)))
-      posratio=which(grepl("_gene_ratio$",colnames(toshow)))
-      posgene=which(grepl("_Genes$",colnames(toshow)))
-      posterm=which(grepl("Term$",colnames(toshow)))
-      newpos=c(posterm,pospadj,posratio,posgene)
-      toshow=toshow[,newpos ]
-      toplot$GOvariables$filtereddf=toshow
-
-
-      output$tableOntology <- renderDataTable({
-        toshow
-      },options=list(pagingType = "simple",pageLength = 10,lengthChange=FALSE,searching=TRUE,autowidth=FALSE )   )
-
-      output$textNameGO <- renderPlot({
-        par(mar = rep(0, 4))
-        plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")
-        #have to start from x coordinate of the half of first cell to half of the last
-        numbersample=nrow(partdfpadj)
-        if(numbersample<30){
-          #divide by 10 and multiply by number sample
-          newmax=(1/30)*numbersample
-          halfcellwidthmin=(newmax/numbersample)/2
-          halfcellwidthmax=newmax-halfcellwidthmin
-          cextext=0.8
-        }else{
-          halfcellwidthmin=(1/numbersample)/2
-          halfcellwidthmax=1-halfcellwidthmin
-          coeff=(nrow(partdfpadj)/30 )
-          coeff2=(1-(30/nrow(partdfpadj)))/3
-          cextext=0.8/coeff +coeff2
-        }
-        
-        text(x=seq(halfcellwidthmin, halfcellwidthmax ,length.out=numbersample),labels=rownames(partdfpadj),y=rep(0.98,numbersample),srt=90,cex=cextext,adj=1  )     
-      })
-
-      output$tableGOdownloadButton<-renderUI({downloadButton('saveGOdataTable', 'Download data')})
-      
-    }else{
-      output$plotOntology<-renderPlot({NULL})
-      output$tableOntology <- renderDataTable({NULL})
-      output$textNameGO <- renderPlot({NULL})
-      output$tableGOdownloadButton<-renderUI({NULL})
-      output$plotMaterialLeft<-renderPlot({NULL})
-      output$colorScaleGO<-renderPlot({NULL})
-      output$saveheatmapGO<-renderUI({NULL})
-    }    
-  }else{
-    output$plotOntology<-renderPlot({NULL})
-    output$tableOntology <- renderDataTable({NULL})   
-    output$textNameGO <- renderPlot({NULL}) 
-    output$tableGOdownloadButton<-renderUI({NULL})
-    output$plotMaterialLeft<-renderPlot({NULL})
-    output$colorScaleGO<-renderPlot({NULL})
-    output$saveheatmapGO<-renderUI({NULL})
-  }
-  
-})
-
-
-
-#observer for download data button
-output$saveGOdataTable<- downloadHandler(
-  filename=function() {
-      paste('GeneOntology_data.xls', sep='')
-  },
-  content=function(file) {
-
-      write.table(toplot$GOvariables$filtereddf,file=file,row.names=FALSE,sep="\t",quote=FALSE,col.names=TRUE   ) 
-  } 
-  
-)
-
-
-
-
-output$saveheatmapGObutton<- downloadHandler(
-  filename=function() {
-      paste('Heatmap_GO.pdf', sep='')
-  },
-  content=function(file) {
-    partdfpadj=toplot$GOvariables$partdfpadj    
-    #multiplying factor for height(n ROIs,=>ncol)
-    if(ncol(partdfpadj)<10){
-      factormult=10/ncol(partdfpadj)
-    }else{
-      factormult=1
-    }
-    #multiplying factor for width(n ontologies,=>nrow)
-    if(nrow(partdfpadj)<30){
-      factormult2=30/nrow(partdfpadj)
-      cextext=1
-    }else{
-      factormult2=1
-      coeff=(nrow(partdfpadj)/30 )
-      coeff2=(1-(30/nrow(partdfpadj)))/3
-      cextext=1/coeff +coeff2
-    }
-
-    trasp=as.matrix(partdfpadj)
-    colorpal=input$colorScaleGO 
-    scaleQuantile=input$scaleQuantileGO
-    brk=201
-    trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)
-    colorsplitted=strsplit(colorpal,split="_")[[1]]
-    palette=colorRampPalette(colorsplitted)(n=brk-1)
-
-    pdf(file,width=10,height=8)
-    block1=c(rep(1,9),2)
-    block2=c(rep(3,9),4)
-    mlay=matrix( c(block1,rep(block2,9)),ncol=10,nrow=10,byrow=TRUE)
-    layout(mlay)
-    par(mar=rep(0,4))
-    plot.new()
-
-    #draw color scale
-    color.bar2(palette, min=round(0),max=round(max(trasp),2),margins=c(2,1.2,2,1.2))  
-
-    par(mar = c(22,22,0,0))
-    image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", 
-          ylab = "",col=palette,xlim=c(0,nrow(trasp)*factormult2),ylim=c(0,ncol(trasp)*factormult),useRaster=FALSE  )
-    #lines for the columns
-    for(csep in 1:nrow(trasp)){
-      rect(xleft = csep , ybottom = rep(0,length(csep)), 
-        xright = csep  + 0.01, 
-        ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
-        col = "black", border = "black"
-      )
-    }
-    #lines for the rows
-    for (csep2 in 1:ncol(trasp)){
-      rect(xleft = rep(0,length(csep2))  , ybottom = csep2 , 
-        xright = rep(nrow(trasp) , csep2), 
-        ytop = csep2 +0.01, lty = 1, lwd = 1, 
-        col = "black", border = "black")
-    }    
-    #draw axes
-    
-    axis(1,at=(1:nrow(trasp)-0.5),labels=rownames(trasp),las= 2,tick=FALSE,cex.axis=cextext )
-    axis(2,at=(1:ncol(trasp)-0.5),labels=rev(colnames(trasp)),las= 1,tick=FALSE )
-    par(mar=rep(0,4))
-    plot.new()
-  
-
-    dev.off()
-
-  } 
-)
-
-
-
-output$savebarplotGObutton<- downloadHandler(
-  filename=function() {
-      paste('Barplot_GO.pdf', sep='')
-  },
-  content=function(file) {
-    partdfpadj=toplot$GOvariables$partdfpadj 
-    pdf(file,height=8,width=10)
-    par(mar = c(15,6,0,0))
-    if(nrow(partdfpadj)<30){
-      factormult2=30/nrow(partdfpadj)
-    }else{
-      factormult2=1
-    }
-    
-    barplot(partdfpadj[,1],names=rownames(partdfpadj),las=2,ylab="-log10 padj",xlim=c(0,nrow(partdfpadj)*factormult2),space=rep(0,nrow(partdfpadj)))
-
-    dev.off()
-  } 
-)
 
 
 
@@ -3088,7 +2551,6 @@ observeEvent(input$PrepareROIpredefPipeline,{
   #   input$selectBAMsummitPredefPipeline -> enrichment file to use for summit, if previous was "yes"
   #input$sliderUpstreamPredefPipeline, input$sliderDownstreamPredefPipeline -> window resize
   #input$enrichAllPredefPipeline -> enrichment files to associate to prepared ROI
-  #input$coresPredefPipeline -> number of cores for enrichment predef.pipeline association
   #input$ROInamePredefPipeline -> name of the new ROI
 
 
@@ -3282,16 +2744,20 @@ observeEvent(input$PrepareROIpredefPipeline,{
   #bams=getBAMlist(roi)
   ####newenrichimplementation####
   bams=Enrichlist$rawcoverage[[pos]]
+  keys=Enrichlist$decryptkey[[pos]]
   normvals=Enrichlist$normfactlist[[pos]]
   ################################
   if(length(bams)>0){
     newBAMlist=list()
+    newkeylist=list()
     for(i in 1:length(bams)){
       newBAMlist[[i]]=bams[[i]][selectedPositions]
+      newkeylist[[i]]=keys[[i]][selectedPositions]
     }
-    names(newBAMlist)=names(bams)            
+    names(newBAMlist)=names(newkeylist)=names(bams)            
   }else{
     newBAMlist=list()
+    newkeylist=list()
   }
             
   newfix=getFixed(roi)[selectedPositions]
@@ -3302,6 +2768,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
 
   ####newenrichimplementation####
   Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=newBAMlist
+  Enrichlist$decryptkey[[input$ROInamePredefPipeline]]=newkeylist
   Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=normvals
   ################################  
   ROI_after_sample=new("RegionOfInterest",
@@ -3320,30 +2787,56 @@ observeEvent(input$PrepareROIpredefPipeline,{
   #summit (if yes)
   ##################################################################################
   
+	totalBPtobecoveraged=sum(width(getRange(ROI_after_sample)))
+	#here, let's suppose an average compression of 2x from the total number of bp (1-byte encryption) (assumption!)
+	totalRAMtobeused=totalBPtobecoveraged/2
+	avRAM=availRAM()
+	if (totalRAMtobeused/1000000>avRAM){
+	  #not enough RAM for final storage: exit with message
+	  print(paste("available RAM:",avRAM,"not enough. Predict to occupy about",totalRAMtobeused/1000000))
+	  sendSweetAlert(
+	    session = session,
+	    title = "Not enough memory",
+	    text = "The RAM available seems not enough for calculating the summit.",
+	    type = "error"
+	  )          
+	  return()   
+	}
+
+
+
   #with elements produced in previous block, do the summit
   #check if enrichment file of the summit already associated
   bams_names=names(newBAMlist)
   if(input$choiceSummitPredefPipeline=="Yes"){
     if(!input$selectBAMsummitPredefPipeline%in%bams_names){
+      rangetocov=getRange(ROI_after_sample)
+      nchunks=chunksforassociate(rangetocov)
       #associate BAM/WIG, no need to normalize, it's just summit. Useless for the same enrich. file
-      singlecover=cover(Object=ROI_after_sample,signalfile=paths_summit,signalfileNorm=NULL,
-      						signalControl=NULL,signalControlSpike=NULL)
+      singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=paths_summit,signalfileNorm=NULL,
+      						signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06,nchunks=nchunks)
       #we don't need to keep any norm fact here, it's just the summit
+      key=singlecover[[2]]
       singlecover=singlecover[[1]]
+      
       if(verifyzerocov(singlecover)){
         print ("cov is 0s... converting nomelclature to NCBI for summit cov detection...")
-        temprange=convertNomenclatureGR(getRange(ROI_after_sample),to="NCBI")
-        temproi=setRange(ROI_after_sample,temprange)
-        singlecover=cover(Object=temproi,signalfile=paths_summit,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL)
+        temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+        #temproi=setRange(ROI_after_sample,temprange)
+        singlecover=GRbaseCoverage2(Object=temprange,signalfile=paths_summit,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06,nchunks=nchunks)
+        key=singlecover[[2]]
         singlecover=singlecover[[1]]
+
       }
     }else{
       #do nothing, enrichment already in ROI. Use BAM already present to center on summit
       pos2=match(input$selectBAMsummitPredefPipeline,bams_names)
       singlecover=newBAMlist[[pos2]]
+      key=newkeylist[[pos2]]
     }
     #newrange and singlecover must have same length (both derive from correctly subsampled ROI)
-    newrange=summitFromBaseCoverage(Object=newrange,baseCoverageOutput=singlecover)
+    newrange=summitFromBaseCoverage(Object=newrange,baseCoverageOutput=singlecover,keys=key)
+    #newrange=summitFromBaseCoverage(Object=newrange,baseCoverageOutput=singlecover)
     oldSource=newSource
     toadd=paste("Centered on summit using",input$selectBAMsummitPredefPipeline,"enrichment (range width=1)")
     
@@ -3362,6 +2855,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
     }    
     ####newenrichimplementation####
     Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=list()
+    Enrichlist$decryptkey[[input$ROInamePredefPipeline]]=list()
     Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=list()
     ################################ 
     ROI_after_summit=new("RegionOfInterest",
@@ -3390,6 +2884,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
   fix=start(getFixed(ROI_after_summit))
   #bamlist=getBAMlist(ROI_after_summit)
   bamlist=Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]
+  keylist=Enrichlist$decryptkey[[input$ROInamePredefPipeline]]
   normfact=Enrichlist$normfactlist[[input$ROInamePredefPipeline]]
   #split positive or undetermined strand from negative strand
   pos_positive=as.logical(!strand(roi)=="-")
@@ -3404,6 +2899,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
   roi=roi[idx_positive_or_negative_good]
   fix=fix[idx_positive_or_negative_good]
   bamlist=lapply(bamlist,function(i) {i[idx_positive_or_negative_good]})
+  keylist=lapply(keylist,function(i) {i[idx_positive_or_negative_good]})
 
   pos_positive=as.logical(!strand(roi)=="-")
   pos_negative=as.logical(strand(roi)=="-")
@@ -3412,7 +2908,9 @@ observeEvent(input$PrepareROIpredefPipeline,{
   fix_positive=fix[pos_positive]
   fix_negative=fix[pos_negative]
   bamlist_positive=lapply(bamlist,function(i) {i[pos_positive]})
+  keylist_positive=lapply(keylist,function(i) {i[pos_positive]})
   bamlist_negative=lapply(bamlist,function(i) {i[pos_negative]})
+  keylist_negative=lapply(keylist,function(i) {i[pos_negative]})
 
   #resize positivee strand:
   oldstarts_positive=start(roi_positive)
@@ -3440,82 +2938,15 @@ observeEvent(input$PrepareROIpredefPipeline,{
   #ROI_after_summit=setFix(ROI_after_summit,newfix)
   newrange=roi
 
-  #to be checked when BAM files will be available. If not, also norm fact are not, so 
-  #no need to update norm facts
-  if (length(bamlist)>0){
-    #if not everything is less than the old size in any position, reset BAMlist!
-    if (! (all((fix_positive-oldstarts_positive) >= newstart) & all((oldends_positive-fix_positive)>= newend) )
-              | !(all((fix_negative-oldstarts_negative) >= newend) & all((oldends_negative-fix_negative)>= newstart) )    ){
-      #reset BAMlist or improve only the delta margins of already existing matrixes
-      #ROI_after_summit=resetBAMlist(ROI_after_summit)
-      logvariables$msg[[length(logvariables$msg)+1]]= paste('Removed associated BAMs, because new size > old size...<br>',sep="")
-      newBAMlist=list()
-    }else{
-      toadd=paste(toadd,"(kept associated BAMs)")
-      #split - and + for BAM resize 
-      
-      shiftleft_positive= (fix_positive-oldstarts_positive)- newstart
-      shiftright_positive=(oldends_positive-fix_positive)-newend
-
-
-      if (any(pos_positive)){
-        bamlistnew_positive=lapply(1:length(bamlist_positive),function(i) {
-          #cut also BAM file if some ranges have a resize that will lead to a negative start
-          x=bamlist_positive[[i]]
-          slicedbam=lapply(1:length(x), function(k) {
-                                return(x[[k]] [(shiftleft_positive[k]+1): (length(x[[k]])-shiftright_positive[k]) ])
-                                })
-          return(slicedbam)
-        } )
-
-      }
-
-      shiftleft_negative= (fix_negative-oldstarts_negative)- newend
-      shiftright_negative=(oldends_negative-fix_negative)-newstart
-
-
-      if (any(pos_negative)){
-        bamlistnew_negative=lapply(1:length(bamlist_negative),function(i) {
-          #cut also BAM file if some ranges have a resize that will lead to a negative start
-          x=bamlist_negative[[i]]
-          slicedbam=lapply(1:length(x), function(k) {
-                                return(x[[k]] [(shiftleft_negative[k]+1): (length(x[[k]])-shiftright_negative[k]) ])
-                                })
-          return(slicedbam)
-        } )                    
-      }
-
-
-
-      #join bamlistnew_positive and bamlistnew_negative back to bamlist
-      bamlistnew=lapply(1:length(bamlist),function(i) {
-        x=bamlist[[i]]
-        if (any(pos_positive)){
-          x[pos_positive]=bamlistnew_positive[[i]]
-        }
-        
-        if (any(pos_negative)){
-          x[pos_negative]=bamlistnew_negative[[i]]
-        }
-        return(x)
-      })
-
-      names(bamlistnew)=names(bamlist)
-      newBAMlist=bamlistnew
-      #ROI_after_summit=setBAMlist(ROI_after_summit,bamlistnew)
-
-      #x is single list of baseCoverage (BAM)
-      logvariables$msg[[length(logvariables$msg)+1]]= paste('Conserved associated BAMs, because new size < old size...<br>',sep="")
-
-    }
-  }else{
-    newBAMlist=list()
-    normfact=list()
-  }
+  newBAMlist=list()
+  newkeylist=list()
+  normfact=list()
+  #}
 
   newSource=c(oldSource,list(toadd))
   ####newenrichimplementation####
   Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=newBAMlist
+  Enrichlist$decryptkey[[input$ROInamePredefPipeline]]=newkeylist
   Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=normfact
   ################################   
   ROI_after_resize=new("RegionOfInterest",
@@ -3526,24 +2957,17 @@ observeEvent(input$PrepareROIpredefPipeline,{
                                 flag=newflag,
                                 source=newSource) 
 
-  # if(length(unique(fix_positive-oldstarts_positive))==1 & length(unique(oldends_positive-fix_positive))==1){
-  #   logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInamePredefPipeline,' ROI [-',input$sliderUpstreamPredefPipeline,'; +',input$sliderDownstreamPredefPipeline,'] from ',input$selectROIpredefPipeline,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']<br>',sep="")
-  #   print(paste('Created ',input$ROInamePredefPipeline,' ROI [-',input$sliderUpstreamPredefPipeline,'; +',input$sliderDownstreamPredefPipeline,'] from ',input$selectROIpredefPipeline,' ROI [-',(fix_positive-oldstarts_positive)[1],'; +',(oldends_positive-fix_positive)[1],']',sep=""))
-  # }else{
-  #   logvariables$msg[[length(logvariables$msg)+1]]= paste('Created ',input$ROInamePredefPipeline,' ROI [-',input$sliderUpstreamPredefPipeline,'; +',input$sliderDownstreamPredefPipeline,'] from ',input$selectROIpredefPipeline,' ROI with original widths<br>',sep="")
-  #   print(paste('Created ',input$ROInamePredefPipeline,' ROI [-',input$sliderUpstreamPredefPipeline,'; +',input$sliderDownstreamPredefPipeline,'] from ',input$selectROIpredefPipeline,' ROI with original widths',sep=""))
-  # }
-
-
 
 
   ##################################################################################
   #enrichment association
   ##################################################################################
-  ncores=input$coresPredefPipeline
+  #ncores=input$coresPredefPipeline
+  ncores=1
   enrichments_selected=input$enrichAllPredefPipeline
   #enrichments_alreadyAssociated=getBAMlist(ROI_after_resize)
   enrichments_alreadyAssociated=Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]
+  previousdecryptkey=Enrichlist$decryptkey[[input$ROInamePredefPipeline]]
   previousnormvals =Enrichlist$normfactlist[[input$ROInamePredefPipeline]]
   
   #determine which enrichments are already associated
@@ -3552,6 +2976,23 @@ observeEvent(input$PrepareROIpredefPipeline,{
   paths=BAMvariables$listBAM[pos2]  
 
 
+
+	totalBPtobecoveraged=sum(width(getRange(ROI_after_resize)))
+	#here, let's suppose an average compression of 2x from the total number of bp (1-byte encryption) (assumption!)
+	totalRAMtobeused=totalBPtobecoveraged/2
+	avRAM=availRAM()
+	if (totalRAMtobeused/1000000>avRAM){
+	  #not enough RAM for final storage: exit with message
+	  print(paste("available RAM:",avRAM,"not enough. Predict to occupy about",totalRAMtobeused/1000000))
+	  sendSweetAlert(
+	    session = session,
+	    title = "Not enough memory",
+	    text = "The RAM available seems not enough for calculating enrichments.",
+	    type = "error"
+	  )          
+	  return()   
+	}
+
   #depending if only one operation, lapply or mclapply with n cores
   #by default, simple library-size normalization (except WIGs)
   #IMPORTANT: NEVER TANSCRIPT FLAG
@@ -3559,52 +3000,60 @@ observeEvent(input$PrepareROIpredefPipeline,{
     if(ncores==1 | length(enrichments_toAssociate)==1 | length(paths)==1){
       #single core (lapply)
       finallist=lapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
-        normfacts=singlecover[[2]]
+        rangetocov=getRange(ROI_after_resize)
+        nchunks=chunksforassociate(rangetocov)
+        singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL,nchunks=nchunks)
+        normfacts=singlecover[[3]]
+        decryptkey=singlecover[[2]]
         singlecover=singlecover[[1]]
         print(paste("Associating ",paths[[i]]," in single core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
-        	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
-        	temproi=setRange(ROI_after_resize,temprange)
-        	singlecover=cover(Object=temproi,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
-          normfacts=singlecover[[2]]
+        	temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+        	#temproi=setRange(ROI_after_resize,temprange)
+        	singlecover=GRbaseCoverage2(Object=temprange,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL,nchunks=nchunks)
+          normfacts=singlecover[[3]]
+          decryptkey=singlecover[[2]]
           singlecover=singlecover[[1]]
         }
-        return(list(singlecover,normfacts))
+        return(list(singlecover,decryptkey,normfacts))
       })
 
     }else{
       #multicore (mclapply)
       finallist=mclapply(1:length(paths),function(i) {
-        singlecover=cover(Object=ROI_after_resize,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
-        normfacts=singlecover[[2]]
+        rangetocov=getRange(ROI_after_resize)
+        singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL,nchunks=1)
+        normfacts=singlecover[[3]]
+        decryptkey=singlecover[[2]]
         singlecover=singlecover[[1]]        
         print(paste("Associating ",paths[[i]]," in multi core",sep=""))
         if(verifyzerocov(singlecover)){
         	print ("cov is 0s... converting nomelclature to NCBI for cov...")
-        	temprange=convertNomenclatureGR(getRange(ROI_after_resize),to="NCBI")
-        	temproi=setRange(ROI_after_resize,temprange)
-        	singlecover=cover(Object=temproi,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL)
-          normfacts=singlecover[[2]]
+        	temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+        	#temproi=setRange(ROI_after_resize,temprange)
+        	singlecover=GRbaseCoverage2(Object=temprange,signalfile=paths[[i]],signalfileNorm=paths[[i]],signalControl=NULL,signalControlSpike=NULL,nchunks=1)
+          normfacts=singlecover[[3]]
+          decryptkey=singlecover[[2]]
           singlecover=singlecover[[1]]        
         }
-        return(list(singlecover,normfacts))
+        return(list(singlecover,decryptkey,normfacts))
       },mc.cores=ncores)
     }
 
     #put names to new enrichments
     finallist2=lapply(finallist,"[[",1)
-    normfinallist=lapply(finallist,"[[",2)
-    names(finallist2)=names(normfinallist)=names(paths)
+    decryptkeyfinallist=lapply(finallist,"[[",2)
+    normfinallist=lapply(finallist,"[[",3)
+    names(finallist2)=names(decryptkeyfinallist)=names(normfinallist)=names(paths)
     finalfinallist=c(enrichments_alreadyAssociated,finallist2)
-
-    
+    finaldecryptkeylist=c(previousdecryptkey,decryptkeyfinallist)
     finalnormvals=c(previousnormvals,normfinallist)
 
     ####newenrichimplementation####
     #fill enrichlist
     Enrichlist$rawcoverage[[input$ROInamePredefPipeline]]=finalfinallist
+    Enrichlist$decryptkey[[input$ROInamePredefPipeline]]=finaldecryptkeylist
     Enrichlist$normfactlist[[input$ROInamePredefPipeline]]=finalnormvals
 
     ROI_after_associate=ROI_after_resize
@@ -3630,6 +3079,680 @@ observeEvent(input$PrepareROIpredefPipeline,{
         'resized at [-',input$sliderUpstreamPredefPipeline,'; +',input$sliderDownstreamPredefPipeline,'] intervals from center',sep=""))
   
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# predefined pipeline for genelist preparation for metagene profile
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+
+#ROI combination
+observeEvent(input$msg_GenelistPipeline_parameters, {
+  boxHelpServer(msg_GenelistPipeline_parameters)
+})
+
+
+observeEvent(input$PrepareROIgenelistPipeline,{
+  #here, the inputs are: 
+  #input$selectROIGenelistPipeline -> starting genelists (triad of ROIs) to prepare
+  #input$BAMforGenelistPipeline -> enrichments to asociate to genelists
+  #input$PrepareROIgenelistPipeline -> button to execute
+
+
+
+  ##################################################################################
+  #checks (useless if great UI)
+  ##################################################################################
+  if(!isvalid(input$selectROIGenelistPipeline)){
+    #no ROI, do nothing!    
+    return()
+  }
+
+  #general criteria
+  if(is.null(ROIvariables$listROI) | length(ROIvariables$listROI)<1 | length(input$selectROIGenelistPipeline)==0 ){
+    sendSweetAlert(
+      session = session,
+      title = "Missing ROI",
+      text = "You have to select at least one ROI",
+      type = "error"
+    )          
+    return()
+  }
+
+
+  #check if enrichment selected (useless if great UI)
+  if(!isvalid(input$BAMforGenelistPipeline)){
+    sendSweetAlert(
+      session = session,
+      title = "Missing enrichment",
+      text = "You have to select at least one enrichment",
+      type = "error"
+    )          
+    return()
+  }
+
+
+  #if some enrichments selected, check existence. 
+  if(isvalid(input$BAMforGenelistPipeline) & length(input$BAMforGenelistPipeline)>=1 ){
+    for(i in 1:length(input$BAMforGenelistPipeline)){
+      pos2=match(input$BAMforGenelistPipeline[i],names(BAMvariables$listBAM))
+      currentenrichpath=BAMvariables$listBAM[[pos2]]
+      if(!file.exists(currentenrichpath)){
+        sendSweetAlert(
+          session = session,
+          title = "Enrichment not found",
+          text = paste("Enrichment file ",input$BAMforGenelistPipeline[i]," not found. Maybe the link to that file changed or file has been removed from filesystem... try to reopen it",sep="") ,
+          type = "error"
+        )     
+        return()           
+      }
+
+      #check .bai file if BAM file selected
+      if ( substring(input$BAMforGenelistPipeline[i],nchar(input$BAMforGenelistPipeline[i])-3,nchar(input$BAMforGenelistPipeline[i]))==".bam"){
+        #find if bam file has its own index (.bam.bai)
+        baifile=paste(currentenrichpath,".bai",sep="")
+        if (!file.exists(baifile)){
+          sendSweetAlert(
+            session = session,
+            title = "BAM index not found",
+            text = paste("BAM index of the BAM file ",input$BAMforGenelistPipeline[i]," not found.",sep=""),
+            type = "error"
+          )     
+          return()           
+        }
+      }
+
+    }
+  }
+
+
+
+
+
+
+
+  ######################################################################
+  # execute
+  ######################################################################
+
+
+  nomi=unlist(lapply(ROIvariables$listROI,getName))
+  pos=list()
+  for(i in 1:length(input$selectROIGenelistPipeline)){
+    selected=input$selectROIGenelistPipeline[i]
+    pos_promoters= which(paste("promoters_genelist_",selected,sep="")==nomi)
+    pos_transcripts= which(paste("transcripts_genelist_",selected,sep="")==nomi)
+    pos_TES= which(paste("TES_genelist_",selected,sep="")==nomi)
+    pos[[i]]=c(pos_promoters,pos_transcripts,pos_TES)
+  }
+  pos=Reduce(union, pos)
+  ROIs=ROIvariables$listROI[pos] 
+  totallist=list()   
+  
+  #now for each of these ROIs selected,find BAM (among all those selected) to associate with:
+  for(i in 1:length(ROIs)){
+    ####newenrichimplementation####
+    enrichpresent=names(Enrichlist$rawcoverage[pos][[i]])
+    ###############################     
+    allbams=names(BAMvariables$listBAM)
+    remaining=setdiff(allbams,enrichpresent)
+
+    #if no BAM associatable with that ROI, simply skip
+    if(length(remaining)>0){
+      #find the requested enrichment over the remaining enrichments
+      remaining_selected=remaining[match(input$BAMforGenelistPipeline,remaining)]
+      #remove those that are NA:
+      remaining_selected=remaining_selected[!is.na(remaining_selected)]
+      pos2=match(remaining_selected,names(BAMvariables$listBAM))
+      paths=BAMvariables$listBAM[pos2]
+      partlist=rep(list(ROIs[[i]]),length(paths))
+      names(partlist)=paths
+      totallist=c(totallist,partlist)
+    }else{
+
+    }
+  }
+
+  
+  #HERE the check for feasibility considering the RAM available. Sum width of all genomic ranges * number of coverage
+  ###########################################################################################
+  totalBPtobecoveraged=sum(sapply(lapply(lapply(totallist,getRange),width),sum))
+  #here, let's suppose an average compression of 2x from the total number of bp (1-byte encryption) (assumption!)
+  totalRAMtobeused=totalBPtobecoveraged/2
+
+  avRAM=availRAM()
+  if (totalRAMtobeused/1000000>avRAM){
+    #not enough RAM for final storage: exit with message
+    print(paste("available RAM:",avRAM,"not enough. Predict to occupy about",totalRAMtobeused/1000000))
+    sendSweetAlert(
+      session = session,
+      title = "Not enough memory",
+      text = "The RAM available seems not enough for the coverage. Try to reduce the number of ROI or the number of enrichment files for the coverage, or remove enrichment files aready associated.",
+      type = "error"
+    )          
+    return()   
+  }
+  ###########################################################################################
+
+
+  #######################
+  # normalization, only lib size for pipeline for genelists
+  # if you want custom normalization, associate enrichments manually in the advanced ROI manaegment menu
+  #######################
+
+  Normmethod="lib"
+  normalizer=NULL
+  normCtrl=NULL
+  normCtrlSpike=NULL 
+
+
+  #nc=1, because in pipeline for genelists we keep it simple
+
+  ##here use totallist to parallelize the code. Each iteration has path to enrichment and a ROI
+  tryCatch({
+
+    print ("Associating enrichments to genelist(s) (single core)")
+    finallist=lapply(1:length(totallist),function(i) {
+
+      tonorm=names(totallist)[i]
+     
+      #here put check if transcripts:
+      if(getFlag(totallist[[i]])!="transcriptFlag"){
+        rangetocov=getRange(totallist[[i]])
+        #here use chunksforassociate function to determine the number of chunks
+        nchunks=chunksforassociate(rangetocov)
+        singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                  signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+        nfact=singlecover[[3]]
+        decryptkey=singlecover[[2]]
+        singlecover=singlecover[[1]]
+
+        #if all(singlecover==0) -> change nomenclature
+        if(verifyzerocov(singlecover)){
+          print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+          temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+          #temproi=setRange(totallist[[i]],temprange)
+          singlecover=GRbaseCoverage2(Object=temprange,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                  signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+          nfact=singlecover[[3]]
+          decryptkey=singlecover[[2]]
+          singlecover=singlecover[[1]]              
+        }
+
+        print (paste("coverage",names(totallist)[i]))
+        return(list(singlecover,decryptkey,nfact))
+      }else{
+        rangetransc=getRange(totallist[[i]])
+        thirtypercent=round((width(rangetransc)/10)*3)
+        #try suppress warnings... BE CAREFUL... maybe it will trim some bases,
+        #this could cause problems in the future...
+        rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
+        rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
+        #here use chunksforassociate function to determine the number of chunks
+        nchunks=chunksforassociate(rangetransc)
+        singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+                                signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks=nchunks)
+        nfact=singlecover[[3]]
+        decryptkey=singlecover[[2]]
+        singlecover=singlecover[[1]]
+        
+        #if all(singlecover==0) -> change nomenclature
+        if(verifyzerocov(singlecover)){
+          print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+          temprange=convertNomenclatureGR(rangetransc,to="NCBI")
+          singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+                                signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks)
+          nfact=singlecover[[3]]
+          decryptkey=singlecover[[2]]
+          singlecover=singlecover[[1]]
+        }
+        print (paste("coverage",names(totallist)[i]))
+        return(list(singlecover,decryptkey,nfact))
+      }
+    })  
+
+
+
+
+    msg="library-size normalized"
+
+    
+    ##now attrib to each ROI the correct enrichments just calculated
+    nameROIs=sapply(totallist,getName)
+    finallist2=lapply(finallist,"[[",1)
+    finaldecryptkeylist=lapply(finallist,"[[",2)
+    normfinallist=lapply(finallist,"[[",3)
+
+    splittedresultlist=split(finallist2,nameROIs)
+    splittedkeylist=split(finaldecryptkeylist,nameROIs)
+    splittednormlist=split(normfinallist,nameROIs)
+    rm(finallist2)
+    splittedtotallist=split(totallist,nameROIs)
+    #"for each ROI selected for enrich. computation..."
+    for(i in 1:length(splittedresultlist)){
+      
+      #previouslist=getBAMlist(splittedtotallist[[i]][[1]])
+      ####newenrichimplementation####
+      nme=getName(splittedtotallist[[i]][[1]])
+      roilocation=match(nme,names(Enrichlist$rawcoverage))
+      previousrawvals=Enrichlist$rawcoverage[[roilocation]]
+      previousdecryptkey=Enrichlist$decryptkey[[roilocation]]
+      previousnormvals=Enrichlist$normfactlist[[roilocation]]
+      ###############################
+
+      realnames=names(splittedtotallist[[i]])
+      #get from bamlist the name
+      pos=match(realnames,BAMvariables$listBAM)
+      toname=names(BAMvariables$listBAM)[pos]
+      names(splittedresultlist[[i]])=names(splittedkeylist[[i]])=names(splittednormlist[[i]])=toname
+      #here, check if some finallist2 was NULL.
+      notnulls=!(sapply(splittedresultlist[[i]],is.null))
+      #print message of something is NULL
+      if(sum(notnulls)<length(toname)){
+        sendSweetAlert(
+          session = session,
+          title = "Some problems",
+          text = paste("Some enrichment files gave 'NULL' (",toname[!notnulls],") and were not associated. Please, try again with them",sep=""),
+          type="warning"
+        )          
+      }
+
+
+      splittedresultlist_notnull=splittedresultlist[[i]][notnulls]
+      splittedkeylist_notnull=splittedkeylist[[i]][notnulls]
+      splittednormlist_notnull=splittednormlist[[i]][notnulls]
+      #finalfinallist=c(previouslist,splittedresultlist_notnull)
+
+
+      ####newenrichimplementation####
+      #to be modified
+      finalrawvals=c(previousrawvals,splittedresultlist_notnull)
+      finaldecryptkeylist=c(previousdecryptkey,splittedkeylist_notnull)
+      finalnormvals=c(previousnormvals,splittednormlist_notnull)
+      
+      
+      rm(previousrawvals)
+      rm(previousnormvals)
+      rm(previousdecryptkey)
+      ###############################
+      #which ROI?
+      posROI=match(names(splittedresultlist)[i],nomi)
+
+      # ROIvariables$listROI[[posROI]]=setBAMlist(ROIvariables$listROI[[posROI]],finalfinallist)
+      ####newenrichimplementation####
+      #fill enrichlist
+      Enrichlist$rawcoverage[[posROI]]=finalrawvals
+      Enrichlist$decryptkey[[posROI]]=finaldecryptkeylist
+      Enrichlist$normfactlist[[posROI]]=finalnormvals
+      ################################
+
+
+      rm(finalrawvals)
+      rm(finalnormvals)
+      rm(finaldecryptkeylist)
+      #rm(finalfinallist)
+      rm(splittedresultlist_notnull)
+      rm(splittedkeylist_notnull)
+      rm(splittednormlist_notnull)
+      
+      for(k in toname){
+        logvariables$msg[[length(logvariables$msg)+1]]=paste('Associated ',k,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,'<br>',sep="")
+      }
+      print(paste('Associated ',toname,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,sep=""))
+    }
+    rm(splittedresultlist)
+
+    print("forcing gc...")
+    print(gc())  
+    #alert the user that the block of files has been associated corectly to ROIs
+    sendSweetAlert(
+      session = session,
+      title = "Enrichments associated!",
+      text = paste("Enrichment file(s) associated to genelist(s)",sep=""),
+      type = "success"
+    ) 
+    return()
+
+  },warning = function( w ){
+    #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Warning: Problems in associating BAM or WIG. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1...<br></font>',sep="")
+    sendSweetAlert(
+      session = session,
+      title = "Problems in association",
+      #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
+      text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
+      tags$li(style="text-align: left;",style="text-align: left;","Enrichment file not found. Check the correct path."),  
+      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;",style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
+      type = "error"
+    )
+  },error = function( err ){
+    #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Problems in associating BAM or WIG. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1...<br></font>',sep="")
+    sendSweetAlert(
+      session = session,
+      title = "Problems in association",
+      #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
+      text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
+      tags$li(style="text-align: left;","Enrichment file not found. Check the correct path."),  
+      tags$li(style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
+      type = "error"
+    )          
+  }) 
+
+
+
+})
+
+
+
+
+
+
+
+
+observeEvent(input$Buttonultraeasy,{
+  #checks should be useless
+  if (!isvalid(input$selectROIultraeasy)| !isvalid(input$selectBAMultraeasy) | length(ROIvariables$listROI)==0){
+    sendSweetAlert(
+      session = session,
+      title = "Input not valid",
+      text = "Check the inputs (ROI and one or more enrichment files)",
+      type = "error"
+    )
+    return()
+  }
+
+
+  #execute enrichment association
+  nomi=unlist(lapply(ROIvariables$listROI,getName))
+  pos=match(input$selectROIultraeasy,nomi)
+  ROIs=ROIvariables$listROI[[pos]]
+  totallist=list()   
+     
+
+  ####newenrichimplementation####
+  enrichpresent=names(Enrichlist$rawcoverage[[pos]])
+  ###############################     
+  allbams=names(BAMvariables$listBAM)
+  remaining=setdiff(allbams,enrichpresent)
+
+  #if no BAM associatable with that ROI, simply skip
+  if(length(remaining)>0){
+    #find the requested enrichment over the remaining enrichments
+    remaining_selected=remaining[match(input$selectBAMultraeasy,remaining)]
+    #remove those that are NA:
+    remaining_selected=remaining_selected[!is.na(remaining_selected)]
+    pos2=match(remaining_selected,names(BAMvariables$listBAM))
+    paths=BAMvariables$listBAM[pos2]
+    partlist=rep(list(ROIs),length(paths))
+    names(partlist)=paths
+    totallist=c(totallist,partlist)
+  }
+
+
+
+  #HERE the check for feasibility considering the RAM available. Sum width of all genomic ranges * number of coverage
+  ###########################################################################################
+  totalBPtobecoveraged=sum(sapply(lapply(lapply(totallist,getRange),width),sum))
+  #here, let's suppose an average compression of 2x from the total number of bp (1-byte encryption) (assumption!)
+  totalRAMtobeused=totalBPtobecoveraged/2
+
+  avRAM=availRAM()
+  if (totalRAMtobeused/1000000>avRAM){
+    #not enough RAM for final storage: exit with message
+    print(paste("available RAM:",avRAM,"not enough. Predict to occupy about",totalRAMtobeused/1000000))
+    sendSweetAlert(
+      session = session,
+      title = "Not enough memory",
+      text = "The RAM available seems not enough for the coverage. Try to reduce the number of ROI or the number of enrichment files for the coverage, or remove enrichment files aready associated.",
+      type = "error"
+    )          
+    return()   
+  }
+  ###########################################################################################
+
+
+
+  Normmethod="lib"
+  normalizer=NULL
+  normCtrl=NULL
+  normCtrlSpike=NULL      
+
+
+
+  ##here use totallist to parallelize the code. Each iteration has path to enrichment and a ROI
+  tryCatch({
+
+
+    print ("Computation in single core")
+    finallist=lapply(1:length(totallist),function(i) {
+      if(Normmethod=="lib"){
+        tonorm=names(totallist)[i]
+      }else{
+        #if no normaliz., custom or spikein, normalizers were defined as normalizer,normCtrl,normCtrlSpikein
+        tonorm=normalizer
+      }          
+      #here put check if transcripts:
+      if(getFlag(totallist[[i]])!="transcriptFlag"){
+        rangetocov=getRange(totallist[[i]])
+        #here use chunksforassociate function to determine the number of chunks
+        nchunks=chunksforassociate(rangetocov)
+        singlecover=GRbaseCoverage2(Object=rangetocov,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                  signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+        nfact=singlecover[[3]]
+        decryptkey=singlecover[[2]]
+        singlecover=singlecover[[1]]
+
+        #if all(singlecover==0) -> change nomenclature
+        if(verifyzerocov(singlecover)){
+          print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+          temprange=convertNomenclatureGR(rangetocov,to="NCBI")
+          #temproi=setRange(totallist[[i]],temprange)
+          singlecover=GRbaseCoverage2(Object=temprange,signalfile=names(totallist)[i],signalfileNorm=tonorm,
+                  signalControl=normCtrl,signalControlSpike=normCtrlSpike,multiplFactor=1e+06,nchunks=nchunks)
+          nfact=singlecover[[3]]
+          decryptkey=singlecover[[2]]
+          singlecover=singlecover[[1]]              
+        }
+
+        print (paste("coverage",names(totallist)[i]))
+        return(list(singlecover,decryptkey,nfact))
+      }else{
+        rangetransc=getRange(totallist[[i]])
+        thirtypercent=round((width(rangetransc)/10)*3)
+        #try suppress warnings... BE CAREFUL... maybe it will trim some bases,
+        #this could cause problems in the future...
+        rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="start"))
+        rangetransc=suppressWarnings(resize(rangetransc,width=thirtypercent+width(rangetransc),fix="end"))
+        #here use chunksforassociate function to determine the number of chunks
+        nchunks=chunksforassociate(rangetransc)
+        singlecover=GRbaseCoverage2(Object=rangetransc, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+                                signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks=nchunks)
+        nfact=singlecover[[3]]
+        decryptkey=singlecover[[2]]
+        singlecover=singlecover[[1]]
+        
+        #if all(singlecover==0) -> change nomenclature
+        if(verifyzerocov(singlecover)){
+          print ("cov is 0s... converting nomelclature to NCBI for coverage...")
+          temprange=convertNomenclatureGR(rangetransc,to="NCBI")
+          singlecover=GRbaseCoverage2(Object=temprange, signalfile=names(totallist)[i],signalfileNorm=tonorm,signalControl=normCtrl,
+                                signalControlSpike=normCtrlSpike, multiplFactor=1e+06,nchunks)
+          nfact=singlecover[[3]]
+          decryptkey=singlecover[[2]]
+          singlecover=singlecover[[1]]
+        }
+        print (paste("coverage",names(totallist)[i]))
+        return(list(singlecover,decryptkey,nfact))
+      }
+    })#,mc.cores=nc)  
+
+
+
+
+
+    msg="library-size normalized"
+
+
+      
+    ##now attrib to each ROI the correct enrichments just calculated
+    nameROIs=sapply(totallist,getName)
+    finallist2=lapply(finallist,"[[",1)
+    finaldecryptkeylist=lapply(finallist,"[[",2)
+    normfinallist=lapply(finallist,"[[",3)
+
+    splittedresultlist=split(finallist2,nameROIs)
+    splittedkeylist=split(finaldecryptkeylist,nameROIs)
+    splittednormlist=split(normfinallist,nameROIs)
+    rm(finallist2)
+    splittedtotallist=split(totallist,nameROIs)
+    #"for each ROI selected for enrich. computation..."
+    for(i in 1:length(splittedresultlist)){
+      
+      #previouslist=getBAMlist(splittedtotallist[[i]][[1]])
+      ####newenrichimplementation####
+      nme=getName(splittedtotallist[[i]][[1]])
+      roilocation=match(nme,names(Enrichlist$rawcoverage))
+      previousrawvals=Enrichlist$rawcoverage[[roilocation]]
+      previousdecryptkey=Enrichlist$decryptkey[[roilocation]]
+      previousnormvals=Enrichlist$normfactlist[[roilocation]]
+      ###############################
+
+      realnames=names(splittedtotallist[[i]])
+      #get from bamlist the name
+      pos=match(realnames,BAMvariables$listBAM)
+      toname=names(BAMvariables$listBAM)[pos]
+      names(splittedresultlist[[i]])=names(splittedkeylist[[i]])=names(splittednormlist[[i]])=toname
+      #here, check if some finallist2 was NULL.
+      notnulls=!(sapply(splittedresultlist[[i]],is.null))
+      #print message of something is NULL
+      if(sum(notnulls)<length(toname)){
+        sendSweetAlert(
+          session = session,
+          title = "Some problems",
+          text = paste("Some enrichment files gave 'NULL' (",toname[!notnulls],") and were not associated. Please, try again with them",sep=""),
+          type="warning"
+        )          
+      }
+
+
+      splittedresultlist_notnull=splittedresultlist[[i]][notnulls]
+      splittedkeylist_notnull=splittedkeylist[[i]][notnulls]
+      splittednormlist_notnull=splittednormlist[[i]][notnulls]
+      #finalfinallist=c(previouslist,splittedresultlist_notnull)
+
+
+      ####newenrichimplementation####
+      #to be modified
+      finalrawvals=c(previousrawvals,splittedresultlist_notnull)
+      finaldecryptkeylist=c(previousdecryptkey,splittedkeylist_notnull)
+      finalnormvals=c(previousnormvals,splittednormlist_notnull)
+      
+      
+      rm(previousrawvals)
+      rm(previousnormvals)
+      rm(previousdecryptkey)
+      ###############################
+      #which ROI?
+      posROI=match(names(splittedresultlist)[i],nomi)
+
+      # ROIvariables$listROI[[posROI]]=setBAMlist(ROIvariables$listROI[[posROI]],finalfinallist)
+      ####newenrichimplementation####
+      #fill enrichlist
+      Enrichlist$rawcoverage[[posROI]]=finalrawvals
+      Enrichlist$decryptkey[[posROI]]=finaldecryptkeylist
+      Enrichlist$normfactlist[[posROI]]=finalnormvals
+      ################################
+
+
+      rm(finalrawvals)
+      rm(finalnormvals)
+      rm(finaldecryptkeylist)
+      #rm(finalfinallist)
+      rm(splittedresultlist_notnull)
+      rm(splittedkeylist_notnull)
+      rm(splittednormlist_notnull)
+      
+      for(k in toname){
+        logvariables$msg[[length(logvariables$msg)+1]]=paste('Associated ',k,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,'<br>',sep="")
+      }
+      print(paste('Associated ',toname,' enrichment to ',names(splittedresultlist)[i],' ROI, ',msg,sep=""))
+    }
+
+
+
+    rm(splittedresultlist)
+
+    print("forcing gc...")
+    print(gc())  
+    #alert the user that the block of files has been associated corectly to ROIs
+    sendSweetAlert(
+      session = session,
+      title = "Enrichments associated!",
+      text = paste("Selected enrichment files has been associated to selected ROI",sep=""),
+      type = "success"
+    ) 
+    return()
+  },warning = function( w ){
+    #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Warning: Problems in associating BAM or WIG. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1...<br></font>',sep="")
+    sendSweetAlert(
+      session = session,
+      title = "Problems in association",
+      #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
+      text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
+      tags$li(style="text-align: left;",style="text-align: left;","Enrichment file not found. Check the correct path."),  
+      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;",style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
+      type = "error"
+    )
+  },error = function( err ){
+    #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">Problems in associating BAM or WIG. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1...<br></font>',sep="")
+    sendSweetAlert(
+      session = session,
+      title = "Problems in association",
+      #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
+      text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
+      tags$li(style="text-align: left;","Enrichment file not found. Check the correct path."),  
+      tags$li(style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
+      type = "error"
+    )          
+  }) 
+
+
+})
+
+
+
+
+
 
 
 

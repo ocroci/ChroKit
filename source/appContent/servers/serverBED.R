@@ -8,6 +8,50 @@
 observeEvent(input$msg_coordinateFiles_chooseCoordinates, {
   boxHelpServer(msg_coordinateFiles_chooseCoordinates)
 })
+#choose file import option
+observeEvent(input$help_BED_fromfiles, {
+  boxHelpServer(help_BED_fromfiles)
+})
+#choose genelist import option
+observeEvent(input$help_BED_fromgenelist, {
+  boxHelpServer(help_BED_fromgenelist)
+})
+#choose pattern from genome import option
+observeEvent(input$help_BED_frompatterngenome, {
+  boxHelpServer(help_BED_frompatterngenome)
+})
+#option for kind of IDs
+observeEvent(input$help_BED_kindofID, {
+  boxHelpServer(help_BED_kindofID)
+})
+#option for max transcript length
+observeEvent(input$help_BED_maxtranscriptlen, {
+  boxHelpServer(help_BED_maxtranscriptlen)
+})
+#option for IUPAC nomenclature option
+observeEvent(input$help_BED_IUPACpattern, {
+  boxHelpServer(help_BED_IUPACpattern)
+})
+#option for header option
+observeEvent(input$help_BED_headeroption, {
+  boxHelpServer(help_BED_headeroption)
+})
+#option for lines to skip
+observeEvent(input$help_BED_linesskip, {
+  boxHelpServer(help_BED_linesskip)
+})
+#file preview help
+observeEvent(input$help_BED_filepreview, {
+  boxHelpServer(help_BED_filepreview)
+})
+
+
+
+
+
+
+
+
 #preview window of coordinates
 observeEvent(input$msg_coordinateFiles_filePreview, {
   boxHelpServer(msg_coordinateFiles_filePreview)
@@ -218,6 +262,11 @@ observeEvent(input$confirmation, {
       # it's all ok, so from the data.frame of the file, obtain GRanges object
       #do a trycatch, otherwise fatal error
       tryCatch({
+        #Genomic Ranges should not start with 0, but with 1. Correct if this is the case:
+        tmp_starts=BEDvariables$tempBED[,2]
+        tmp_starts[tmp_starts==0]=1
+        BEDvariables$tempBED[,2]=tmp_starts
+
         if(ncol(BEDvariables$tempBED)==3){
           range=GRanges(Rle(BEDvariables$tempBED[,1]),IRanges(BEDvariables$tempBED[,2],BEDvariables$tempBED[,3]))
         }else{
@@ -248,6 +297,7 @@ observeEvent(input$confirmation, {
         ####newenrichimplementation####
         #new ROI imported has no list of enrichments at the beginning! => initialization
         Enrichlist$rawcoverage[[BEDvariables$tempBEDname]]=list()
+        Enrichlist$decryptkey[[BEDvariables$tempBEDname]]=list()
         Enrichlist$normfactlist[[BEDvariables$tempBEDname]]=list()
         ################################
         #temporary BED and BED file name must be returned to NULL for the next open
@@ -375,9 +425,9 @@ observeEvent(input$cancellation, {
 
 ###react to help buttons:
 #import genelists 
-observeEvent(input$msg_genelists_importGenelist, {
-  boxHelpServer(msg_genelists_importGenelist)
-})
+# observeEvent(input$msg_genelists_importGenelist, {
+#   boxHelpServer(msg_genelists_importGenelist)
+# })
 #parameters for genelists
 observeEvent(input$msg_genelists_parametersGenelist, {
   boxHelpServer(msg_genelists_parametersGenelist)
@@ -494,6 +544,7 @@ observeEvent(input$fileGENELISTS, {
           ####newenrichimplementation####
           #new ROI imported has no list of enrichments at the beginning! => initialization
           Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+          Enrichlist$decryptkey[[paste("promoters_genelist_",toopen,sep="")]]=list()
           Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
           ################################
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -505,6 +556,7 @@ observeEvent(input$fileGENELISTS, {
           ####newenrichimplementation####
           #new ROI imported has no list of enrichments at the beginning! => initialization
           Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+          Enrichlist$decryptkey[[paste("transcripts_genelist_",toopen,sep="")]]=list()
           Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
           ################################
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -516,6 +568,7 @@ observeEvent(input$fileGENELISTS, {
           ####newenrichimplementation####
           #new ROI imported has no list of enrichments at the beginning! => initialization
           Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+          Enrichlist$decryptkey[[paste("TES_genelist_",toopen,sep="")]]=list()
           Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
           ################################          
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -675,6 +728,7 @@ observeEvent(input$createGENELISTSfrompath, {
               ####newenrichimplementation####
               #new ROI imported has no list of enrichments at the beginning! => initialization
               Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+              Enrichlist$decryptkey[[paste("promoters_genelist_",toopen,sep="")]]=list()
               Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
               ################################ 
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -686,6 +740,7 @@ observeEvent(input$createGENELISTSfrompath, {
               ####newenrichimplementation####
               #new ROI imported has no list of enrichments at the beginning! => initialization
               Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+              Enrichlist$decryptkey[[paste("transcripts_genelist_",toopen,sep="")]]=list()
               Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
               ################################ 
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -697,6 +752,7 @@ observeEvent(input$createGENELISTSfrompath, {
               ####newenrichimplementation####
               #new ROI imported has no list of enrichments at the beginning! => initialization
               Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+              Enrichlist$decryptkey[[paste("TES_genelist_",toopen,sep="")]]=list()
               Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
               ################################               
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -841,6 +897,7 @@ observeEvent(input$createGENELISTSfrompaste,{
             ####newenrichimplementation####
             #new ROI imported has no list of enrichments at the beginning! => initialization
             Enrichlist$rawcoverage[[paste("promoters_genelist_",toopen,sep="")]]=list()
+            Enrichlist$decryptkey[[paste("promoters_genelist_",toopen,sep="")]]=list()
             Enrichlist$normfactlist[[paste("promoters_genelist_",toopen,sep="")]]=list()
             ################################ 
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -852,6 +909,7 @@ observeEvent(input$createGENELISTSfrompaste,{
             ####newenrichimplementation####
             #new ROI imported has no list of enrichments at the beginning! => initialization
             Enrichlist$rawcoverage[[paste("transcripts_genelist_",toopen,sep="")]]=list()
+            Enrichlist$decryptkey[[paste("transcripts_genelist_",toopen,sep="")]]=list()
             Enrichlist$normfactlist[[paste("transcripts_genelist_",toopen,sep="")]]=list()
             ################################
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -863,6 +921,7 @@ observeEvent(input$createGENELISTSfrompaste,{
             ####newenrichimplementation####
             #new ROI imported has no list of enrichments at the beginning! => initialization
             Enrichlist$rawcoverage[[paste("TES_genelist_",toopen,sep="")]]=list()
+            Enrichlist$decryptkey[[paste("TES_genelist_",toopen,sep="")]]=list()
             Enrichlist$normfactlist[[paste("TES_genelist_",toopen,sep="")]]=list()
             ################################             
             ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
@@ -940,6 +999,316 @@ observeEvent(input$createGENELISTSfrompaste,{
 
 
 
+##########################################################
+##########################################################
+##########################################################
+#PATTERN SEARCH ENTIRE GENOME
+##########################################################
+##########################################################
+##########################################################
+
+
+###react to help buttons:
+#import ROI from sequence pattern 
+observeEvent(input$msg_coordinate_patternFromGenome, {
+  boxHelpServer(msg_coordinate_patternFromGenome)
+})
+
+
+
+#observer for search pattern button from entire genome.
+observeEvent(input$ExtractPatternROI2,{
+  #checks:
+  #-ROI must exist
+  #-database must be active
+  #-BSgenome of correct assembly must be present
+  #-pattern should not be empty and valid (check validity in the function)
+  #-input$strandOptsPattern if NULL, bothstrands is TRUE, otherwise look
+  #-new ROI name must not exist, and be not promoter,...
+
+  if (!is.null(ROIvariables$listROI)& length(ROIvariables$listROI)>=1 ){
+    #now check if assembly present
+    if(length(DATABASEvariables$currentASSEMBLY)>0){
+      #now check if BSgenome of that assembly is present
+      asm=DATABASEvariables$currentASSEMBLY
+      avail_spl=strsplit(all_avail_assemblies,split="\\.")
+      org=sapply(avail_spl,"[[",2)
+      asms=sapply(avail_spl,"[[",4)
+      pos=match(asm,asms)
+      BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
+      x=rownames(installed.packages())
+      pos_pkg=match(BSstring,x)
+      if(!is.na(pos_pkg)){
+        #now check if pattern is not empty (and maybe with length 2<x<n )
+        if(isvalid(input$PatternToSearch2)>0){
+          #now check if pattern is valid
+          pattern=toupper(input$PatternToSearch2)
+          pattern_splitted=strsplit(pattern,split="")[[1]]
+
+          check=pattern_splitted=="." | pattern_splitted=="-" |
+                pattern_splitted=="A" | pattern_splitted=="C" | pattern_splitted=="G" | pattern_splitted=="T" |
+                pattern_splitted=="U" | pattern_splitted=="R" | pattern_splitted=="Y" | pattern_splitted=="S" |
+                pattern_splitted=="W" | pattern_splitted=="K" | pattern_splitted=="M" | pattern_splitted=="B" |
+                pattern_splitted=="D" | pattern_splitted=="H" | pattern_splitted=="V" | pattern_splitted=="N"
+          if(all(check)){
+
+            #check if, if fromGenome selected, pattern shuld be >=4 bp
+            allowedpattern=TRUE
+            checkComplexity=pattern_splitted!="N" &pattern_splitted!="." &pattern_splitted!="-"
+            if( sum(checkComplexity)<4){
+              allowedpattern=FALSE
+            }
+            
+            if(allowedpattern){
+              #check if ROI name is ok
+              nottobe=c("promoters","transcripts","TES")
+              if(!(any(input$ROInamePattern2 == nottobe)) & nchar(input$ROInamePattern2)>0){
+                #check if ROI name is *****_genelist_....
+                nottobe2=c("promoters_genelist_","transcripts_genelist_","TES_genelist_")
+                if(!grepl(nottobe2[1],input$ROInamePattern2) &!grepl(nottobe2[2],input$ROInamePattern2) & !grepl(nottobe2[3],input$ROInamePattern2)){
+                  #now check if ROI name already present
+                  nomi=unlist(lapply(ROIvariables$listROI,getName))
+                  if(!input$ROInamePattern2 %in% nomi){
+                    #execute. Extract range with pattern (Flag="pattern").
+                    #BAM file is NULL (no sense to keep enrichment of 6-10 bp...)
+                    #shuld re-annotate ranges (DB is present by definition at this point)
+                    #fix is the center of new range (center of the pattern)
+                    #source: add "extracted CNNTACGT from *** ROI (both/s-specific)"
+
+                    #search in both strands, because we are extracting from entire genome
+                    both=TRUE
+
+                    toadd=paste("extracting of ",pattern," pattern",sep="")
+                    if(both){
+                      toadd=paste(toadd," searched in both strands",sep="")
+                    }else{
+                      toadd=paste(toadd," searched in strand-specific way",sep="")
+                    }
+
+
+                    newSource=list(toadd)
+                    extracted=suppressWarnings(extractPattern(Subject=NULL,BSgenomeDB=eval(parse(text=BSstring)),pattern=pattern,bothstrands=both))
+                    
+
+
+
+                    if(length(extracted)>0){
+                      #find Fix of new ranges (midpoint)
+                      newFix=resize(extracted,fix="center",width=1)
+                      #annotate this new ROI. By definition at this point we have the database
+                      nomi=unlist(lapply(ROIvariables$listROI,getName))
+                      pos_promo=match("promoters",nomi)
+                      promo=ROIvariables$listROI[[pos_promo]]
+                      fix_promoters=getFixed(promo)
+                      annotatedpart=suppressWarnings(distanceFromTSS3(Object=extracted,Tss=fix_promoters,criterion="midpoint"))
+                      elementMetadata(extracted)=annotatedpart
+                      ####newenrichimplementation####
+                      #new ROI imported has no list of enrichments at the beginning! => initialization
+                      Enrichlist$rawcoverage[[input$ROInamePattern2]]=list()
+                      Enrichlist$decryptkey[[input$ROInamePattern2]]=list()
+                      Enrichlist$normfactlist[[input$ROInamePattern2]]=list()
+                      ################################
+                      ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
+                                                      name=input$ROInamePattern2,
+                                                      range=extracted,
+                                                      fixed=newFix,
+                                                      BAMlist=list(),
+                                                      flag="Pattern",
+                                                      source=newSource)
+
+                      print(paste(input$ROInamePattern2," ROI created, ",toadd," from entire genome",sep=""))
+
+                    }else if (length(extracted)==0 & !is.null(extracted)){
+                      sendSweetAlert(
+                        session = session,
+                        title = "Empty ROI produced",
+                        text = paste("pattern '",pattern,"' is not present in any range of ROI ",input$selectROItoExtractPattern,sep=""),
+                        type = "error"
+                      ) 
+                    #if it's NULL, it means that any chromosome format is not recognised in BSgenome DB                    
+                    }else if (length(extracted)==0 & is.null(extracted)){
+                      sendSweetAlert(
+                        session = session,
+                        title = "chromosome names format not ok",
+                        text = paste("Chromosome names of the ROI does not match those within BSgenome database. Check the format of the
+                                    ROI, using 'get ROI' tab, looking at the correct chromosome names",sep=""),
+                        type = "error"
+                      )  
+                    }
+
+                  }else{
+                    sendSweetAlert(
+                      session = session,
+                      title = "ROI already present",
+                      text = "A ROI with the same name already exists; use a different name",
+                      type = "error"
+                    )                  
+                  }
+                }else{
+                  sendSweetAlert(
+                    session = session,
+                    title = "Bad ROI name",
+                    text = "New ROI cannot be named 'promoters_genelist_*','transcripts_genelist_*' or 'TES_genelist_*', because are reserved names",
+                    type = "error"
+                  )                
+                }
+              }else{
+                sendSweetAlert(
+                  session = session,
+                  title = "Bad ROI name",
+                  text = "File name for the new ROI is missing, or you are trying to use reserved names: 'promoters','transcripts' or 'TES'",
+                  type = "error"
+                )             
+              }
+            }else{
+              sendSweetAlert(
+                session = session,
+                title = "Pattern not valid",
+                text = "The sequence pattern must be >= 4 not-N-letters when searching the entire genome. Try to add more letters (that are not 'N')",
+                type = "error"
+              ) 
+            }
+    
+          }else{
+            sendSweetAlert(
+              session = session,
+              title = "Pattern not valid",
+              text = "The sequence pattern is not valid. Yu have to be consistent with IUPAC nomenclature (available letters are: A,C,G,T,U,R,Y,S,W,K,M,B,D,H,V,N,.,-)",
+              type = "error"
+            )             
+          }
+
+        }else{
+          sendSweetAlert(
+            session = session,
+            title = "Missing Pattern",
+            text = "You must choose a pattern to search (a sequence string)",
+            type = "error"
+          )           
+        }
+
+      }else{
+        sendSweetAlert(
+          session = session,
+          title = "Missing BSgenome",
+          text = paste("You must have ",BSstring," library for sequences. Download/Import it using the button"),
+          type = "error"
+        )         
+      }
+    }else{
+      sendSweetAlert(
+        session = session,
+        title = "Missing database",
+        text = "You must select a genome assembly. Go to 'Database' section to import a genome assembly",
+        type = "error"
+      )       
+    }
+
+  }else{
+    sendSweetAlert(
+      session = session,
+      title = "Missing Elements",
+      text = "You must select a genome assembly. Go to 'Database' section to import a genome assembly",
+      type = "error"
+    )      
+  }
+})
+
+
+
+observeEvent(input$DownloadBSgenome2,{
+  asm=DATABASEvariables$currentASSEMBLY
+  avail_spl=strsplit(all_avail_assemblies,split="\\.")
+  org=sapply(avail_spl,"[[",2)
+  asms=sapply(avail_spl,"[[",4)
+  pos=match(asm,asms)
+  BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
+
+  x=rownames(installed.packages())
+  #install with correct R version from bioC
+  Rversion=strsplit(version$version.string,split=" ")[[1]][3]
+  Rversion=strsplit(Rversion,split="\\.")[[1]]
+  Rversion_main=as.numeric(Rversion[1])
+  Rversion_submain=as.numeric(Rversion[2])
+  if(Rversion_main==3){
+    if(Rversion_submain>=5){
+      R35=TRUE
+    }else{
+      R35=FALSE
+    }
+  }else if(Rversion_main>3){
+    R35=TRUE
+  }else{
+    R35=FALSE
+  }
+
+  #BiocManager if R version> 3.5
+  if(! ("BiocManager" %in% x) & R35){
+    print("Installing BiocManager package for R > 3.5.0 ...")
+    install.packages("BiocManager")
+  }else{
+    #print("BiocManager package already installed...")
+  }
+
+  #install the correct BSgenome package
+
+
+  # tryCatch({
+  if (checkBiocConnection()){
+    if(R35){
+      print(paste("updating bioconductor packages to the version",bioCversion))
+      BiocManager::install(version = bioCversion,ask=FALSE,force=TRUE)
+      print(paste("Downloading",BSstring,"..."))
+      BiocManager::install(BSstring, version = bioCversion,ask=FALSE,force=TRUE,type="source")
+    }else{
+      print(paste("Downloading",BSstring,"..."))
+      biocLite(BSstring,suppressUpdates=TRUE,ask=FALSE)
+    }
+
+    #update reactive variable
+    DATABASEvariables$currentORG=BSstring
+    #import library
+    library(BSstring,character.only=TRUE)
+
+    #alert the user the package has been installed
+    sendSweetAlert(
+      session = session,
+      title = paste(BSstring, "installed!"),
+      text = paste("The package '",BSstring,"' has been installed and imported for pattern extraction from ROIs",sep=""),
+      type = "success"
+    )     
+  }else{
+    sendSweetAlert(
+        session = session,
+        title = "Connection problems",
+        text = "Problems in connecting to bioconductor site",
+        type = "error"
+    )
+    return()  
+  }
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ##############################################################
 # delete,rename,reorder ROIs
@@ -1002,6 +1371,7 @@ observeEvent(input$deleteROI,{
 
       ####newenrichimplementation####
       Enrichlist$rawcoverage[pos]<-NULL
+      Enrichlist$decryptkey[pos]<-NULL
       Enrichlist$normfactlist[pos]<-NULL
       ################################
 
@@ -1059,6 +1429,7 @@ observeEvent(input$renameROI,{
           #also name in the object of the class
           ####newenrichimplementation####
           names(Enrichlist$rawcoverage)[pos]<-input$newfilenameROI
+          names(Enrichlist$decryptkey)[pos]<-input$newfilenameROI
           names(Enrichlist$normfactlist)[pos]<-input$newfilenameROI
           ###############################
           ROIvariables$listROI[[pos]]=setName(ROIvariables$listROI[[pos]],input$newfilenameROI)
@@ -1123,6 +1494,7 @@ observeEvent(input$reorderROI,{
       ####newenrichimplementation####
       #in theory useless, but better to keep the order also in the list of enrichments
       Enrichlist$rawcoverage=Enrichlist$rawcoverage[order(ord)]
+      Enrichlist$decryptkey=Enrichlist$decryptkey[order(ord)]
       Enrichlist$normfactlist=Enrichlist$normfactlist[order(ord)]
       ###############################
       ROIvariables$listROI=ROIvariables$listROI[order(ord)]

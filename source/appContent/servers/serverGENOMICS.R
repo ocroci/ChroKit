@@ -30,6 +30,14 @@ observeEvent(input$msg_singleEvaluation_peakProfile, {
 
 
 
+#help buttons options
+observeEvent(input$help_singleEvaluation_normalizationtotalread, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_singleEvaluation_normalizationreaddensity, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+
+
+
+
+
 observeEvent(input$plotSingleEval,{
 	set.seed(123)
 	if (!is.null(input$ROIchooseSingleEval) & length(ROIvariables$listROI)>0) {
@@ -37,6 +45,7 @@ observeEvent(input$plotSingleEval,{
     	if ("promoters"%in% nomi & "transcripts"%in% nomi) {
       		pos=match(input$ROIchooseSingleEval,nomi)
       		roi=uniqueROI(ROIvariables$listROI[[pos]]) 
+          duplicated_pos_range=!duplicated(getRange(ROIvariables$listROI[[pos]]))
           roi=unifyStrand(roi)
 
       		if (!is.null(roi)){
@@ -58,7 +67,15 @@ observeEvent(input$plotSingleEval,{
 				    label<-c(paste(perc[1],"% (",elements[1],")",sep=''),paste(perc[2],"% (",elements[2],")",sep=''),paste(perc[3],"% (",elements[3],")",sep=''))
             label<-paste(c("Promoters:","Genebody:","Intergenic:"),label,sep="")
 				    maintitle=paste("ROI: ",ROInameSingleEval," (",length(range)," total ranges)",sep='')
-            toplot$viewDistributionPieSingleEval$Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
+            
+            #build the interface to piechartSingleEval_options options (appear only when plot)
+            output$piechartSingleEval_options<-renderUI({selectInput("chooseColorPaletteSingleEval","Choose color palette:",choices=c(
+                                                  "red/blue/grey"="black_red_blue_gray",
+                                                  "red/orange/green"="black_red_orange_green"
+
+                                                ))})
+
+            
             toplot$viewDistributionPieSingleEval$elements=elements
             toplot$viewDistributionPieSingleEval$maintitle=maintitle
             toplot$viewDistributionPieSingleEval$label=label
@@ -71,214 +88,264 @@ observeEvent(input$plotSingleEval,{
 
             #pie plot
    				  output$viewDistributionPieSingleEval<-renderPlot({
-              Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
-   					  #improve the lgend position
-   					  par(mar=c(7,7,7,7))
-   					  pie(elements,col=Colors[2:4],main=maintitle,cex.main=1.2,labels=label,cex=1)
-   					  #legend("bottomright",legend=c("promoter","genebody","intergenic"),col=Colors,pch=rep(19,3) )
-   				  })
-
-
-            #barplot
-            output$viewDistributionBarSingleEval<-renderPlot({
-              Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
-              par(mar=c(10,6,5,5))
-              names(elements)=label
-              barplot(elements,col=Colors[2:4],main=maintitle,cex.main=1.2,las=2)
-              title(ylab = "Interval number", cex.lab = 1,
-                        line = 4)
+              #make it reactive to input$choosecolor.... otherwise default values if option still does not exist
+              if(isvalid(input$chooseColorPaletteSingleEval)){
+                colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]][2:4]
+              }else{
+                colors=strsplit("black_red_blue_gray",split="_")[[1]][2:4]
+              }
+              
+              plot_singleeval_pie(elements=elements,colors=colors,title=maintitle,label=label)
             })
-            #download button for PDF pie
+
+
+            #barplot plot
+            output$viewDistributionBarSingleEval<-renderPlot({
+              #make it reactive to input$choosecolor....
+              if(isvalid(input$chooseColorPaletteSingleEval)){
+                colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]][2:4]
+              }else{
+                colors=strsplit("black_red_blue_gray",split="_")[[1]][2:4]
+              }
+              plot_singleeval_bar(elements=elements,colors=colors,title=maintitle,label=label)
+            })
+            #buttons for download
             output$saveviewDistributionPieSingleEval=renderUI({downloadButton('saveviewDistributionPieSingleEvalbutton', 'Get PDF')})
-            #download button for PDF barplot
             output$saveviewDistributionBarSingleEval=renderUI({downloadButton('saveviewDistributionBarSingleEvalbutton', 'Get PDF')})
+            
+
             print(paste("Single evaluation of",input$ROIchooseSingleEval))
+
+
             #width distribution
             if (length(range)>2){
               quant=0.95
-              Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
               cuttedga=range[width(range)<quantile(width(range),quant)]
-              cuttedprom=range_promo[width(range_promo)<quantile(width(range_promo),quant)]
-              cuttedintra=range_intra[width(range_intra)<quantile(width(range_intra),quant)]
-              cuttedinter=range_inter[width(range_inter)<quantile(width(range_inter),quant)]
-
               if (length(range_promo)>2&length(cuttedga)>2){
-                output$widthDistributionSingleEval<-renderPlot( {
-                  if (length(range_intra)>2){
-                    if(length(range_inter)>2){
-                      xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x,density(log2(width(cuttedinter)))$x), 
-                              max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x,density(log2(width(cuttedinter)))$x)  )
-                      ylim=c(0, max(max(density(log2(width(cuttedprom)))$y),max(density(log2(width(cuttedintra)))$y),max(density(log2(width(cuttedinter)))$y) ) )
-                      plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-                        main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=Colors[1])
-                      lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-                      lines(density(log2(width(cuttedintra)))$x,density(log2(width(cuttedintra)))$y,cex=1,col=Colors[3],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-                      lines(density(log2(width(cuttedinter)))$x,density(log2(width(cuttedinter)))$y,cex=1,col=Colors[4],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-                
-                    }else{
-                      xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x), 
-                              max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x  ))
-                      ylim=c(0, max(max(density(log2(width(cuttedprom)))$y),max(density(log2(width(cuttedintra)))$y) ) )
-                      plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-                        main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=Colors[1])
-                      lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-                      lines(density(log2(width(cuttedintra)))$x,density(log2(width(cuttedintra)))$y,cex=1,col=Colors[3],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-                
-                    }
-                    
+                #build the interface to densitySingleEval_options options (appear only when plot density)
+                output$densitySingleEval_options<-renderUI({selectInput("chooseColorPaletteSingleEval_density","Choose color palette:",choices=c(
+                                                  "black/red/blue/grey"="black_red_blue_gray",
+                                                  "black/red/orange/green"="black_red_orange_green"
+                                                ))})
+                #density plot can be done
+                output$widthDistributionSingleEval<-renderPlot({
+                  if(isvalid(input$chooseColorPaletteSingleEval_density)){
+                    colors=strsplit(input$chooseColorPaletteSingleEval_density,split="_")[[1]]
                   }else{
-
-                    xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x), 
-                              max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x  ))
-                    ylim=c(0, max(max(density(log2(width(cuttedprom)))$y) ) )
-                    plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-                      main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=Colors[1])
-                    lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
+                    colors=strsplit("black_red_blue_gray",split="_")[[1]]
                   }
-                  legend("topright" , c("All intervals","Promoter","Genebody","Intergenic") , col=Colors , lty=rep(1,4),lwd=3,cex=1)
+                  
+                  plot_singleeval_density(range=range,range_promo=range_promo,range_intra=range_intra,
+                                          range_inter=range_inter,colors=colors)
                 })
-                #download button for width distribution
+                #download button for PDF density plot
                 output$savewidthDistributionSingleEval<-renderUI({downloadButton('savewidthDistributionSingleEvalbutton', 'Get PDF')})
+
               }else{
                 #only total plot, but at least one between promoters, intra, inter must be >0 by definition
                 output$widthDistributionSingleEval<-renderPlot({NULL})
+                output$densitySingleEval_options<-renderUI({NULL})
+                #no PDF button, because no plot
                 output$savewidthDistributionSingleEval<-renderUI({NULL})
               }
 
             }else{
               #range has length==0
               output$widthDistributionSingleEval<-renderPlot({NULL})
-              output$savewidthDistributionSingleEval=renderUI({NULL})
+              output$densitySingleEval_options<-renderUI({NULL})
+              #no PDF button, because no plot
+              output$savewidthDistributionSingleEval<-renderUI({NULL})
             }
 
             #extract enrichment from correct position of the ROI selected
             rawvals=Enrichlist$rawcoverage[[pos]]
+            keyvals=Enrichlist$decryptkey[[pos]]
             normvals=Enrichlist$normfactlist[[pos]]
-      		getbam=names(rawvals)
-
-            toplot$viewDistributionPieSingleEval$getbam=getbam
-            toplot$viewDistributionPieSingleEval$chooseNormalizationSingleEval=input$chooseNormalizationSingleEval
+      		  getbam=names(rawvals)
+            
         		if (!is.null(getbam)& length(getbam)>0){
         		  pos2=match(input$BAMchooseSingleEval,getbam)
       			  bam_orig=rawvals[[pos2]]
-              	  norm_orig=normvals[[pos2]]
-                  #bam=unlist(lapply(bam,sum))
+              keyvals_orig=keyvals[[pos2]]
+              norm_orig=normvals[[pos2]]
+              
+              #here MUST remove duplicated ranges (because before we used "uniqueROI")
+              bam_orig=bam_orig[duplicated_pos_range]
+              keyvals_orig=keyvals_orig[duplicated_pos_range]
+
       			  #calculate enrichments for boxplots
       			  bam_promo_orig=bam_orig[ov_range>0]
+              key_promo_orig=keyvals_orig[ov_range>0]
       			  bam_ws_orig=bam_orig[ov_range==0]
+              key_ws_orig=keyvals_orig[ov_range==0]
       			  bam_intra_orig=bam_ws_orig[ov_transcripts>0]
+              key_intra_orig=key_ws_orig[ov_transcripts>0]
       			  bam_inter_orig=bam_ws_orig[ov_transcripts==0]
+              key_inter_orig=key_ws_orig[ov_transcripts==0]
  
+              #not very efficient, because the matrix could be calculated once, but fast enough
+              bam=as.integer(makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bam_orig,Nbins=1,Snorm=FALSE,key=keyvals_orig,norm_factor=norm_orig))
+              bam_promo=bam[ov_range>0]
+              bam_ws=bam[ov_range==0]
+              bam_intra=bam_ws[ov_transcripts>0]
+              bam_inter=bam_ws[ov_transcripts==0]
 
-              bam=unlist(lapply(bam_orig,sum))*norm_orig
-              bam_promo=unlist(lapply(bam_promo_orig,sum))*norm_orig
-              bam_intra=unlist(lapply(bam_intra_orig,sum))*norm_orig
-              bam_inter=unlist(lapply(bam_inter_orig,sum))*norm_orig
               toplot$viewDistributionPieSingleEval$bam=bam
               toplot$viewDistributionPieSingleEval$bam_promo=bam_promo
               toplot$viewDistributionPieSingleEval$bam_intra=bam_intra
               toplot$viewDistributionPieSingleEval$bam_inter=bam_inter
 
-              output$enrichmentBoxSingleEval<-renderPlot({
-                par(mar=c(8,5,5,5))
-                Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
-                if (input$chooseNormalizationSingleEval=="totread"){
-                  suppressWarnings(boxplot(bam,bam_promo,bam_intra,bam_inter,notch=TRUE,outline=FALSE,varwidth=TRUE,col=Colors,xaxt="n",ylab="Normalized reads (rpm)"))
-                }else{
-                  bam=round( bam/length(range),3)
-                  bam_promo=round( bam_promo/length(range_promo),3)
-                  bam_intra=round( bam_intra/length(range_intra),3)
-                  bam_inter=round( bam_inter/length(range_inter),3)
-                  suppressWarnings(boxplot(bam,bam_promo,bam_intra,bam_inter,notch=TRUE,outline=FALSE,varwidth=TRUE,col=Colors,xaxt="n",ylab="Read density (rpm/bp)"))
-                }
-                axis(1,at=1:4,labels=c("All intervals","Promoter","Genebody","Intergenic"),las=2)
 
-              })
 
-              # bam_orig
-              # bam_promo_orig
-              # bam_intra_orig
-              # bam_inter_orig
               listtoprofile=list(bam_orig,bam_promo_orig,bam_intra_orig,bam_inter_orig)
-              
-
+              keystoprofile=list(keyvals_orig,key_promo_orig,key_intra_orig,key_inter_orig)
+              rangs=list(range,range_promo,range_intra,range_inter)
+              lengths_sampled=as.list(rep(NA,4))
               for(i in 1:length(listtoprofile)){
                 set.seed(123)
                 smp=sample(1:length(listtoprofile[[i]]),floor(length(listtoprofile[[i]])/10),replace=FALSE)
                 listtoprofile[[i]]=listtoprofile[[i]][smp]
+                keystoprofile[[i]]=keystoprofile[[i]][smp]
+                lengths_sampled[[i]]=width(rangs[[i]])[smp]
               }
               #find matrix in bins for promo,intra,inter
               matrixes=list()
-              if(input$chooseNormalizationSingleEval=="totread"){
-                normmethod=FALSE
-                ylab="Normalized reads (rpm)"
-              }else{
-                normmethod=TRUE
-                ylab="Read density (rpm/bp)"
-              }
-              toplot$viewDistributionPieSingleEval$ylabprofile=ylab
               for(i in 1:length(listtoprofile)){
                 if(length(listtoprofile[[i]])>0){
-                  matrixes[[i]]=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=listtoprofile[[i]],Nbins=50,Snorm=normmethod,norm_factor=norm_orig)
+                  matrixes[[i]]=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=listtoprofile[[i]],Nbins=50,Snorm=FALSE,key=keystoprofile[[i]],norm_factor=norm_orig)
                 }else{
                   matrixes[[i]]=matrix(rep(0,50),nrow=1)
                 }
-                
               }
+              toplot$viewDistributionPieSingleEval$matrixes=matrixes
+              toplot$viewDistributionPieSingleEval$lengths_sampled=lengths_sampled
 
-              #compact the matrix using mean
-              profile_to_plot=lapply(matrixes,function(i) {apply(i,2,mean)})
-              names(profile_to_plot)=c("all","promoters","genebody","intergenic")
-              toplot$viewDistributionPieSingleEval$profile_to_plot=profile_to_plot
-              output$TSSprofileSingleEval<-renderPlot({
-                Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
 
-                mins=Reduce(min,profile_to_plot)
-                maxs=Reduce(max,profile_to_plot)
+              #plots will be plotted: add UI options for color and normalization
+              output$boxSingleEval_options<-renderUI({
+                                              list(
+                                                selectInput("chooseColorPaletteSingleEval_box","Choose color palette:",choices=c(
+                                                  "black/red/blue/grey"="black_red_blue_gray",
+                                                  "black/red/orange/green"="black_red_orange_green")),
+                                                radioButtons("chooseNormalizationSingleEval_box","Choose normalization:",
+                                                      choiceNames=list(
+                                                        htmlhelp("Total reads","help_singleEvaluation_normalizationtotalread"),
+                                                        htmlhelp("Read density (reads/bp)","help_singleEvaluation_normalizationreaddensity")
+                                                      ),
+                                                      choiceValues=list(
+                                                        "totread",
+                                                        "readdensity"
+                                                      )                                                  
+                                                      )
 
-                plot(0,type='n',xaxt="n",ylim=c(mins,maxs),xlim=c(0,50),ylab=ylab,xlab="Genomic Window",
-                        main="Shape profile",cex.main=1.2,cex=1,xaxt="n",cex.lab=1.2,cex.axis=1)
-                for(i in 1:length(profile_to_plot)){
-                  lines(profile_to_plot[[i]],pch=".",lwd=2,col=Colors[i])
+                                                )
+
+
+                                               })
+              output$profileSingleEval_options<-renderUI({
+                                                list(
+                                                selectInput("chooseColorPaletteSingleEval_profile","Choose color palette:",choices=c(
+                                                  "black/red/blue/grey"="black_red_blue_gray",
+                                                  "black/red/orange/green"="black_red_orange_green")),
+                                                radioButtons("chooseNormalizationSingleEval_profile","Choose normalization:",choices=c(
+                                                  "Total reads"="totread",
+                                                  "Read density (reads/bp)"="readdensity"
+                                                    ))
+                                                )
+
+                                               })
+
+
+
+              #plot enrchment box (reactive to color option and normalization)
+              output$enrichmentBoxSingleEval<-renderPlot({
+                if(isvalid(input$chooseColorPaletteSingleEval_box)){
+                    colors=strsplit(input$chooseColorPaletteSingleEval_box,split="_")[[1]]
+                }else{
+                    colors=strsplit("black_red_blue_gray",split="_")[[1]]
+                }
+                if(isvalid(input$chooseNormalizationSingleEval_box)){
+                  normalization=input$chooseNormalizationSingleEval_box
+                }else{
+                  normalization="totread"
                 }
 
-                axis(1,at=seq(1,length(profile_to_plot[[1]]),length(profile_to_plot[[1]])/2-1),
-                      labels=c( "start","midpoint","end" ),cex.axis=1)
-
+                plot_singleeval_boxplot(normalization=normalization,bam=bam,bam_promo=bam_promo,bam_intra=bam_intra,bam_inter=bam_inter,
+                                        range=range,range_promo=range_promo,range_intra=range_intra,range_inter=range_inter,colors=colors)
               })
 
 
+              #plot enrichment profile (reactive to color option and normalization)
+              output$TSSprofileSingleEval<-renderPlot({
+                if(isvalid(input$chooseColorPaletteSingleEval_profile)){
+                    colors=strsplit(input$chooseColorPaletteSingleEval_profile,split="_")[[1]]
+                }else{
+                    colors=strsplit("black_red_blue_gray",split="_")[[1]]
+                }
+                if(isvalid(input$chooseNormalizationSingleEval_profile)){
+                  normalization=input$chooseNormalizationSingleEval_profile
+                  if(normalization=="totread"){
+                    ylab="Total reads"
+                  }else{
+                    ylab="Read density (reads/bp)"
+                    #divide for length of ranges
+                    for (i in 1:length(matrixes)){
+                      #equivalent. Dividing by an array with l=number of rows of the matrix, will divide each col by these numbers
+                      if (length(lengths_sampled[[i]])>0){
+                        matrixes[[i]]=matrixes[[i]]/lengths_sampled[[i]]
+                      }
+                      
+                    }
+                  }
+                }else{
+                  normalization="totread"
+                  ylab="Total reads"
+                }
+
+                profile_to_plot=lapply(matrixes,function(i) {apply(i,2,mean)})
+                names(profile_to_plot)=c("all","promoters","genebody","intergenic")
+                plot_singleeval_profile(colors=colors,profile_to_plot=profile_to_plot,ylab=ylab)
+
+              })
+
+              #buttons for PDFs and data
               output$saveboxdataSingleEval=renderUI({downloadButton('saveenrichmentBoxSingleEvaldata', 'Save data')})
               output$saveenrichmentBoxSingleEval=renderUI({downloadButton('saveenrichmentBoxSingleEvalbutton', 'Get PDF')})
               output$saveenrichmentProfileSingleEval=renderUI({downloadButton('saveenrichmentProfileSingleEvalbutton', 'Get PDF')})
+                          
 
       			}else{
       				#roi doesn't have bam...
-              output$enrichmentBoxSingleEval<-renderPlot({NULL})
-              output$TSSprofileSingleEval<-renderPlot({NULL})
-              output$saveenrichmentBoxSingleEval=renderUI({NULL})
-              output$saveenrichmentProfileSingleEval=renderUI({NULL})
-      				#logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">You have to associate a BAM file to this ROI for the enrichments...<br></font>'
+              output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
+              output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
+              toplot$viewDistributionPieSingleEval$Colors_profile=NULL
+              toplot$viewDistributionPieSingleEval$Colors_box=NULL
               toplot$viewDistributionPieSingleEval$bam=NULL
               toplot$viewDistributionPieSingleEval$bam_promo=NULL
               toplot$viewDistributionPieSingleEval$bam_intra=NULL
               toplot$viewDistributionPieSingleEval$bam_inter=NULL
+              toplot$viewDistributionPieSingleEval$matrixes=NULL
               output$saveboxdataSingleEval=renderUI({NULL})
+              output$saveenrichmentBoxSingleEval=renderUI({NULL})
+              output$saveenrichmentProfileSingleEval=renderUI({NULL})
+              output$boxSingleEval_options<-renderUI({NULL})
+              output$profileSingleEval_options<-renderUI({NULL})
             }
       		}else{
             #not easy to be here. if roi is null, something should go wrong upstream...
             output$viewDistributionPieSingleEval<-renderPlot({NULL})
             output$viewDistributionBarSingleEval<-renderPlot({NULL})
-            output$widthDistributionSingleEval<-renderPlot({NULL})
-            output$enrichmentBoxSingleEval<-renderPlot({NULL})
-            output$TSSprofileSingleEval<-renderPlot({NULL})
             output$saveviewDistributionPieSingleEval=renderUI({NULL})
             output$saveviewDistributionBarSingleEval=renderUI({NULL})
-            output$savewidthDistributionSingleEval=renderUI({NULL})
-            output$saveenrichmentBoxSingleEval=renderUI({NULL})
-            output$saveenrichmentProfileSingleEval=renderUI({NULL})
+            output$savewidthDistributionSingleEval<-renderUI({NULL})
+            output$widthDistributionSingleEval<-renderPlot({NULL})
+            output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
+            output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
       			#logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">ROI not found...<br></font>'
             toplot$viewDistributionPieSingleEval$Colors=NULL
+            toplot$viewDistributionPieSingleEval$Colors_density=NULL
+            toplot$viewDistributionPieSingleEval$Colors_profile=NULL
+            toplot$viewDistributionPieSingleEval$Colors_box=NULL
             toplot$viewDistributionPieSingleEval$elements=NULL
             toplot$viewDistributionPieSingleEval$maintitle=NULL
             toplot$viewDistributionPieSingleEval$label=NULL
@@ -287,22 +354,25 @@ observeEvent(input$plotSingleEval,{
             toplot$viewDistributionPieSingleEval$range_promo=NULL
             toplot$viewDistributionPieSingleEval$range_intra=NULL
             toplot$viewDistributionPieSingleEval$range_inter=NULL
-            toplot$viewDistributionPieSingleEval$getbam=NULL
+            toplot$viewDistributionPieSingleEval$matrixes=NULL
+            output$piechartSingleEval_options<-renderUI({NULL})
+            output$densitySingleEval_options<-renderUI({NULL})
+            output$boxSingleEval_options<-renderUI({NULL})
+            output$profileSingleEval_options<-renderUI({NULL})
             output$saveboxdataSingleEval=renderUI({NULL})
-      			#roi is null...
+            output$saveenrichmentBoxSingleEval=renderUI({NULL})
+            output$saveenrichmentProfileSingleEval=renderUI({NULL})
       		}
 
     	}else{
         output$viewDistributionPieSingleEval<-renderPlot({NULL})
         output$viewDistributionBarSingleEval<-renderPlot({NULL})
-        output$widthDistributionSingleEval<-renderPlot({NULL})
-        output$enrichmentBoxSingleEval<-renderPlot({NULL})
-        output$TSSprofileSingleEval<-renderPlot({NULL})
         output$saveviewDistributionPieSingleEval=renderUI({NULL})
         output$saveviewDistributionBarSingleEval=renderUI({NULL})
-        output$savewidthDistributionSingleEval=renderUI({NULL})
-        output$saveenrichmentBoxSingleEval=renderUI({NULL})
-        output$saveenrichmentProfileSingleEval=renderUI({NULL})
+        output$savewidthDistributionSingleEval<-renderUI({NULL})
+        output$widthDistributionSingleEval<-renderPlot({NULL})
+        output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
+        output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
     		#logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">promoters/transcripts not found... ask to database<br></font>'
         sendSweetAlert(
           session = session,
@@ -311,6 +381,9 @@ observeEvent(input$plotSingleEval,{
           type = "error"
         )        
         toplot$viewDistributionPieSingleEval$Colors=NULL
+        toplot$viewDistributionPieSingleEval$Colors_density=NULL
+        toplot$viewDistributionPieSingleEval$Colors_profile=NULL
+        toplot$viewDistributionPieSingleEval$Colors_box=NULL
         toplot$viewDistributionPieSingleEval$elements=NULL
         toplot$viewDistributionPieSingleEval$maintitle=NULL
         toplot$viewDistributionPieSingleEval$label=NULL
@@ -319,24 +392,30 @@ observeEvent(input$plotSingleEval,{
         toplot$viewDistributionPieSingleEval$range_promo=NULL
         toplot$viewDistributionPieSingleEval$range_intra=NULL
         toplot$viewDistributionPieSingleEval$range_inter=NULL
-        toplot$viewDistributionPieSingleEval$getbam=NULL
+        toplot$viewDistributionPieSingleEval$matrixes=NULL
+        output$piechartSingleEval_options<-renderUI({NULL})
+        output$densitySingleEval_options<-renderUI({NULL})
+        output$boxSingleEval_options<-renderUI({NULL})
+        output$profileSingleEval_options<-renderUI({NULL})
         output$saveboxdataSingleEval=renderUI({NULL})
-      		#print("promoters/transcripts not found... ask to database")
+        output$saveenrichmentBoxSingleEval=renderUI({NULL})
+        output$saveenrichmentProfileSingleEval=renderUI({NULL})
     	}
 
 	}else{
 		#roi not found 
     output$viewDistributionPieSingleEval<-renderPlot({NULL})
     output$viewDistributionBarSingleEval<-renderPlot({NULL})
-    output$widthDistributionSingleEval<-renderPlot({NULL})
-    output$enrichmentBoxSingleEval<-renderPlot({NULL})
-    output$TSSprofileSingleEval<-renderPlot({NULL})
     output$saveviewDistributionPieSingleEval=renderUI({NULL})
     output$saveviewDistributionBarSingleEval=renderUI({NULL})
-    output$savewidthDistributionSingleEval=renderUI({NULL})
-    output$saveenrichmentBoxSingleEval=renderUI({NULL})
-    output$saveenrichmentProfileSingleEval=renderUI({NULL})
+    output$savewidthDistributionSingleEval<-renderUI({NULL})
+    output$widthDistributionSingleEval<-renderPlot({NULL})
+    output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
+    output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
     toplot$viewDistributionPieSingleEval$Colors=NULL
+    toplot$viewDistributionPieSingleEval$Colors_density=NULL
+    toplot$viewDistributionPieSingleEval$Colors_profile=NULL
+    toplot$viewDistributionPieSingleEval$Colors_box=NULL
     toplot$viewDistributionPieSingleEval$elements=NULL
     toplot$viewDistributionPieSingleEval$maintitle=NULL
     toplot$viewDistributionPieSingleEval$label=NULL
@@ -345,8 +424,15 @@ observeEvent(input$plotSingleEval,{
     toplot$viewDistributionPieSingleEval$range_promo=NULL
     toplot$viewDistributionPieSingleEval$range_intra=NULL
     toplot$viewDistributionPieSingleEval$range_inter=NULL
-    toplot$viewDistributionPieSingleEval$getbam=NULL
+    toplot$viewDistributionPieSingleEval$matrixes=NULL
     output$saveboxdataSingleEval=renderUI({NULL})
+    output$piechartSingleEval_options<-renderUI({NULL})
+    output$densitySingleEval_options<-renderUI({NULL})
+    output$boxSingleEval_options<-renderUI({NULL})
+    output$profileSingleEval_options<-renderUI({NULL})
+    output$saveboxdataSingleEval=renderUI({NULL})
+    output$saveenrichmentBoxSingleEval=renderUI({NULL})
+    output$saveenrichmentProfileSingleEval=renderUI({NULL})
 	}
 
 },ignoreInit=TRUE)
@@ -362,9 +448,8 @@ output$saveviewDistributionPieSingleEvalbutton<- downloadHandler(
   },
   content=function(file) {
       pdf(file)
-      par(mar=c(7,7,7,7))
-      pie(toplot$viewDistributionPieSingleEval$elements,col=toplot$viewDistributionPieSingleEval$Colors[2:4],
-            main=toplot$viewDistributionPieSingleEval$maintitle,cex.main=1.2,labels=toplot$viewDistributionPieSingleEval$label,cex=1)
+      plot_singleeval_pie(elements=toplot$viewDistributionPieSingleEval$elements,colors=toplot$viewDistributionPieSingleEval$Colors[2:4],
+        title=toplot$viewDistributionPieSingleEval$maintitle,label=toplot$viewDistributionPieSingleEval$label)
       dev.off()
   } 
 )
@@ -377,10 +462,8 @@ output$saveviewDistributionBarSingleEvalbutton<- downloadHandler(
   },
   content=function(file) {
       pdf(file)
-      par(mar=c(10,6,5,5))
-      names(toplot$viewDistributionPieSingleEval$elements)=toplot$viewDistributionPieSingleEval$label
-      barplot(toplot$viewDistributionPieSingleEval$elements,col=toplot$viewDistributionPieSingleEval$Colors[2:4],main=toplot$viewDistributionPieSingleEval$maintitle,cex.main=1.2,las=2)
-      title(ylab = "Interval number", cex.lab = 1,line = 4)
+      plot_singleeval_bar(elements=toplot$viewDistributionPieSingleEval$elements,colors=toplot$viewDistributionPieSingleEval$Colors_density,
+                      title=toplot$viewDistributionPieSingleEval$maintitle,label=toplot$viewDistributionPieSingleEval$label)
       dev.off()
   } 
 )
@@ -394,53 +477,9 @@ output$savewidthDistributionSingleEvalbutton<- downloadHandler(
   },
   content=function(file) {
         pdf(file)
-        quant=0.95
-
-        cuttedga=toplot$viewDistributionPieSingleEval$range[width(toplot$viewDistributionPieSingleEval$range)<quantile(width(toplot$viewDistributionPieSingleEval$range),quant)]
-        cuttedprom=toplot$viewDistributionPieSingleEval$range_promo[width(toplot$viewDistributionPieSingleEval$range_promo)<quantile(width(toplot$viewDistributionPieSingleEval$range_promo),quant)]
-        cuttedintra=toplot$viewDistributionPieSingleEval$range_intra[width(toplot$viewDistributionPieSingleEval$range_intra)<quantile(width(toplot$viewDistributionPieSingleEval$range_intra),quant)]
-        cuttedinter=toplot$viewDistributionPieSingleEval$range_inter[width(toplot$viewDistributionPieSingleEval$range_inter)<quantile(width(toplot$viewDistributionPieSingleEval$range_inter),quant)]
-
-        if (length(toplot$viewDistributionPieSingleEval$range_promo)>2&length(cuttedga)>2){
-          if (length(toplot$viewDistributionPieSingleEval$range_intra)>2){
-            if(length(toplot$viewDistributionPieSingleEval$range_inter)>2){
-              xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x,density(log2(width(cuttedinter)))$x), 
-                      max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x,density(log2(width(cuttedinter)))$x)  )
-              ylim=c(0, max(max(density(log2(width(cuttedprom)))$y),max(density(log2(width(cuttedintra)))$y),max(density(log2(width(cuttedinter)))$y) ) )
-              plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-                main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=toplot$viewDistributionPieSingleEval$Colors[1])
-              lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-              lines(density(log2(width(cuttedintra)))$x,density(log2(width(cuttedintra)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[3],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-              lines(density(log2(width(cuttedinter)))$x,density(log2(width(cuttedinter)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[4],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-              legend("topright" , c("All ranges","Promoter","Genebody","Intergenic") , col=toplot$viewDistributionPieSingleEval$Colors , lty=rep(1,4),lwd=3,cex=1)
-              dev.off()
-            }else{
-              xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x), 
-                      max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x,density(log2(width(cuttedintra)))$x  ))
-              ylim=c(0, max(max(density(log2(width(cuttedprom)))$y),max(density(log2(width(cuttedintra)))$y) ) )
-              plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-                main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=toplot$viewDistributionPieSingleEval$Colors[1])
-              lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-              lines(density(log2(width(cuttedintra)))$x,density(log2(width(cuttedintra)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[3],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-              legend("topright" , c("All ranges","Promoter","Genebody","Intergenic") , col=toplot$viewDistributionPieSingleEval$Colors , lty=rep(1,4),lwd=3,cex=1)
-              dev.off()
-            }
-            
-          }else{
-
-            xlim=c(min(density(log2(width(cuttedga)))$x ,density(log2(width(cuttedprom)))$x), 
-                      max(density(log2(width(cuttedga)))$x,density(log2(width(cuttedprom)))$x  ))
-            ylim=c(0, max(max(density(log2(width(cuttedprom)))$y) ) )
-            plot(density(log2(width(cuttedga)))$x,density(log2(width(cuttedga)))$y,pch=".",cex=1,xlab="log2 length",cex.lab=1,cex.axis=1,ylab="Frequency",ylim=ylim,xlim=xlim,
-              main=paste("Interval length (0 - ",quant*100,"%)",sep=''),cex.main=1.2,lwd=2,type="l",col=toplot$viewDistributionPieSingleEval$Colors[1])
-            lines(density(log2(width(cuttedprom)))$x,density(log2(width(cuttedprom)))$y,cex=1,col=toplot$viewDistributionPieSingleEval$Colors[2],ylim=ylim,xlim=xlim,lty=1,lwd=2)
-            legend("topright" , c("All ranges","Promoter","Genebody","Intergenic") , col=toplot$viewDistributionPieSingleEval$Colors , lty=rep(1,4),lwd=3,cex=1)
-            dev.off()
-          }      
-        }else{
-          #only total plot, but at least one between promoters, intra, inter must be >0 by definition
-          dev.off()
-        }       
+        plot_singleeval_density(range=toplot$viewDistributionPieSingleEval$range,range_promo=toplot$viewDistributionPieSingleEval$range_promo,
+                                range_intra=toplot$viewDistributionPieSingleEval$range_intra,range_inter=toplot$viewDistributionPieSingleEval$range_inter)
+        dev.off()
   } 
 )
 
@@ -452,18 +491,13 @@ output$saveenrichmentBoxSingleEvalbutton<- downloadHandler(
       paste('Boxplot_single.pdf', sep='')
   },
   content=function(file) {
+
       pdf(file)
-      par(mar=c(8,5,5,5))
-      if (input$chooseNormalizationSingleEval=="totread"){
-        suppressWarnings(boxplot(toplot$viewDistributionPieSingleEval$bam,toplot$viewDistributionPieSingleEval$bam_promo,toplot$viewDistributionPieSingleEval$bam_intra,toplot$viewDistributionPieSingleEval$bam_inter,notch=TRUE,outline=FALSE,varwidth=TRUE,col=toplot$viewDistributionPieSingleEval$Colors,xaxt="n",ylab="Normalized reads (rpm)"))
-      }else{
-        bam=round( toplot$viewDistributionPieSingleEval$bam/length(toplot$viewDistributionPieSingleEval$range),3)
-        bam_promo=round( toplot$viewDistributionPieSingleEval$bam_promo/length(toplot$viewDistributionPieSingleEval$range_promo),3)
-        bam_intra=round( toplot$viewDistributionPieSingleEval$bam_intra/length(toplot$viewDistributionPieSingleEval$range_intra),3)
-        bam_inter=round( toplot$viewDistributionPieSingleEval$bam_inter/length(toplot$viewDistributionPieSingleEval$range_inter),3)
-        suppressWarnings(boxplot(bam,bam_promo,bam_intra,bam_inter,notch=TRUE,outline=FALSE,varwidth=TRUE,col=toplot$viewDistributionPieSingleEval$Colors,xaxt="n",ylab="Read density (rpm/bp)"))
-      }
-      axis(1,at=1:4,labels=c("All ranges","Promoter","Genebody","Intergenic"),las=2)
+      plot_singleeval_boxplot(normalization=toplot$viewDistributionPieSingleEval$normalization_box,bam=toplot$viewDistributionPieSingleEval$bam,
+                    bam_promo=toplot$viewDistributionPieSingleEval$bam_promo,bam_intra=toplot$viewDistributionPieSingleEval$bam_intra,
+                    bam_inter=toplot$viewDistributionPieSingleEval$bam_inter,range=toplot$viewDistributionPieSingleEval$range,
+                    range_promo=toplot$viewDistributionPieSingleEval$range_promo,range_intra=toplot$viewDistributionPieSingleEval$range_intra,
+                    range_inter=toplot$viewDistributionPieSingleEval$range_inter,colors=toplot$viewDistributionPieSingleEval$Colors_box)
       dev.off()
   } 
 )
@@ -474,7 +508,7 @@ output$saveenrichmentBoxSingleEvaldata<- downloadHandler(
       paste('boxplot_data.xls', sep='')
   },
   content=function(file) {
-      if(input$chooseNormalizationSingleEval=="totread"){
+      if(toplot$viewDistributionPieSingleEval$normalization_box=="totread"){
         maxval=max(length(toplot$viewDistributionPieSingleEval$bam),
                   length(toplot$viewDistributionPieSingleEval$bam_promo),
                   length(toplot$viewDistributionPieSingleEval$bam_intra),
@@ -491,10 +525,10 @@ output$saveenrichmentBoxSingleEvaldata<- downloadHandler(
                   length(toplot$viewDistributionPieSingleEval$bam_intra),
                   length(toplot$viewDistributionPieSingleEval$bam_inter))
         arr=matrix(rep("",maxval*4),ncol=4)
-        arr[1:length(toplot$viewDistributionPieSingleEval$bam),1]=toplot$viewDistributionPieSingleEval$bam/length(toplot$viewDistributionPieSingleEval$range)
-        arr[1:length(toplot$viewDistributionPieSingleEval$bam_promo),2]=toplot$viewDistributionPieSingleEval$bam_promo/length(toplot$viewDistributionPieSingleEval$range_promo)
-        arr[1:length(toplot$viewDistributionPieSingleEval$bam_intra),3]=toplot$viewDistributionPieSingleEval$bam_intra/length(toplot$viewDistributionPieSingleEval$range_intra)
-        arr[1:length(toplot$viewDistributionPieSingleEval$bam_inter),4]=toplot$viewDistributionPieSingleEval$bam_inter/length(toplot$viewDistributionPieSingleEval$range_inter)
+        arr[1:length(toplot$viewDistributionPieSingleEval$bam),1]=toplot$viewDistributionPieSingleEval$bam/width(toplot$viewDistributionPieSingleEval$range)
+        arr[1:length(toplot$viewDistributionPieSingleEval$bam_promo),2]=toplot$viewDistributionPieSingleEval$bam_promo/width(toplot$viewDistributionPieSingleEval$range_promo)
+        arr[1:length(toplot$viewDistributionPieSingleEval$bam_intra),3]=toplot$viewDistributionPieSingleEval$bam_intra/width(toplot$viewDistributionPieSingleEval$range_intra)
+        arr[1:length(toplot$viewDistributionPieSingleEval$bam_inter),4]=toplot$viewDistributionPieSingleEval$bam_inter/width(toplot$viewDistributionPieSingleEval$range_inter)
       }
       colnames(arr)=c("all","promoters","genebody","intergenic")
       write.table(arr,file=file,row.names=FALSE,sep="\t",quote=FALSE   ) 
@@ -508,19 +542,9 @@ output$saveenrichmentProfileSingleEvalbutton<- downloadHandler(
   },
   content=function(file) {
     pdf(file)
-    par(mar=c(6,6,3,3))
-    Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
-    mins=Reduce(min,toplot$viewDistributionPieSingleEval$profile_to_plot)
-    maxs=Reduce(max,toplot$viewDistributionPieSingleEval$profile_to_plot)
+    plot_singleeval_profile(colors=toplot$viewDistributionPieSingleEval$Colors_profile,profile_to_plot=toplot$viewDistributionPieSingleEval$profile_to_plot,
+                          ylab=toplot$viewDistributionPieSingleEval$ylabprofile)
 
-    plot(0,type='n',xaxt="n",ylim=c(mins,maxs),xlim=c(0,50),ylab=toplot$viewDistributionPieSingleEval$ylabprofile,xlab="Genomic Window",
-                        main="Shape profile",cex.main=1.2,cex=1,xaxt="n",cex.lab=1.2,cex.axis=1)
-    for(i in 1:length(toplot$viewDistributionPieSingleEval$profile_to_plot)){
-      lines(toplot$viewDistributionPieSingleEval$profile_to_plot[[i]],pch=".",lwd=2,col=Colors[i])
-    }
-
-    axis(1,at=seq(1,length(toplot$viewDistributionPieSingleEval$profile_to_plot[[1]]),length(toplot$viewDistributionPieSingleEval$profile_to_plot[[1]])/2-1),
-                      labels=c( "start","midpoint","end" ),cex.axis=1)
     dev.off()
   } 
 )
@@ -548,35 +572,61 @@ observeEvent(input$msg_pairwiseOverlaps_parameters, {
 observeEvent(input$msg_pairwiseOverlaps_overlap, {
   boxHelpServer(msg_pairwiseOverlaps_overlap)
 })
-#overlap and enrichment
-observeEvent(input$msg_pairwiseOverlaps_overlapAndEnrichment, {
-  boxHelpServer(msg_pairwiseOverlaps_overlapAndEnrichment)
-})
+#overlap + enrichment box
+observeEvent(input$msg_pairwiseOverlaps_box, {boxHelpServer(msg_pairwiseOverlaps_box)})
+#overlap + enrichment scatter
+observeEvent(input$msg_pairwiseOverlaps_scatter, {boxHelpServer(msg_pairwiseOverlaps_scatter)})
+#overlap + enrichment calibration
+observeEvent(input$msg_pairwiseOverlaps_calibration, {boxHelpServer(msg_pairwiseOverlaps_calibration)})
+
+
+
+#react to parameters help button
+observeEvent(input$help_pairwiseOverlaps_parameters_enrich1, {boxHelpServer(help_pairwiseOverlaps_parameters_enrich1)})
+observeEvent(input$help_pairwiseOverlaps_parameters_enrich2, {boxHelpServer(help_pairwiseOverlaps_parameters_enrich2)})
+observeEvent(input$help_pairwiseOverlaps_parameters_minbpoverlap, {boxHelpServer(help_pairwiseOverlaps_parameters_minbpoverlap)})
+
+observeEvent(input$help_singleEvaluation_normalizationtotalread_cmpbox, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_singleEvaluation_normalizationreaddensity_cmpbox, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+observeEvent(input$help_singleEvaluation_normalizationtotalread_cmpscatter, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_singleEvaluation_normalizationreaddensity_cmpscatter, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+
 
 
 observeEvent(input$plotCmp,{
+
   #verify to have at least input$ROI2chooseCmp and input$ROI1chooseCmp 
   if (length(ROIvariables$listROI)>0&length(input$ROI2chooseCmp)>0 & length(input$ROI1chooseCmp)>0 & !is.na(input$minOverlapCmp) ){
     n1=input$ROI1chooseCmp
     n2=input$ROI2chooseCmp
 
-    if(is.null(input$BAM1chooseCmp)){
+    #further test if ROI have BAM selected
+    #some bug in the observer
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    pos1=match(input$ROI1chooseCmp,nomi)
+    BAM1_present=input$BAM1chooseCmp%in%names(Enrichlist$rawcoverage[[pos1]])
+    pos2=match(input$ROI2chooseCmp,nomi)
+    BAM2_present=input$BAM2chooseCmp%in%names(Enrichlist$rawcoverage[[pos2]])
+    if(!isvalid(BAM1_present)){
       BAM1_choose=""
     }else{
       BAM1_choose=input$BAM1chooseCmp
     }
-    if(is.null(input$BAM2chooseCmp)){
+    if(!isvalid(BAM2_present)){
       BAM2_choose=""
     }else{
       BAM2_choose=input$BAM2chooseCmp
     }
 
-    #find the corresponding ROI objects from their names, as usual
+    #find the corresponding ROI objects from their names, as usual. Keep only unique ranges (for example,
+    #when promoters/transcripts of a genelist). Remember to remove duplicate ranges positions from enrichments
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos1=match(input$ROI1chooseCmp,nomi)
     roi1=uniqueROI(ROIvariables$listROI[[pos1]])
     pos2=match(input$ROI2chooseCmp,nomi)
     roi2=uniqueROI(ROIvariables$listROI[[pos2]])
+    not_dup_range1=!duplicated(getRange(ROIvariables$listROI[[pos1]]))
+    not_dup_range2=!duplicated(getRange(ROIvariables$listROI[[pos2]]))
     #get Range and find the overlaps, with minimum bp set by the user
     range1=getRange(roi1)
     range2=getRange(roi2)
@@ -589,6 +639,10 @@ observeEvent(input$plotCmp,{
     #     ----    ----
     #    -----------
     # is 1 area of overlap
+
+
+    #IMPORTANT: without "unique", we keep all duplicated ranges and consider them as different.
+    #this is the case for example promoters/tranascripts of a genelist
     common=union( unique(range1[qh]) ,unique(range2[sh]))
     totalunion=union(range1,range2)
     if (length(sh)==0&length(qh)==0){
@@ -604,39 +658,44 @@ observeEvent(input$plotCmp,{
       #otherwise, calculate how many overlaps. Ranges in 1 that overlaps with 2,
       #ranges of 2 that overlaps with 1, ranges exclusively in 1 and excl. in 2
       #and find numbers and fractions.
+
+      #range1_ov=unique(range1[qh])
+      #range2_ov=unique(range2[sh])
       range1_ov=unique(range1[qh])
       range2_ov=unique(range2[sh])
-      range1_notov=range1[-qh]
-      range2_notov=range2[-sh]    
+      range1_notov=unique(range1[-qh])
+      range2_notov=unique(range2[-sh])    
       perc1=  round( (length(range1_ov)/length(range1))*100 )
       perc2=  round( (length(range2_ov)/length(range2))*100 )
       jaccard=round(  length(common)  /length(totalunion),2)
     }
-
 
     #make the matrix for barplot and barplot of the overlap (the most correct representation)
     matbar=as.matrix(data.frame(n1=c(length(range1_ov),length(range1_notov),0,0),
                       n2=c(0,0,length(range2_ov),length(range2_notov))))
     colnames(matbar)=paste(c("ROI 1","ROI 2")," (",c(length(range1_ov),length(range2_ov)),"; ",c(perc1,perc2),"%)",sep="")
     
-    toplot$cmp$Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
     toplot$cmp$matbar=matbar
     toplot$cmp$jaccard=jaccard
     toplot$cmp$n1=n1
     toplot$cmp$n2=n2
 
+    output$pairwiseoverlaps_overlap_options<-renderUI({
+                  selectInput("chooseColorPaletteCmp_overlap","Choose color palette:",choices=c(
+                                                  "red/grey"="red_gray_red4_grey20",
+                                                  "blue/green"="blue_green_blue4_green4"
+                                                ))
+    })
 
     output$viewBarplotCmp<-renderPlot({
-      Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
-      par(xpd=TRUE,mar=c(14,6,5,5))
-      barplot(matbar,col=c(Colors[3],Colors[1],Colors[4],Colors[2]),main=paste("Jaccard idx:",jaccard),cex.main=1.2,las=2)
-      title(ylab = "Interval number", cex.lab = 1,line = 4)
-      legend("bottomleft",inset=c(0,-1.5),legend=c(paste(n1,"alone"),
-                                                      paste(n1,"overlapping"),
-                                                      paste(n2,"overlapping"),
-                                                      paste(n2,"alone")),pch=19,
-              col=c(Colors[1],Colors[3],Colors[4],Colors[2]))
+      if(isvalid(input$chooseColorPaletteCmp_overlap)){
+        Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
+      }else{
+        Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
+      }
+      plot_cmp_barplot(matbar=matbar,n1=n1,n2=n2,colors=Colors,jaccard=jaccard)
     })
+
 
     #slow function...
     #for Venn Diagram, overlap number is number of overlapping AREAS (see above)
@@ -648,15 +707,17 @@ observeEvent(input$plotCmp,{
     toplot$cmp$area1=area1
     toplot$cmp$area2=area2
     toplot$cmp$common=common
-    output$viewVennCmp<-renderPlot({
-      Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
-      griglia<-draw.pairwise.venn(area1=area1+length(common), area2=area2+length(common), 
-                cross.area=length(common),c(n1,n2),cex=1,ext.dist=c(.01,-0.04),
-                ext.line.lwd=0,ext.length=0,ext.pos=90,alpha=c(0.1,0.1),col=c(Colors[1],Colors[2]),fill=c(Colors[1],Colors[2]),
-                label.col=c(Colors[1],Colors[3],Colors[4]),cat.pos=c(310,50),cat.dist=c(0.1,0.1),lwd=c(2,2),cat.cex=c(1.2,1.2),
-                cat.col=c(Colors[1],Colors[4]),margin=0.3,main="Intervals overlap",main.cex=1.2,main.col="black",main.pos=c(1,1),filename=NULL)
 
+    output$viewVennCmp<-renderPlot({
+      if(isvalid(input$chooseColorPaletteCmp_overlap)){
+        Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
+      }else{
+        Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
+      }
+      plot_cmp_venn(area1=area1,area2=area2,common=common,n1=n1,n2=n2,colors=Colors)
     })
+
+
     #download button for PDF Barplot of overlap
     output$saveviewBarplotCmp=renderUI({downloadButton('saveviewBarplotCmpbutton', 'Get PDF')})
     #download button for Venn
@@ -664,12 +725,15 @@ observeEvent(input$plotCmp,{
     print(paste("Pairwise comparison between",input$ROI1chooseCmp,"and",input$ROI2chooseCmp))
 
 
+
     #now, check BAMlists of the 2 ROIs selected
     rawvals1=Enrichlist$rawcoverage[[pos1]]
+    keyvals1=Enrichlist$decryptkey[[pos1]]
     normvals1=Enrichlist$normfactlist[[pos1]]
     rawvals2=Enrichlist$rawcoverage[[pos2]]
+    keyvals2=Enrichlist$decryptkey[[pos2]]
     normvals2=Enrichlist$normfactlist[[pos2]]
-    
+
     getbam1=names(rawvals1)  
     getbam2=names(rawvals2)   
 
@@ -678,69 +742,65 @@ observeEvent(input$plotCmp,{
     toplot$cmp$BAM1chooseCmp=BAM1_choose
     toplot$cmp$BAM2chooseCmp=BAM2_choose
 
+
     #if there is at least one overlap and at least one BAMfile has been selectd by the user
     #(meaning that is associated with at least one of the 2 ROIs selected), proceed
     if ( (nchar(BAM1_choose)>0 |nchar(BAM2_choose)>0)  & (!is.null(getbam1) | !is.null(getbam2)) & length(ov)>0){
       ov_range1=findOverlaps(common,range1,minoverlap=input$minOverlapCmp)
       ov_range2=findOverlaps(common,range2,minoverlap=input$minOverlapCmp)
-
-      if(input$chooseNormalizationCmp=="readdensity"){
-        lab_axis="Read density (rpm/bp)"
-      }else{
-        lab_axis="Normalized reads (rpm)"
-      }
+      lab_axis="Total reads"
       #if BAM1 is present and selected, proceed
-      if(nchar(BAM1_choose)>0){
+      if(nchar(BAM1_choose)>0 ){
         pos_bam1_1=match(BAM1_choose,getbam1)
         bam1_1=rawvals1[[pos_bam1_1]]
+        keys1_1=keyvals1[[pos_bam1_1]]
         norm1_1=normvals1[[pos_bam1_1]]
-        bam1_1=unlist(lapply(bam1_1,sum))*norm1_1
+        #remove dups range1
+        bam1_1=bam1_1[not_dup_range1]
+        keys1_1=keys1_1[not_dup_range1]
+
+        #decrypt and sum
+        bam1_1=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bam1_1,Nbins=1,Snorm=FALSE,key=keys1_1,norm_factor=norm1_1)
         if(!is.null(bam1_1)){
           range1only_bam1=bam1_1[-qh]
-          if (input$chooseNormalizationCmp=="readdensity"){
-            range1only_bam1=range1only_bam1/width(range1_notov)
-          }
           #extract BAM1 of range1, in positions of range1 that overlaps with range2 
           bam1_common=bam1_1[subjectHits(ov_range1)]
-          if (input$chooseNormalizationCmp=="readdensity"){
-            width_range1_common=width(range1[subjectHits(ov_range1)])
-            bam1_common=bam1_common/width_range1_common
-            #here, we can have that multiple range1 overlap with a single range 2 in "common" regions.
-            #in this case, for each overlapping AREA, find the MEAN of signals of BAM1 of ranges1
-            #that overlap with this single range2:
-            #range1: ------ ---------           ---
-            #range2:  ----------------------------
-            #the average of signals of BAM1 calculated on range1 is the signal that
-            #will appear as "common regions"
-            common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
-          }else{
-            common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
-          }
+
+          #   #here, we can have that multiple range1 overlap with a single range 2 in "common" regions.
+          #   #in this case, for each overlapping AREA, find the MEAN of signals of BAM1 of ranges1
+          #   #that overlap with this single range2:
+          #   #range1: ------ ---------           ---
+          #   #range2:  ----------------------------
+          #   #the average of signals of BAM1 calculated on range1 is the signal that
+          #   #will appear as "common regions"
 
           #if BAM1 is associated also with range2, we can have the reads of BAM1
           #but in the exclusive regions of ROI2!!
           pos_bam1_2=match(BAM1_choose,getbam2)
           if(!is.na(pos_bam1_2) & length(pos_bam1_2)>0){
             bam1_2=rawvals2[[pos_bam1_2]]
+            keys1_2=keyvals2[[pos_bam1_2]]
             norm1_2=normvals2[[pos_bam1_2]]
-            bam1_2=unlist(lapply(bam1_2,sum))*norm1_2
+            #remove dups range2
+            bam1_2=bam1_2[not_dup_range2]
+            keys1_2=keys1_2[not_dup_range2]
+
+            #decrypt and sum
+            bam1_2=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bam1_2,Nbins=1,Snorm=FALSE,key=keys1_2,norm_factor=norm1_2)
             range2only_bam1=bam1_2[-sh]       
-            if(input$chooseNormalizationCmp=="readdensity") {
-              range2only_bam1=range2only_bam1/width(range2_notov)
-            }
           }else{
             #bam2 for range2, but not bam1 for range2
             bam1_2=NA
             range2only_bam1=NA
           }          
         }else{
-          common_bam1=NA
+          bam1_common=NA
           range1only_bam1=NA
           range2only_bam1=NA          
         }
         
       }else{
-        common_bam1=NA
+        bam1_common=NA
         range1only_bam1=NA
         range2only_bam1=NA
       }
@@ -749,32 +809,32 @@ observeEvent(input$plotCmp,{
       if(nchar(BAM2_choose)>0){
         pos_bam2_2=match(BAM2_choose,getbam2)
         bam2_2=rawvals2[[pos_bam2_2]]
+        keys2_2=keyvals2[[pos_bam2_2]]
         norm2_2=normvals2[[pos_bam2_2]]
-        bam2_2=unlist(lapply(bam2_2,sum))*norm2_2
+        #remove dups range2
+        bam2_2=bam2_2[not_dup_range2]
+        keys2_2=keys2_2[not_dup_range2]
+        
+        #decrypt and sum
+        bam2_2=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bam2_2,Nbins=1,Snorm=FALSE,key=keys2_2,norm_factor=norm2_2)
 
         if(!is.null(bam2_2)){
           range2only_bam2=bam2_2[-sh]
-          if(input$chooseNormalizationCmp=="readdensity"){
-            range2only_bam2=range2only_bam2/width(range2_notov)
-          }
-          bam2_common=bam2_2[subjectHits(ov_range2)]
-          if (input$chooseNormalizationCmp=="readdensity"){
-            width_range2_common=width(range2[subjectHits(ov_range2)])
-            bam2_common=bam2_common/width_range2_common
-            common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
-          }else{
-            common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
-          }
+          bam2_common=bam2_2[subjectHits(ov_range2)] 
           #if BAM2 is associated also with ROI 1,
           pos_bam2_1=match(BAM2_choose,getbam1)
           if(!is.na(pos_bam2_1) & length(pos_bam2_1)>0){
             bam2_1=rawvals1[[pos_bam2_1]]
+            keys2_1=keyvals1[[pos_bam2_1]]
             norm2_1=normvals1[[pos_bam2_1]]
-            bam2_1=unlist(lapply(bam2_1,sum))*norm2_1
+            #remove dups range1
+            bam2_1=bam2_1[not_dup_range1]
+            keys2_1=keys2_1[not_dup_range1]
+
+            #decrypt and sum
+            bam2_1=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=bam2_1,Nbins=1,Snorm=FALSE,key=keys2_1,norm_factor=norm2_1)
             range1only_bam2=bam2_1[-qh]
-            if(input$chooseNormalizationCmp=="readdensity"){
-              range1only_bam2=range1only_bam2/width(range1_notov)
-            }
+
           } else{
             #bam1 for range1, but not bam2 for range1
             bam2_1=NA
@@ -783,23 +843,27 @@ observeEvent(input$plotCmp,{
         }else{
           range2only_bam2=NA
           range1only_bam2=NA
-          common_bam2=NA          
+          bam2_common=NA          
         }
          
       }else{
         #no bam2 for range2. => no bam2 for range2 and range1
         range2only_bam2=NA
         range1only_bam2=NA
-        common_bam2=NA
+        bam2_common=NA
       }
-
+      toplot$cmp$range1=range1
+      toplot$cmp$range2=range2
+      toplot$cmp$range1_notov=range1_notov
+      toplot$cmp$range2_notov=range2_notov
+      toplot$cmp$ov_range1=ov_range1
+      toplot$cmp$ov_range2=ov_range2
       toplot$cmp$range2only_bam1=range2only_bam1
       toplot$cmp$range1only_bam1=range1only_bam1
-      toplot$cmp$common_bam1=common_bam1
+      toplot$cmp$bam1_common=bam1_common
       toplot$cmp$range1only_bam2=range1only_bam2
       toplot$cmp$range2only_bam2=range2only_bam2
-      toplot$cmp$common_bam2=common_bam2
-      toplot$cmp$lab_axis=lab_axis
+      toplot$cmp$bam2_common=bam2_common
 
       toplot$cmp$BAM1chooseCmp=BAM1_choose
       toplot$cmp$BAM2chooseCmp=BAM2_choose
@@ -809,31 +873,76 @@ observeEvent(input$plotCmp,{
       #as common regions, the signal of BAM1 is the BAM1 signal of range1 inside
       #common areas (the average for each single overlapping area)
       #the same for BAM2: is the average of BAM2 signals inside ranges2 in common areas
+
+      output$pairwiseoverlaps_box_options<-renderUI({
+                list(
+                  selectInput("chooseColorPaletteCmp_box","Choose color palette:",choices=c(
+                                                  "red/grey"="red_gray_red4_grey20",
+                                                  "blue/green"="blue_green_blue4_green4"
+                                                )),
+                  radioButtons("chooseNormalizationCmp_box","Choose normalization:",
+                                      choiceNames=list(
+                                        htmlhelp("Total reads","help_singleEvaluation_normalizationtotalread_cmpbox"),
+                                        htmlhelp("Read density (reads/bp)","help_singleEvaluation_normalizationreaddensity_cmpbox")
+                                      ),
+                                      choiceValues=list(
+                                        "totread",
+                                        "readdensity"
+                                      )
+                              ),
+                  checkboxInput("islogCmp_box", label="log2",value = FALSE, width = NULL)
+                )
+      })      
+      #here put specific options for the boxplot and the boxplot
       output$viewBoxplotCmp<-renderPlot({
-        Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
-        par(xpd=TRUE,mar=c(16,4,2,2))
-        if(input$islogCmp){
-          arraytoplot=list(log2(range2only_bam1),log2(range1only_bam1),log2(common_bam1),
-                log2(range1only_bam2),log2(range2only_bam2),log2(common_bam2))
-          laby=paste("log2",lab_axis)
+
+        #if not present, start with default colors
+        if (isvalid(input$chooseColorPaletteCmp_box)){
+          Colors=strsplit(input$chooseColorPaletteCmp_box,split="_")[[1]]
         }else{
-          arraytoplot=list(range2only_bam1,range1only_bam1,common_bam1,
-                range1only_bam2,range2only_bam2,common_bam2)
-          laby=lab_axis
+          Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
+        }
+        #if not present, start with default normalization
+        if (isvalid(input$chooseNormalizationCmp_box)){
+          normalization=input$chooseNormalizationCmp_box
+        }else{
+          normalization=strsplit("totread",split="_")[[1]]
+        } 
+        if (isvalid(input$islogCmp_box)){
+          islog=input$islogCmp_box
+        }else{
+          islog=FALSE
+        }       
+
+        if(normalization=="readdensity"){
+          range1only_bam1=range1only_bam1/width(range1_notov)
+          width_range1_common=width(range1[subjectHits(ov_range1)])
+          bam1_common=bam1_common/width_range1_common
+          range2only_bam1=range2only_bam1/width(range2_notov)
+          
+          range2only_bam2=range2only_bam2/width(range2_notov)
+          width_range2_common=width(range2[subjectHits(ov_range2)])
+          bam2_common=bam2_common/width_range2_common
+          range1only_bam2=range1only_bam2/width(range1_notov)  
         }
 
-        suppressWarnings(boxplot(arraytoplot,col=c(Colors[2],Colors[1],Colors[3],Colors[1],Colors[2],Colors[4]),
-                outline=FALSE,notch=TRUE,varwidth=TRUE,at =c(1,2,3, 5,6,7),xaxt="n",ylab=laby))
+        if (!all(is.na(bam1_common))){
+          common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
+        }else{
+          common_bam1=NA
+        }
+        if (!all(is.na(bam2_common))){
+          common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
+        }else{
+          common_bam2=NA
+        }         
 
-        axis(1,at=c(2,6),labels=c("enrich. 1","enrich. 2"),las=2,cex=1)
-        legend("bottomleft",inset=c(0,-1),legend=c(paste(n1,"alone"),
-                                                      paste(n1,"overlapping"),
-                                                      paste(n2,"overlapping"),
-                                                      paste(n2,"alone")),pch=19,
-              col=c(Colors[1],Colors[3],Colors[4],Colors[2]))
-        #another legend for complete name of enrichments
-        legend("bottomleft",inset=c(0,-1.5),legend=c(paste("enrich. 1: ",BAM1_choose,sep=""),paste("enrich. 2: ",BAM2_choose,sep="")),box.col = "black",bg = "white")
+        plot_cmp_box(islog=islog,normalization=normalization,range2only_bam1=range2only_bam1,
+                    range1only_bam1=range1only_bam1,common_bam1=common_bam1,range1only_bam2=range1only_bam2,range2only_bam2=range2only_bam2,
+                    common_bam2=common_bam2,n1=n1,n2=n2,BAM1_choose=BAM1_choose,BAM2_choose=BAM2_choose,colors=Colors)
       })
+
+
       #pdf button for boxplot
       output$saveviewBoxplotCmp=renderUI({downloadButton('saveviewBoxplotCmpbutton', 'Get PDF')})
       #now the download data button will appear
@@ -843,8 +952,7 @@ observeEvent(input$plotCmp,{
 
       quantiles=seq(0,0.99,0.05) #will be x coordinates for the final plot
       #here, at least bam1_1 or bam2_2 must exist by definition
-
-      if(exists("bam1_1")& !exists("bam2_2")){
+      if(exists("bam1_1") & !exists("bam2_2") ){
         #only BAM1 of ROI1
         fracts=lapply(quantiles,test_ov,ov=ov,bam1_1=bam1_1,bam2_2=NULL)
       }
@@ -856,7 +964,6 @@ observeEvent(input$plotCmp,{
         #both BAM1 of ROI1 and BAM2 of ROI2
         fracts=lapply(quantiles,test_ov,ov=ov,bam1_1=bam1_1,bam2_2=bam2_2)
       }
-
       #extract values for the calibration overlap plot:
       only1=unlist(lapply(fracts,"[[",1))
       only2=unlist(lapply(fracts,"[[",2))
@@ -869,25 +976,23 @@ observeEvent(input$plotCmp,{
       toplot$cmp$combined1=combined1
       toplot$cmp$combined2=combined2
 
+      #options for calibration plot
+      output$pairwiseoverlaps_calibration_options<-renderUI({
+                  selectInput("chooseColorPaletteCmp_calibration","Choose color palette:",choices=c(
+                                                  "red/grey"="red_gray_red4_grey20",
+                                                  "blue/green"="blue_green_blue4_green4"
+                                                ))
+      })
       #plot the calibration of overlap
       output$viewCalibrationCmp<-renderPlot({
-        Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
-        par(xpd=TRUE,mar=c(13,5,2,2))
-        plot(1, type="n", xlab="Enrichment threshold (quantile)", ylab="fraction of overlap", xlim=c(0, 1), ylim=c(0, 1),xaxt="n")
-        lines(quantiles,only1,type="p",col=Colors[1])
-        lines(quantiles,only2,type="p",col=Colors[2])
-        lines(quantiles,combined1,type="p",col=Colors[3])
-        lines(quantiles,combined2,type="p",col=Colors[4])
-        if(exists("bam1_1")& !exists("bam2_2")){
-          legend("bottomleft",inset=c(0,-0.8),legend=paste(n1,"overlap"),col=Colors[1],bg="transparent")
-        }else if(exists("bam2_2")& !exists("bam1_1")){
-          legend("bottomleft",inset=c(0,-0.8),legend=paste(n2,"overlap"),col=Colors[2],bg="transparent")
-        }else if(exists("bam1_1")& exists("bam2_2")){
-          legend("bottomleft",inset=c(0,-0.8),
-                  legend=c(paste(n1,"overlap"),paste(n2,"overlap"),paste(n1,"overlap combined"),paste(n2,"overlap combined")),
-                      col=c(Colors[1],Colors[2],Colors[3],Colors[4]),pch=19,bg="transparent" )
+        if (isvalid(input$chooseColorPaletteCmp_calibration)){
+          Colors=strsplit(input$chooseColorPaletteCmp_calibration,split="_")[[1]]
+        }else{
+          Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
         }
-        axis(1,quantiles)
+        
+        plot_cmp_calibration(quantiles=quantiles,only1=only1,only2=only2,combined1=combined1,combined2=combined2,
+                              n1=n1,n2=n2,colors=Colors)
       })
       #button for PDF of the calibration overlap plot
       output$saveviewCalibrationCmp=renderUI({downloadButton('saveviewCalibrationCmpbutton', 'Get PDF')})
@@ -908,87 +1013,111 @@ observeEvent(input$plotCmp,{
 
       #scatterplot only if both ranges have both bam files
       #if both bam files were associated to all the subsets (3) => 2 BAM files for each subset (region1 only, rgion2 only, cmmon regions)
-      if(all(!is.na(range2only_bam1)) & all(!is.na(range1only_bam1)) & all(!is.na(range2only_bam2)) & all(!is.na(range1only_bam2)) & all(!is.na(common_bam2)) & all(!is.na(common_bam1)) ){
+      if(all(!is.na(range2only_bam1)) & all(!is.na(range1only_bam1)) & all(!is.na(range2only_bam2)) & all(!is.na(range1only_bam2)) 
+        & all(!is.na(bam1_common)) & all(!is.na(bam2_common)) ){
          
-        df=as.data.frame(matrix( rep(NA,(length(range2only_bam2)+length(range1only_bam1)+length(common_bam1))*2),ncol=2 ))
-        labs=c(rep("2only",length(range2only_bam2)), rep("1only",length(range1only_bam1)),rep("common",length(common_bam1)) )
+
+        #######################################################################
+        #creation of df for scatterplot, if both bam files are present 
+        common_block=unique(queryHits(ov_range1))
+        df=as.data.frame(matrix( rep(NA,(length(range2only_bam2)+length(range1only_bam1)+length(common_block))*7),ncol=7 ))
+        labs=c(rep("2only",length(range2only_bam2)), rep("1only",length(range1only_bam1)),rep("common",length(common_block)) )
         df[,3]=labs
-        colnames(df)=c("bam1","bam2","label")
+        colnames(df)=c("bam1","bam2","label","width_range1","width_range2","times_factor_hits_range1","times_factor_hits_range2")
+
+  
 
         #fill df with enrichment values with the proper belonging subset
         if(length(range2only_bam1)>0){
           df[1:length(range2only_bam2),1]=range2only_bam1
-          df[1:length(range2only_bam2),2]=range2only_bam2          
+          df[1:length(range2only_bam2),2]=range2only_bam2 
+          df[1:length(range2only_bam2),5]=width(range2_notov)
         }
         if(length(range1only_bam1)>0){
           df[(length(range2only_bam2)+1):(length(range2only_bam2)+length(range1only_bam2)),1]=range1only_bam1
-          df[(length(range2only_bam2)+1):(length(range2only_bam2)+length(range1only_bam2)),2]=range1only_bam2          
+          df[(length(range2only_bam2)+1):(length(range2only_bam2)+length(range1only_bam2)),2]=range1only_bam2
+          df[(length(range2only_bam2)+1):(length(range2only_bam2)+length(range1only_bam2)),4]=width(range1_notov)       
         }
-        if(length(common_bam1)>0){
-          df[(nrow(df)-length(common_bam1)+1):nrow(df),1]=common_bam1
-          df[(nrow(df)-length(common_bam2)+1):nrow(df),2]=common_bam2          
+        if(length(common_block)>0){
+          width_range1_common=width(range1[subjectHits(ov_range1)])
+          width_range2_common=width(range2[subjectHits(ov_range2)])
+          df[(nrow(df)-length(common_block)+1):nrow(df),1]=tapply(bam1_common,queryHits(ov_range1),sum)
+          df[(nrow(df)-length(common_block)+1):nrow(df),4]=tapply(width_range1_common,queryHits(ov_range1),sum)
+          df[(nrow(df)-length(common_block)+1):nrow(df),6]=tapply(bam1_common,queryHits(ov_range1),length)
+          df[(nrow(df)-length(common_block)+1):nrow(df),2]=tapply(bam2_common,queryHits(ov_range2),sum) 
+          df[(nrow(df)-length(common_block)+1):nrow(df),5]=tapply(width_range2_common,queryHits(ov_range2),sum)  
+          df[(nrow(df)-length(common_block)+1):nrow(df),7]=tapply(bam2_common,queryHits(ov_range2),length)     
         }
+        #######################################################################
 
 
-        #remove 0, negative value and NAs for logarithm
-        arraylogical= df[,1]<=0 | df[,2]<=0 | is.na(df[,1]==0) | is.na(df[,2]==0) 
-        dfprovv=df[!arraylogical,]
-
-        cor_all=round(cor(log2(dfprovv[,1]),log2(dfprovv[,2])),2)
-        cor_common=round(cor(log2(dfprovv[dfprovv[,3]=="common",1]),log2(dfprovv[dfprovv[,3]=="common",2])),2)
 
         toplot$cmp$completedf=df
-        #random sample df if more than 10.000
+        #random sample df if more than 5.000
         if (nrow(df)>5000){
           set.seed(123) # set the seed, so the result will be the same every run with same parameters
           df=df[sort(sample(nrow(df), 5000,replace=FALSE)), ]
         }
 
         toplot$cmp$df=df
-        toplot$cmp$cor_common=cor_common
-        toplot$cmp$cor_all=cor_all
+        # toplot$cmp$cor_common=cor_common
+        # toplot$cmp$cor_all=cor_all
         
 
         #here try to put the checkbox input with the choice of what to show in the scatterplot
         listscatterchoice=list("exclusive ROI-1 ranges"="1only","exclusive ROI-2 ranges"="2only","common ranges"="common")
-        output$showScatterChoice<-renderUI({checkboxGroupInput("scatterplotChoice",label="In scatterplot, show only:",choices=listscatterchoice,selected=unlist(listscatterchoice) )})
+        
 
+        output$pairwiseoverlaps_scatter_options<-renderUI({
+                  list(
+                    selectInput("chooseColorPaletteCmp_scatter","Choose color palette:",choices=c(
+                                                    "red/grey"="red_gray_red4_grey20",
+                                                    "blue/green"="blue_green_blue4_green4"
+                                                  )),
+                    radioButtons("chooseNormalizationCmp_scatter","Choose normalization:",
+                                      choiceNames=list(
+                                        htmlhelp("Total reads","help_singleEvaluation_normalizationtotalread_cmpscatter"),
+                                        htmlhelp("Read density (reads/bp)","help_singleEvaluation_normalizationreaddensity_cmpscatter")
+                                      ),
+                                      choiceValues=list(
+                                        "totread",
+                                        "readdensity"
+                                      )
+                                                        ),
+                    checkboxInput("islogCmp_scatter", label="log2",value = FALSE, width = NULL),
+                    checkboxGroupInput("scatterplotChoice",label="Show only:",
+                                        choices=listscatterchoice,selected=unlist(listscatterchoice) )
+                  )
+        }) 
         output$viewScatterplotCmp<-renderPlot({
-          Colors=strsplit(input$chooseColorPaletteCmp,split="_")[[1]]
-
-          #here, based on what you want to show, remove from df the rows "1only","2only" or "common"
-          subsetToShow=input$scatterplotChoice
-
-          if(input$islogCmp){
-            toplot1=log2(df[,1])
-            toplot2=log2(df[,2])
-            #set -inf values to min
-            toplot1[is.infinite(toplot1)]=min(toplot1[!is.infinite(toplot1)])
-            toplot2[is.infinite(toplot2)]=min(toplot2[!is.infinite(toplot2)])
-            xlims=c(min(toplot1),max(toplot1))
-            ylims=c(min(toplot2),max(toplot2))
-            laby=paste("log2",toplot$cmp$BAM2chooseCmp,lab_axis)
-            labx=paste("log2",toplot$cmp$BAM1chooseCmp,lab_axis)
+          if (isvalid(input$chooseColorPaletteCmp_scatter)){
+            Colors=strsplit(input$chooseColorPaletteCmp_scatter,split="_")[[1]]
           }else{
-            toplot1=df[,1]
-            toplot2=df[,2]
-            xlims=c(0,max(toplot1))
-            ylims=c(0,max(toplot2))
-            laby=paste(toplot$cmp$BAM2chooseCmp,lab_axis)
-            labx=paste(toplot$cmp$BAM1chooseCmp,lab_axis)
+            Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
           }
-          #here, define a priori the x and ylim:
 
-          pos=df[,3] %in% subsetToShow
-          df2=df[pos,]
-          toplot1=toplot1[pos]
-          toplot2=toplot2[pos]
+          if (isvalid(input$chooseNormalizationCmp_scatter)){
+            normalization=input$chooseNormalizationCmp_scatter
+          }else{
+            normalization="totread"
+          }
 
-          par(xpd=TRUE,mar=c(15,5,2,2))
-          plot(toplot1,toplot2,col=ifelse(df2[,3]=="1only",Colors[1],ifelse(df2[,3]=="2only",Colors[2],"black")), 
-                            xlab=labx,ylab=laby,xlim=xlims,ylim=ylims)
-          legend("bottomleft",inset=c(0,-0.75),legend=c(paste("cor common intervals: ",cor_common,sep=""),paste("cor all intervals: ",cor_all,sep="")),box.col = "black",bg = "white")
-          legend("bottomleft",inset=c(0,-1.2),legend=c(paste(n2,"intervals"),paste(n1,"intervals"),"common"),box.col = "black",bg = "white",pch=19,col=c(Colors[2],Colors[1],"black"))
+          if(isvalid(input$scatterplotChoice)){
+            scatterplotchoice=input$scatterplotChoice
+          }else{
+            scatterplotchoice=c("1only","2only","common")
+          }
+
+          if(isvalid(input$islogCmp_scatter)){
+            islog=input$islogCmp_scatter
+          }else{
+            islog=FALSE
+          }
+          
+
+          plot_cmp_scatter(df=df,normalization=normalization,subsetToShow=scatterplotchoice,islog=islog,
+                    BAM2chooseCmp=BAM2_choose,BAM1chooseCmp=BAM1_choose,
+                    n1=n1,n2=n2,colors=Colors,insets=c(-0.75,-1.2))
         })
         #button for PDF of the scatterplot
         output$saveviewScatterplotCmp=renderUI({downloadButton('saveviewScatterplotCmpbutton', 'Get PDF')})
@@ -996,22 +1125,25 @@ observeEvent(input$plotCmp,{
         output$saveScatterdataCmp=renderUI({downloadButton('saveenrichmentScatterCmpdata', 'Save data')})
 
       }else{
-        output$viewScatterplotCmp<-renderPlot({NULL})
-        output$showScatterChoice<-renderUI({NULL})
+        output$viewScatterplotCmp<-renderPlot({plot_text(text="you need to associate\ntwo enrichment files for both ROIs",cex=1.4)})
+        output$pairwiseoverlaps_scatter_options<-renderUI({NULL})
         output$saveScatterdataCmp=renderUI({NULL})
         output$saveviewScatterplotCmp=renderUI({NULL})
       }
         
     }else{
       #plot enrichment stuff (box & scatter) are NULL
-      output$viewCalibrationCmp<-renderPlot({NULL})
-      output$viewBoxplotCmp<-renderPlot({NULL})
-      output$viewScatterplotCmp<-renderPlot({NULL})
-      output$showScatterChoice<-renderUI({NULL})
+      output$viewCalibrationCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs",cex=1.4)})
+      output$viewBoxplotCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs",cex=1.4)})
+      output$viewScatterplotCmp<-renderPlot({plot_text(text="you need to associate\ntwo enrichment files for both ROIs",cex=1.4)})
       output$saveboxdataCmp=renderUI({NULL})
       output$saveviewBoxplotCmp=renderUI({NULL})
       output$saveScatterdataCmp=renderUI({NULL})
       output$saveviewScatterplotCmp=renderUI({NULL})
+      output$saveviewCalibrationCmp=renderUI({NULL})
+      output$pairwiseoverlaps_box_options<-renderUI({NULL})
+      output$pairwiseoverlaps_scatter_options<-renderUI({NULL})
+      output$pairwiseoverlaps_calibration_options<-renderUI({NULL})
     }
   }else{
     #all plots are NULL
@@ -1024,10 +1156,13 @@ observeEvent(input$plotCmp,{
     output$saveviewBoxplotCmp=renderUI({NULL})
     output$saveboxdataCmp=renderUI({NULL})
     output$viewScatterplotCmp<-renderPlot({NULL})
-    output$showScatterChoice<-renderUI({NULL})
-    output$showScatterChoice<-renderUI({NULL})
     output$saveScatterdataCmp=renderUI({NULL})
     output$saveviewScatterplotCmp=renderUI({NULL})
+    output$saveviewCalibrationCmp=renderUI({NULL})
+    output$pairwiseoverlaps_overlap_options<-renderUI({NULL})
+    output$pairwiseoverlaps_box_options<-renderUI({NULL})
+    output$pairwiseoverlaps_scatter_options<-renderUI({NULL})
+    output$pairwiseoverlaps_calibration_options<-renderUI({NULL})
     sendSweetAlert(
       session = session,
       title = "ROIs not selected",
@@ -1048,19 +1183,13 @@ output$saveviewBarplotCmpbutton<- downloadHandler(
   },
   content=function(file) {
     pdf(file)
-    par(xpd=TRUE,mar=c(16,6,5,5))
-    barplot(toplot$cmp$matbar,col=c(toplot$cmp$Colors[3],toplot$cmp$Colors[1],toplot$cmp$Colors[4],toplot$cmp$Colors[2]),main=paste("Jaccard idx:",toplot$cmp$jaccard),cex.main=1.2,las=2)
-    title(ylab = "Interval number", cex.lab = 1,line = 4)
-    legend("bottomleft",inset=c(0,-1),legend=c(paste(toplot$cmp$n1,"alone"),
-                                                      paste(toplot$cmp$n1,"overlapping"),
-                                                      paste(toplot$cmp$n2,"overlapping"),
-                                                      paste(toplot$cmp$n2,"alone")),pch=19,
-            col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[3],toplot$cmp$Colors[4],toplot$cmp$Colors[2]))
+    Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
+    #for PDF, better to split legend to next page
+    plot_cmp_barplot(matbar=toplot$cmp$matbar,n1=toplot$cmp$n1,n2=toplot$cmp$n2,colors=Colors,
+                  jaccard=toplot$cmp$jaccard,splitlegend=TRUE)
     dev.off()
   } 
 )
-
-
 
 
 
@@ -1071,12 +1200,8 @@ output$saveviewVennCmpbutton<- downloadHandler(
   },
   content=function(file) {
     pdf(file)
-    griglia<-draw.pairwise.venn(area1=toplot$cmp$area1+length(toplot$cmp$common), area2=toplot$cmp$area2+length(toplot$cmp$common), 
-                cross.area=length(toplot$cmp$common),c(toplot$cmp$n1,toplot$cmp$n2),cex=1,ext.dist=c(.01,-0.04),
-                ext.line.lwd=0,ext.length=0,ext.pos=90,alpha=c(0.1,0.1),col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[2]),fill=c(toplot$cmp$Colors[1],toplot$cmp$Colors[2]),
-                label.col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[3],toplot$cmp$Colors[4]),cat.pos=c(310,50),cat.dist=c(0.1,0.1),lwd=c(2,2),cat.cex=c(1.2,1.2),
-                cat.col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[4]),margin=0.3,main="Intervals overlap",main.cex=1.2,main.col="black",main.pos=c(1,1),filename=NULL)
-
+    Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
+    plot_cmp_venn(toplot$cmp$area1,toplot$cmp$area2,toplot$cmp$common,toplot$cmp$n1,toplot$cmp$n2,Colors)
     dev.off()
   } 
 )
@@ -1089,29 +1214,50 @@ output$saveviewBoxplotCmpbutton<- downloadHandler(
       paste('Boxplot_enrichment_overlap.pdf', sep='')
   },
   content=function(file) {
-        if(input$islogCmp){
-          arraytoplot=list(log2(toplot$cmp$range2only_bam1),log2(toplot$cmp$range1only_bam1),log2(toplot$cmp$common_bam1),
-                log2(toplot$cmp$range1only_bam2),log2(toplot$cmp$range2only_bam2),log2(toplot$cmp$common_bam2))
-          laby=paste("log2",toplot$cmp$lab_axis)
-        }else{
-          arraytoplot=list(toplot$cmp$range2only_bam1,toplot$cmp$range1only_bam1,toplot$cmp$common_bam1,
-                toplot$cmp$range1only_bam2,toplot$cmp$range2only_bam2,toplot$cmp$common_bam2)
-          laby=toplot$cmp$lab_axis
+        Colors=strsplit(input$chooseColorPaletteCmp_box,split="_")[[1]]
+        range1only_bam1=toplot$cmp$range1only_bam1
+        ov_range1=toplot$cmp$ov_range1
+        range1_notov=toplot$cmp$range1_notov
+        range2_notov=toplot$cmp$range2_notov
+        range2only_bam1=toplot$cmp$range2only_bam1
+        ov_range2=toplot$cmp$ov_range2
+        range2only_bam2=toplot$cmp$range2only_bam2
+        range1only_bam2=toplot$cmp$range1only_bam2
+        range1=toplot$cmp$range1
+        range2=toplot$cmp$range2
+        bam1_common=toplot$cmp$bam1_common
+        bam2_common=toplot$cmp$bam2_common
+        
+
+        if(input$chooseNormalizationCmp_box=="readdensity"){
+          lab_axis="Read density (reads/bp)"
+          range1only_bam1=range1only_bam1/width(range1_notov)
+          width_range1_common=width(range1[subjectHits(ov_range1)])
+          bam1_common=bam1_common/width_range1_common
+          range2only_bam1=range2only_bam1/width(range2_notov)
+          
+          range2only_bam2=range2only_bam2/width(range2_notov)
+          width_range2_common=width(range2[subjectHits(ov_range2)])
+          bam2_common=bam2_common/width_range2_common
+          range1only_bam2=range1only_bam2/width(range1_notov)  
         }
+
+        if (!all(is.na(bam1_common))){
+          common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
+        }else{
+          common_bam1=NA
+        }
+        if (!all(is.na(bam2_common))){
+          common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
+        }else{
+          common_bam2=NA
+        } 
+
         pdf(file)
-        par(xpd=TRUE,mar=c(16,4,2,2))
+        plot_cmp_box(islog=input$islogCmp_box,normalization=input$chooseNormalizationCmp_box,range2only_bam1=range2only_bam1,
+                    range1only_bam1=range1only_bam1,common_bam1=common_bam1,range1only_bam2=range1only_bam2,range2only_bam2=range2only_bam2,
+                    common_bam2=common_bam2,n1=toplot$cmp$n1,n2=toplot$cmp$n2,BAM1_choose=toplot$cmp$BAM1chooseCmp,BAM2_choose=toplot$cmp$BAM2chooseCmp,colors=Colors)
 
-        suppressWarnings(boxplot(arraytoplot,col=c(toplot$cmp$Colors[2],toplot$cmp$Colors[1],toplot$cmp$Colors[3],
-                                                                  toplot$cmp$Colors[1],toplot$cmp$Colors[2],toplot$cmp$Colors[4]),
-                outline=FALSE,notch=TRUE,varwidth=TRUE,at =c(1,2,3, 5,6,7),xaxt="n",ylab=laby))
-
-        axis(1,at=c(2,6),labels=c("enrich. 1","enrich. 2"),las=2,cex=1)
-        legend("bottomleft",inset=c(0,-0.6),legend=c(paste(toplot$cmp$n1,"alone"),
-                                                      paste(toplot$cmp$n1,"overlapping"),
-                                                      paste(toplot$cmp$n2,"overlapping"),
-                                                      paste(toplot$cmp$n2,"alone")),pch=19,
-              col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[3],toplot$cmp$Colors[4],toplot$cmp$Colors[2]))
-        legend("bottomleft",inset=c(0,-0.9),legend=c(paste("enrich. 1: ",toplot$cmp$BAM1chooseCmp,sep=""),paste("enrich. 2: ",toplot$cmp$BAM2chooseCmp,sep="")),box.col = "black",bg = "white")
         dev.off()
   } 
 )
@@ -1125,26 +1271,11 @@ output$saveviewCalibrationCmpbutton<- downloadHandler(
       paste('Plot_calibration_overlap.pdf', sep='')
   },
   content=function(file) {
-        
         pdf(file)
-        par(xpd=TRUE,mar=c(13,4,2,2))
-        plot(1, type="n", xlab="Enrichment threshold (quantile)", ylab="fraction of overlap", xlim=c(0, 1), ylim=c(0, 1),xaxt="n")
-        lines(toplot$cmp$quantiles,toplot$cmp$only1,type="p",col=toplot$cmp$Colors[1])
-        lines(toplot$cmp$quantiles,toplot$cmp$only2,type="p",col=toplot$cmp$Colors[2])
-        lines(toplot$cmp$quantiles,toplot$cmp$combined1,type="p",col=toplot$cmp$Colors[3])
-        lines(toplot$cmp$quantiles,toplot$cmp$combined2,type="p",col=toplot$cmp$Colors[4])
-        #print legnd according to the existence of bam1, bam2 or both
-        if(!is.null(toplot$cmp$only1)& is.null(toplot$cmp$only2)){
-          legend("bottomleft",inset=c(0,-0.6),legend=paste(toplot$cmp$n1,"overlap"),col=toplot$cmp$Colors[1],bg="transparent")
-        }else if(is.null(toplot$cmp$only1)& !is.null(toplot$cmp$only2)){
-          legend("bottomleft",inset=c(0,-0.6),legend=paste(toplot$cmp$n2,"overlap"),col=toplot$cmp$Colors[2],bg="transparent")
-        }else if(!is.null(toplot$cmp$only1)& !is.null(toplot$cmp$only2)){
-          legend("bottomleft",inset=c(0,-0.6),
-                  legend=c(paste(toplot$cmp$n1,"overlap"),paste(toplot$cmp$n2,"overlap"),paste(toplot$cmp$n1,"overlap combined"),paste(toplot$cmp$n2,"overlap combined")),
-                      col=c(toplot$cmp$Colors[1],toplot$cmp$Colors[2],toplot$cmp$Colors[3],toplot$cmp$Colors[4]),pch=19,bg="transparent" )
-        }
-        axis(1,toplot$cmp$quantiles)
-
+        Colors=strsplit(input$chooseColorPaletteCmp_calibration,split="_")[[1]]
+        plot_cmp_calibration(quantiles=toplot$cmp$quantiles,only1=toplot$cmp$only1,only2=toplot$cmp$only2,
+                          combined1=toplot$cmp$combined1,combined2=toplot$cmp$combined2,n1=toplot$cmp$n1,
+                          n2=toplot$cmp$n2,insets=c(0,-0.5),colors=Colors)
         dev.off()
   } 
 )
@@ -1156,12 +1287,48 @@ output$saveenrichmentBoxCmpdata<- downloadHandler(
       paste('boxplot_data.xls', sep='')
   },
   content=function(file) {
-      if(input$islogCmp){
-        arraytoplot=list(log2(toplot$cmp$range2only_bam1),log2(toplot$cmp$range1only_bam1),log2(toplot$cmp$common_bam1),
-                log2(toplot$cmp$range1only_bam2),log2(toplot$cmp$range2only_bam2),log2(toplot$cmp$common_bam2))
+      range1only_bam1=toplot$cmp$range1only_bam1
+      ov_range1=toplot$cmp$ov_range1
+      range1_notov=toplot$cmp$range1_notov
+      range2_notov=toplot$cmp$range2_notov
+      range2only_bam1=toplot$cmp$range2only_bam1
+      ov_range2=toplot$cmp$ov_range2
+      range2only_bam2=toplot$cmp$range2only_bam2
+      range1only_bam2=toplot$cmp$range1only_bam2
+      range1=toplot$cmp$range1
+      range2=toplot$cmp$range2
+      bam1_common=toplot$cmp$bam1_common
+      bam2_common=toplot$cmp$bam2_common
+
+      if(input$chooseNormalizationCmp_box=="readdensity"){
+        range1only_bam1=range1only_bam1/width(range1_notov)
+        width_range1_common=width(range1[subjectHits(ov_range1)])
+        bam1_common=bam1_common/width_range1_common
+        range2only_bam1=range2only_bam1/width(range2_notov)
+        
+        range2only_bam2=range2only_bam2/width(range2_notov)
+        width_range2_common=width(range2[subjectHits(ov_range2)])
+        bam2_common=bam2_common/width_range2_common
+        range1only_bam2=range1only_bam2/width(range1_notov)  
+      }
+
+      if (!all(is.na(bam1_common))){
+        common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
       }else{
-        arraytoplot=list(toplot$cmp$range2only_bam1,toplot$cmp$range1only_bam1,toplot$cmp$common_bam1,
-                toplot$cmp$range1only_bam2,toplot$cmp$range2only_bam2,toplot$cmp$common_bam2)
+        common_bam1=NA
+      }
+      if (!all(is.na(bam2_common))){
+        common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
+      }else{
+        common_bam2=NA
+      } 
+
+      if(input$islogCmp_box){
+        arraytoplot=list(log2(range2only_bam1),log2(range1only_bam1),log2(common_bam1),
+                log2(range1only_bam2),log2(range2only_bam2),log2(common_bam2))
+      }else{
+        arraytoplot=list(range2only_bam1,range1only_bam1,common_bam1,
+                range1only_bam2,range2only_bam2,common_bam2)
       }
       maxval=max(length(arraytoplot[[1]]),
                   length(arraytoplot[[2]]),
@@ -1184,6 +1351,7 @@ output$saveenrichmentBoxCmpdata<- downloadHandler(
                       paste(toplot$cmp$n2,"_intervals_only_",toplot$cmp$BAM2chooseCmp,"_enrichment",sep=""),
                       paste("common_intervals_",toplot$cmp$BAM2chooseCmp,"_enrichment",sep=""))
       colnames(arr)=gsub(" ","_",colnames(arr))
+
       write.table(arr,file=file,row.names=FALSE,sep="\t",quote=FALSE   ) 
   } 
   
@@ -1199,41 +1367,12 @@ output$saveviewScatterplotCmpbutton<- downloadHandler(
   },
   content=function(file) {
 
-          df=toplot$cmp$df
-          subsetToShow=input$scatterplotChoice
-
-          if(input$islogCmp){
-            toplot1=log2(df[,1])
-            toplot2=log2(df[,2])
-            #set -inf values to min
-            toplot1[is.infinite(toplot1)]=min(toplot1[!is.infinite(toplot1)])
-            toplot2[is.infinite(toplot2)]=min(toplot2[!is.infinite(toplot2)])
-            xlims=c(min(toplot1),max(toplot1))
-            ylims=c(min(toplot2),max(toplot2))
-            laby=paste("log2",toplot$cmp$BAM2chooseCmp,toplot$cmp$lab_axis)
-            labx=paste("log2",toplot$cmp$BAM1chooseCmp,toplot$cmp$lab_axis)
-          }else{
-            toplot1=df[,1]
-            toplot2=df[,2]
-            xlims=c(0,max(toplot1))
-            ylims=c(0,max(toplot2))
-            laby=paste(toplot$cmp$BAM2chooseCmp,toplot$cmp$lab_axis)
-            labx=paste(toplot$cmp$BAM1chooseCmp,toplot$cmp$lab_axis)
-          }
-          #here, define a priori the x and ylim:
-
-          pos=df[,3] %in% subsetToShow
-          df2=df[pos,]
-          toplot1=toplot1[pos]
-          toplot2=toplot2[pos]
-
-
+        df=toplot$cmp$df
+        Colors=strsplit(input$chooseColorPaletteCmp_scatter,split="_")[[1]]
         pdf(file)
-        par(xpd=TRUE,mar=c(15,5,2,2))
-        plot(toplot1,toplot2,col=ifelse(df2[,3]=="1only",toplot$cmp$Colors[1],ifelse(df2[,3]=="2only",toplot$cmp$Colors[2],"black")), xlab=labx,ylab=laby,
-                            xlim=xlims,ylim=ylims)
-        legend("bottomleft",inset=c(0,-0.5),legend=c(paste("cor common intervals: ",toplot$cmp$cor_common,sep=""),paste("cor all intervals: ",toplot$cmp$cor_all,sep="")),box.col = "black",bg = "white")
-        legend("bottomleft",inset=c(0,-0.8),legend=c(paste(toplot$cmp$n2,"intervals"),paste(toplot$cmp$n1,"intervals"),"common"),box.col = "black",bg = "white",pch=19,col=c(toplot$cmp$Colors[2],toplot$cmp$Colors[1],"black"))
+        plot_cmp_scatter(df=df,normalization=input$chooseNormalizationCmp_scatter,subsetToShow=input$scatterplotChoice,islog=input$islogCmp_scatter,
+                    BAM2chooseCmp=toplot$cmp$BAM2chooseCmp,BAM1chooseCmp=toplot$cmp$BAM1chooseCmp,
+                    n1=toplot$cmp$n1,n2=toplot$cmp$n2,colors=Colors)
         dev.off()
   } 
 )
@@ -1246,18 +1385,34 @@ output$saveenrichmentScatterCmpdata<- downloadHandler(
       paste('scatter_data.xls', sep='')
   },
   content=function(file) {
+      completedf=toplot$cmp$completedf
+      if(input$chooseNormalizationCmp_scatter=="readdensity"){
+        #determine 1 and 2 columns of df based on width. For common ranges, divide sums of signals and width
+        completedf[completedf$label=="2only",1]=completedf[completedf$label=="2only",1]/completedf$width_range2[completedf$label=="2only"]
+        completedf[completedf$label=="2only",2]=completedf[completedf$label=="2only",2]/completedf$width_range2[completedf$label=="2only"]
+        completedf[completedf$label=="1only",1]=completedf[completedf$label=="1only",1]/completedf$width_range1[completedf$label=="1only"]
+        completedf[completedf$label=="1only",2]=completedf[completedf$label=="1only",2]/completedf$width_range1[completedf$label=="1only"]
+        completedf[completedf$label=="common",1]=completedf[completedf$label=="common",1]/completedf$width_range1[completedf$label=="common"]
+        completedf[completedf$label=="common",2]=completedf[completedf$label=="common",2]/completedf$width_range2[completedf$label=="common"]
 
-      if(input$islogCmp){
-        toplot$cmp$completedf[,1]=log2(toplot$cmp$completedf[,1])
-        toplot$cmp$completedf[,2]=log2(toplot$cmp$completedf[,2])
+      }else{
+        #here divide by times only, not for width
+        completedf[completedf$label=="common",1]=completedf[completedf$label=="common",1]/completedf$times_factor_hits_range1[completedf$label=="common"]
+        completedf[completedf$label=="common",2]=completedf[completedf$label=="common",2]/completedf$times_factor_hits_range2[completedf$label=="common"]
+
+      }
+      if(input$islogCmp_scatter){
+        completedf[,1]=log2(completedf[,1])
+        completedf[,2]=log2(completedf[,2])
       }
 
-      # laby=paste(toplot$cmp$BAM2chooseCmp,toplot$cmp$lab_axis)
-      # labx=paste(toplot$cmp$BAM1chooseCmp,toplot$cmp$lab_axis)
-      df=toplot$cmp$completedf
+      #rename labels in a better way
+      df=completedf
       df[df[,3]=="2only",][,3]=toplot$cmp$n2
       df[df[,3]=="1only",][,3]=toplot$cmp$n1
 
+      #keep only values (remove widths etc. because already used for normalizations above)
+      df=df[,1:3]
       colnames(df)=c(toplot$cmp$BAM1chooseCmp,toplot$cmp$BAM2chooseCmp,"label")
       colnames(df)=gsub(" ","_",colnames(df))
       write.table(df,file=file,row.names=FALSE,sep="\t",quote=FALSE   ) 
@@ -1307,15 +1462,23 @@ observeEvent(input$msg_digitalHeatmap_overlapBias, {
 })
 
 
+#observer help buttons parameters
+observeEvent(input$help_digitalHeatmap_parameters_masterROI, { boxHelpServer(help_digitalHeatmap_parameters_masterROI)})
+observeEvent(input$help_digitalHeatmap_parameters_ROItoview, { boxHelpServer(help_digitalHeatmap_parameters_ROItoview)})
+observeEvent(input$help_digitalHeatmap_parameters_ROIordering, { boxHelpServer(help_digitalHeatmap_parameters_ROIordering)})
+observeEvent(input$help_digitalHeatmap_parameters_ROIforcluster, { boxHelpServer(help_digitalHeatmap_parameters_ROIforcluster)})
+observeEvent(input$help_digitalHeatmap_parameters_clusterKmeans, { boxHelpServer(help_digitalHeatmap_parameters_clusterKmeans)})
+observeEvent(input$help_digitalHeatmap_parameters_clusterHierarchical, { boxHelpServer(help_digitalHeatmap_parameters_clusterHierarchical)})
+observeEvent(input$help_digitalHeatmap_parameters_clusternumber, { boxHelpServer(help_digitalHeatmap_parameters_clusternumber)})
+observeEvent(input$help_digitalHeatmap_parameters_nbins, { boxHelpServer(help_digitalHeatmap_parameters_nbins)})
+observeEvent(input$help_digitalHeatmap_parameters_strandspecific, { boxHelpServer(help_digitalHeatmap_parameters_strandspecific)})
+observeEvent(input$help_digitalHeatmap_parameters_randomsample, { boxHelpServer(help_digitalHeatmap_parameters_randomsample)})
+observeEvent(input$help_digitalHeatmap_parameters_positionaloverlap, { boxHelpServer(help_digitalHeatmap_parameters_positionaloverlap)})
 
 
 
 
-toListenDigitalHeat <- reactive({
-    list(input$confirmUpdateDigitalHeat1,input$confirmUpdateDigitalHeat2)
-})
-
-observeEvent(toListenDigitalHeat(),{
+observeEvent(input$confirmUpdateDigitalHeat1,{
   set.seed(123)
 
 
@@ -1331,6 +1494,7 @@ observeEvent(toListenDigitalHeat(),{
     #all master rois selected
     roi=ROIvariables$listROI[pos]
     rawvals=Enrichlist$rawcoverage[pos]
+    keyvals=Enrichlist$decryptkey[pos]
     normvals=Enrichlist$normfactlist[pos]
     maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
     
@@ -1369,6 +1533,7 @@ observeEvent(toListenDigitalHeat(),{
       nbin=input$binsDigitalHeat
       bigrange=list()
       bigbamlist=list()
+      bigkeyvalslist=list()
       bignormlist=list()
       fixes=list()
       ranges_forclick=list()
@@ -1383,18 +1548,23 @@ observeEvent(toListenDigitalHeat(),{
         ranges_forclick[[i]]=rangeroi
 
 
-		bigbamlist[[i]]=rawvals[[i]]
-		bamlist2=list()
-		if(length(bigbamlist[[i]])>0){
-		  	for(j in 1:length(bigbamlist[[i]])){
-		    	element_i=bigbamlist[[i]][[j]]
-		    	#remove duplicated positions
-		    	bamlist2[[j]]=element_i[pos_notdup_range]
-		    }		    
-		}
-		bigbamlist[[i]]=bamlist2
+    		bigbamlist[[i]]=rawvals[[i]]
+        bigkeyvalslist[[i]]=keyvals[[i]]
+    		bamlist2=list()
+        keylist2=list()
+    		if(length(bigbamlist[[i]])>0){
+    		  	for(j in 1:length(bigbamlist[[i]])){
+    		    	element_i=bigbamlist[[i]][[j]]
+    		    	#remove duplicated positions
+    		    	bamlist2[[j]]=element_i[pos_notdup_range]
+              element_j=bigkeyvalslist[[i]][[j]]
+              keylist2[[j]]=element_j[pos_notdup_range]
+    		    }		    
+    		}
+    		bigbamlist[[i]]=bamlist2
+        bigkeyvalslist[[i]]=keylist2
 
-        names(bigbamlist[[i]])=names(rawvals[[i]])
+        names(bigbamlist[[i]])=names(bigkeyvalslist[[i]])=names(rawvals[[i]])
 
         
         bignormlist[[i]]=normvals[[i]]
@@ -1816,31 +1986,21 @@ observeEvent(toListenDigitalHeat(),{
 
 
       #reset the color menu:
-      if(input$optioncolorsforDigitalHeat=="custom"){
-        bams=toplot$digital$ROIsForDigitalHeat
-        lista=list()
 
-        if(length(bams)>0){
-          output$showcolorsDigitalheat<-renderUI({
-            for (i in 1:length(bams)){
-              lista[[i]]=fluidRow(
-                                  column(12,
-                                        colorSelectorInput(inputId=paste("colorCustomDigitalHeat",i,sep=""),label=bams[i],choices=ColsArray,
-                                                      selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
-                                  )
-                          )
+      bams=toplot$digital$ROIsForDigitalHeat
+      lista=list()
 
-            }
-            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-              lista
-            )
-          }) 
-                
-        }else{
-          #bams are NULL. show nothing
-          output$showcolorsDigitalheat<-renderUI({NULL})
-        }
+      if(length(bams)>0){
+        output$showoptioncolorsforDigitalHeat<-renderUI({
+            radioButtons("optioncolorsforDigitalHeat",label="Select colors:",choiceNames=c("global color","custom colors"),
+                            choiceValues=c("global","custom"),selected="global")
+        }) 
+ 
+      }else{
+        #bams are NULL. show nothing
+        output$showoptioncolorsforDigitalHeat<-renderUI({NULL})
       }
+
 
 
 
@@ -1858,7 +2018,18 @@ observeEvent(toListenDigitalHeat(),{
         paste("Intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange),"</font>",sep="")
       })
 
+
+
+
+
+
       output$heatmapDigital<-renderPlot({
+
+        if (isvalid(input$optioncolorsforDigitalHeat)){
+          optioncolors= input$optioncolorsforDigitalHeat
+        }else{
+          optioncolors="global"
+        }
 
         nbin=toplot$digital$nbin
         #find xlim according to how many numbersamples if numbersamples<10
@@ -1867,17 +2038,14 @@ observeEvent(toListenDigitalHeat(),{
         }else{
           factormult=1
         }
-        
+
         matProc=toplot$digital$matrixes_processed
+
         #color settings
         palette_col=toplot$digital$colorpalettes
-        
-        if(isolate(input$optioncolorsforDigitalHeat)=="global"){
-
+        if(isolate(optioncolors)=="global"){
           colorsplitted=strsplit(palette_col,split="_")[[1]]
           palette=colorRampPalette(colorsplitted)(n=2)
-
-          
         }else{
           if(length(palette_col)==1){
             if(palette_col=="white_red4"){
@@ -1888,25 +2056,21 @@ observeEvent(toListenDigitalHeat(),{
               for(i in 1:length(palette_col)){
                 palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n=2))
               }
-            }
-                      
+            }            
           }else{
-            #if input$optioncolorsforDigitalHeat is custom, palette should have length==nbams
+            #if optioncolors is custom, palette should have length==nbams
             palette=c()
             for(i in 1:length(palette_col)){
               palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n=2))
             }  
             #if different colors, we need to change the order of magnitude 
             #for each bam
-
             matProc[matProc==1]=0.999
             matProc[matProc==0]=0.001
             for(i in 1:length(toplot$digital$ROIsForDigitalHeat)){
                 piecematrix=matProc[, ((i-1)*nbin+1):(i*nbin),drop=FALSE ]
                 asvec=unique(as.vector(piecematrix))
                 if(length(asvec)==1){
-
-
                   #all elments are the same, it can break the color palette, change one
                   if(asvec==0.999){
                     piecematrix[1,1]=0.001
@@ -1919,10 +2083,7 @@ observeEvent(toListenDigitalHeat(),{
                 #palettes[i]=colorRampPalette(colorsplitted)(n=brk)
             }           
           }
-
         }
-
-
 
         trasp=t(matProc)
         if(max(dim(trasp))>30000){
@@ -1945,8 +2106,6 @@ observeEvent(toListenDigitalHeat(),{
             ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
             col = "black", border = "black")
         }
-
-
         #how many for each ROI? then revert, because the matrix is inverted in "image"
         #but the matrix original is correct, with ROI order and columns=bins; rows=ranges
         correctOrder=table(labelstosplit)[order(order(unique(labelstosplit)))]
@@ -1960,23 +2119,22 @@ observeEvent(toListenDigitalHeat(),{
         }
       })
 
+
+
+
       output$saveheatmapDigital=renderUI({downloadButton('saveheatmapDigitalbutton', 'Get PDF')})
       
       print("Drawn digital heatmap")
       #here put code for colored cluster column at the left of the digital heatmap
       #conditions: must be "cluster" (not "ranked") and must have number ROI ==1
       #otherwise plot NULL. Less bins, more balanced clusters.
-      set.seed(123)
-      color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+      #set.seed(123)
+      #color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
       
       toplot$digital$clusternumbermatrix=NULL
       if(length(input$ROImaster) ==1 & length(input$ROIforClusteringDigitalHeat)>0 ){
-        color_distinct_cluster=sample(color, toplot$digital$clustnumDigitalHeat)
-        #for this line of code, thanks to
-        # http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r
-        # Jelena-bioinf / Megatron
-        
-
+        #color_distinct_cluster=sample(colors_list, toplot$digital$clustnumDigitalHeat)
+        color_distinct_cluster=colors_list[1:toplot$digital$clustnumDigitalHeat]
         if(toplot$digital$clustnumDigitalHeat<=433 & toplot$digital$clustnumDigitalHeat>0){        
           if(!is.null(toplot$digital$clustering$clustobj)){
 
@@ -1987,19 +2145,23 @@ observeEvent(toListenDigitalHeat(),{
             #and the only master ROI selected):
             range_tokeep=ranges_forclick[[1]]
             bams_tokeep=bigbamlist[[1]]
+            keyvals_tokeep=bigkeyvalslist[[1]]
             normfact_tokeep=bignormlist[[1]]
             fix_tokeep=fixes[[1]]
             #2-subsample them (1 single ROI)
             range_tokeep=range_tokeep[Digital_sample_pos]
             bams_tokeep=lapply(bams_tokeep,function(bamob){bamob[Digital_sample_pos]})
+            keyvals_tokeep=lapply(keyvals_tokeep,function(kvalob){kvalob[Digital_sample_pos]})
             fix_tokeep=fix_tokeep[Digital_sample_pos]
             #3-re-ordering based on clustering (toplot$digital$clustering$clustobj$ord)
             range_tokeep=range_tokeep[toplot$digital$clustering$ord]
             bams_tokeep=lapply(bams_tokeep,function(bamob){bamob[toplot$digital$clustering$ord]})
+            keyvals_tokeep=lapply(keyvals_tokeep,function(kvalob){kvalob[toplot$digital$clustering$ord]})
             fix_tokeep=fix_tokeep[toplot$digital$clustering$ord]
             #4-save in temporary variables to be used by clicking the clsuter of digital
             toplot$digital$range_tokeep=range_tokeep
             toplot$digital$bams_tokeep=bams_tokeep
+            toplot$digital$keyvals_tokeep=keyvals_tokeep
             toplot$digital$fix_tokeep=fix_tokeep
             #add also norm factors (not subsampled nor reordered, but keep them)
             toplot$digital$normfact_tokeep=normfact_tokeep
@@ -2031,6 +2193,7 @@ observeEvent(toListenDigitalHeat(),{
             toplot$digital$clusternumbermatrix=NULL
             toplot$digital$range_tokeep=NULL
             toplot$digital$bams_tokeep=NULL
+            toplot$digital$keyvals_tokeep=NULL
             toplot$digital$normfact_tokeep=NULL
             toplot$digital$fix_tokeep=NULL
           }
@@ -2040,6 +2203,7 @@ observeEvent(toListenDigitalHeat(),{
           toplot$digital$clusternumbermatrix=NULL
           toplot$digital$range_tokeep=NULL
           toplot$digital$bams_tokeep=NULL
+          toplot$digital$keyvals_tokeep=NULL
           toplot$digital$normfact_tokeep=NULL
           toplot$digital$fix_tokeep=NULL
         }
@@ -2050,6 +2214,7 @@ observeEvent(toListenDigitalHeat(),{
         toplot$digital$color_distinct_cluster=NULL
         toplot$digital$range_tokeep=NULL
         toplot$digital$bams_tokeep=NULL
+        toplot$digital$keyvals_tokeep=NULL
         toplot$digital$normfact_tokeep=NULL
         toplot$digital$fix_tokeep=NULL
       }
@@ -2112,44 +2277,43 @@ observeEvent(toListenDigitalHeat(),{
         
         toplot$digital$freq_overlap=freq_overlap
         toplot$digital$length_subsets=length_subsets
-        color_distinct_bias=sample(color, length(freq_overlap)*length(freq_overlap[[1]]))
+        color_distinct_bias=colors_list[1: (length(freq_overlap)*length(freq_overlap[[1]])) ]
+        #color_distinct_bias=sample(color, length(freq_overlap)*length(freq_overlap[[1]]))
         toplot$digital$color_distinct_bias=color_distinct_bias
 
+
+        output$frequencyDigitalHeat_options<-renderUI({
+          checkboxInput("FracToPercDigitalHeat", label=list("positional overlap %",htmlhelp("","help_digitalHeatmap_parameters_positionaloverlap")),value = TRUE, width = NULL)
+        })
+
+
         output$frequencyOvDigitalHeat <- renderPlot({
+
+          if(isvalid(input$FracToPercDigitalHeat)){
+            frequencyperc=input$FracToPercDigitalHeat
+          }else{
+            frequencyperc=TRUE
+          } 
           #interactively change freq/% if button is pressed:
           ovtoplot=freq_overlap
-          if(input$FracToPercDigitalHeat){
+          if(frequencyperc){
             for(i in 1:length(freq_overlap)){
               ovtoplot[[i]]=lapply(freq_overlap[[i]],function(k){k/length_subsets[[i]]})
             }
             maxval=1
-            ylabfreq="Fraction of overlaps"
           }else{
             maxval=max(length_subsets)
-            ylabfreq="Number of overlaps"
           }
-          #now plot (either % or absolute numbers)
-          plot(0,type='n',xaxt="n",ylim=c(0,maxval),xlim=c(1,nbin),ylab=ylabfreq,xlab="Genomic Window",
-                        main="Overlaps bias",cex.main=1.2,cex=1,xaxt="n",cex.lab=1.2,cex.axis=1)
-          count=1
-          legnames=c()
-          for(i in 1:length(ovtoplot)){
-            for(k in 1:length(ovtoplot[[i]])){
-              #draw the lines/points
-              lines(ovtoplot[[i]][[k]],col=color_distinct_bias[count])
-              legnames[count]=paste(names(ovtoplot[[i]])[k],"in",names(ovtoplot)[i])
-              count=count+1
-            }
-          }
-          axis(1,at=seq(1,nbin,(nbin-1)/2),
-                      labels=c( "start","midpoint","end" ),cex.axis=1)
-          #legend for each line
-          legend("topleft",legend=legnames,lty=rep(1,length(legnames)),col=color_distinct_bias,bg="transparent")
+
+          plot_digital_frequency(ovtoplot=ovtoplot,nbin=nbin,fraction=frequencyperc,maxval=maxval,
+                                  colors=color_distinct_bias)
+        
         })
         output$savefrequencyOvDigitalHeat=renderUI({downloadButton('savefrequencyOvDigitalHeatbutton', 'Get PDF')})
       }else{
-        output$frequencyOvDigitalHeat <- renderPlot({NULL})
+        output$frequencyOvDigitalHeat <- renderPlot({plot_text(text="The number of bins must be >1",cex=1.4)})
         output$savefrequencyOvDigitalHeat=renderUI({NULL})
+        output$frequencyDigitalHeat_options<-renderUI({NULL})
       }
 
 
@@ -2261,14 +2425,14 @@ observeEvent(toListenDigitalHeat(),{
           output$saveJaccardDigital=renderUI({downloadButton('saveJaccardDigitalbutton', 'Get PDF')})
 
         }else{
-          output$JaccardDigital<-renderPlot({NULL})
+          output$JaccardDigital<-renderPlot({plot_text(text="jaccard index plot will appear\nonly if a single master ROI is selected",cex=1.4)})
           output$saveJaccardDigital=renderUI({NULL})
           toplot$digital$matlistTotal=NULL
           #plot NULL, because only one ROI considered
         }
       }else{
         #plot NULL
-        output$JaccardDigital<-renderPlot({NULL})
+        output$JaccardDigital<-renderPlot({plot_text(text="jaccard index plot will appear\nonly if a single master ROI is selected",cex=1.4)})
         output$saveJaccardDigital=renderUI({NULL})
         toplot$digital$matlistTotal=NULL
       }
@@ -2282,19 +2446,25 @@ observeEvent(toListenDigitalHeat(),{
       toplot$digital$sampleRandomDigitalHeat=NULL
       output$textselectedelementsDigitalHeat<-renderText({NULL})
       output$heatmapDigital<-renderPlot({NULL})
+      output$showcolorsDigitalheat<-renderUI({NULL})
       output$saveheatmapDigital=renderUI({NULL})
       output$textNameDigitalHeat<-renderPlot({NULL}) 
       output$JaccardDigital<-renderPlot({NULL})  
       output$saveJaccardDigital=renderUI({NULL})
+      output$showoptioncolorsforDigitalHeat<-renderUI({NULL})
       toplot$digital$matlistTotal=NULL 
       toplot$digital$clusternumbermatrix=NULL
       output$clustersImageLeftDigital<-renderPlot({NULL})
       toplot$digital$range_tokeep=NULL
       toplot$digital$bams_tokeep=NULL
+      toplot$digital$keyvals_tokeep=NULL
       toplot$digital$normfact_tokeep=NULL
       toplot$digital$fix_tokeep=NULL
       output$newROIfromDigitalHeat_out<-renderUI({NULL})
+      output$frequencyDigitalHeat_options<-renderUI({NULL})
       output$textfractionelementsDigitalHeat<-renderText({NULL})
+      output$frequencyOvDigitalHeat <- renderPlot({NULL})
+      output$savefrequencyOvDigitalHeat=renderUI({NULL})
       sendSweetAlert(
         session = session,
         title = "Too many bins",
@@ -2312,6 +2482,7 @@ observeEvent(toListenDigitalHeat(),{
     output$textselectedelementsDigitalHeat<-renderText({NULL})
     output$heatmapDigital<-renderPlot({NULL})
     output$saveheatmapDigital=renderUI({NULL})
+    output$showcolorsDigitalheat<-renderUI({NULL})
     output$textNameDigitalHeat<-renderPlot({NULL})
     output$JaccardDigital<-renderPlot({NULL})
     output$saveJaccardDigital=renderUI({NULL})
@@ -2320,10 +2491,15 @@ observeEvent(toListenDigitalHeat(),{
     output$clustersImageLeftDigital<-renderPlot({NULL})
     toplot$digital$range_tokeep=NULL
     toplot$digital$bams_tokeep=NULL
+    toplot$digital$keyvals_tokeep=NULL
     toplot$digital$normfact_tokeep=NULL
     toplot$digital$fix_tokeep=NULL
     output$newROIfromDigitalHeat_out<-renderUI({NULL})
+    output$frequencyDigitalHeat_options<-renderUI({NULL})
     output$textfractionelementsDigitalHeat<-renderText({NULL})
+    output$showoptioncolorsforDigitalHeat<-renderUI({NULL})
+    output$frequencyOvDigitalHeat <- renderPlot({NULL})
+    output$savefrequencyOvDigitalHeat=renderUI({NULL})
     sendSweetAlert(
       session = session,
       title = "Wrong/missing parameters",
@@ -2369,7 +2545,8 @@ output$saveheatmapDigitalbutton<- downloadHandler(
           if(palette_col=="white_red4"){
             colorsplitted=strsplit(palette_col,split="_")[[1]]
             palette=colorRampPalette(colorsplitted)(n=2)  
-          }else{
+          }
+          else{
             palette=c()
             for(i in 1:length(palette_col)){
               palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n=2))
@@ -2406,8 +2583,6 @@ output$saveheatmapDigitalbutton<- downloadHandler(
 
       }
 
-
-
       intervals_vertical=table(toplot$digital$labelstosplit)[order(order(unique(toplot$digital$labelstosplit)))]
       #revert order because the "0" starts at the bottom, (last ROI)
       intervals_vertical=rev(intervals_vertical)
@@ -2430,11 +2605,6 @@ output$saveheatmapDigitalbutton<- downloadHandler(
         #layout(mlay,widths=c(0,100),heights=c(100,100))
       }
 
-      # par(mar = c(16,12,1,1))
-      # image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
-      # #REMOVE x,y lim if cordinates don't match
-      #       ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp))   
-      #       )
 
       if(!is.null(toplot$digital$clusternumbermatrix)){
         par(mar = c(12,12,0,0))
@@ -2454,8 +2624,6 @@ output$saveheatmapDigitalbutton<- downloadHandler(
               )
         axis( 2,at=pos_vertical,labels=paste(rev(toplot$digital$ROImaster),"\n",labels_vert),las=1,tick=FALSE)
       }
-
-
 
 
 
@@ -2494,34 +2662,21 @@ output$savefrequencyOvDigitalHeatbutton<- downloadHandler(
   },
   content=function(file) {
     ovtoplot=toplot$digital$freq_overlap
+
     if(input$FracToPercDigitalHeat){
       for(i in 1:length(toplot$digital$freq_overlap)){
         ovtoplot[[i]]=lapply(toplot$digital$freq_overlap[[i]],function(k){k/toplot$digital$length_subsets[[i]]})
       }
       maxval=1
-      ylabfreq="Fraction of overlaps"
     }else{
       maxval=max(toplot$digital$length_subsets)
-      ylabfreq="Number of overlaps"
     }
+
     pdf(file)
-    #now plot (either % or absolute numbers)
-    plot(0,type='n',xaxt="n",ylim=c(0,maxval),xlim=c(1,toplot$digital$nbin),ylab=ylabfreq,xlab="Genomic Window",
-                  main="Overlaps bias",cex.main=1.2,cex=1,xaxt="n",cex.lab=1.2,cex.axis=1)
-    count=1
-    legnames=c()
-    for(i in 1:length(ovtoplot)){
-      for(k in 1:length(ovtoplot[[i]])){
-        #draw the lines/points
-        lines(ovtoplot[[i]][[k]],col=toplot$digital$color_distinct_bias[count])
-        legnames[count]=paste(names(ovtoplot[[i]])[k],"in",names(ovtoplot)[i])
-        count=count+1
-      }
-    }
-    axis(1,at=seq(1,toplot$digital$nbin,(toplot$digital$nbin-1)/2),
-                labels=c( "start","midpoint","end" ),cex.axis=1)
-    #legend for each line
-    legend("topleft",legend=legnames,lty=rep(1,length(legnames)),col=toplot$digital$color_distinct_bias,bg="transparent")    
+
+    plot_digital_frequency(ovtoplot=ovtoplot,nbin=toplot$digital$nbin,fraction=input$FracToPercDigitalHeat,
+                              maxval=maxval,colors=toplot$digital$color_distinct_bias,splitlegend=TRUE)
+  
     dev.off()
   }
 )
@@ -2592,6 +2747,7 @@ observeEvent(input$confirmImportROIfromDigitalHeat,{
           ##extract range, fix, bamlist ordered corresponding to the cluster selected
           range_sel=toplot$digital$range_tokeep[toplot$gadgetdigital$ybottom:toplot$gadgetdigital$ytop]
           bams_sel=lapply(toplot$digital$bams_tokeep,function(bamob){bamob[toplot$gadgetdigital$ybottom:toplot$gadgetdigital$ytop]})
+          keyvals_sel=lapply(toplot$digital$keyvals_tokeep,function(bamob){bamob[toplot$gadgetdigital$ybottom:toplot$gadgetdigital$ytop]})
           fix_sel=toplot$digital$fix_tokeep[toplot$gadgetdigital$ybottom:toplot$gadgetdigital$ytop]
 
           # #take from listROI the toplot$digital$labelstosplit name
@@ -2606,6 +2762,7 @@ observeEvent(input$confirmImportROIfromDigitalHeat,{
           toadd=paste("extracted ",length(range_sel)," ranges from digital heatmap",sep="")
           newSource=c(oldSource,list(toadd))    
           Enrichlist$rawcoverage[[input$newROIfromDigitalHeat]]=bams_sel
+          Enrichlist$decryptkey[[input$newROIfromDigitalHeat]]=keyvals_sel
           Enrichlist$normfactlist[[input$newROIfromDigitalHeat]]=toplot$digital$normfact_tokeep
           ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                 name=input$newROIfromDigitalHeat,
@@ -2688,6 +2845,23 @@ observeEvent(input$confirmImportROIfromDigitalHeat,{
 observeEvent(input$msg_analogicHeatmap_parameters, {
   boxHelpServer(msg_analogicHeatmap_parameters)
 })
+
+
+#observers for all help buttons of parameters
+observeEvent(input$help_analogicHeatmap_parameters_ROI, {boxHelpServer(help_analogicHeatmap_parameters_ROI)})
+observeEvent(input$help_analogicHeatmap_parameters_enrichments, {boxHelpServer(help_analogicHeatmap_parameters_enrichments)})
+observeEvent(input$help_analogicHeatmap_parameters_enrichmentorder, {boxHelpServer(help_analogicHeatmap_parameters_enrichmentorder)})
+observeEvent(input$help_analogicHeatmap_parameters_ranking, {boxHelpServer(help_analogicHeatmap_parameters_ranking)})
+observeEvent(input$help_analogicHeatmap_parameters_clustering, {boxHelpServer(help_analogicHeatmap_parameters_clustering)})
+observeEvent(input$help_analogicHeatmap_parameters_clusterKmeans, {boxHelpServer(help_analogicHeatmap_parameters_clusterKmeans)})
+observeEvent(input$help_analogicHeatmap_parameters_clusterHierarchical, {boxHelpServer(help_analogicHeatmap_parameters_clusterHierarchical)})
+observeEvent(input$help_analogicHeatmap_parameters_clusternumber, {boxHelpServer(help_analogicHeatmap_parameters_clusternumber)})
+observeEvent(input$help_analogicHeatmap_parameters_nbins, {boxHelpServer(help_analogicHeatmap_parameters_nbins)})
+observeEvent(input$help_analogicHeatmap_parameters_subsample, {boxHelpServer(help_analogicHeatmap_parameters_subsample)})
+observeEvent(input$help_analogicHeatmap_parameters_uniform, {boxHelpServer(help_analogicHeatmap_parameters_uniform)})
+observeEvent(input$help_analogicHeatmap_parameters_individual, {boxHelpServer(help_analogicHeatmap_parameters_individual)})
+
+
 #heatmap
 observeEvent(input$msg_analogicHeatmap_heatmap, {
   boxHelpServer(msg_analogicHeatmap_heatmap)
@@ -2703,10 +2877,10 @@ observeEvent(input$msg_analogicHeatmap_enrichments, {
 
 
 
-toListenAnalogHeat <- reactive({
-    list(input$confirmUpdateAnalogHeat,input$confirmUpdateAnalogHeat2)
-})
-observeEvent(toListenAnalogHeat(),{
+# toListenAnalogHeat <- reactive({
+#     list(input$confirmUpdateAnalogHeat,input$confirmUpdateAnalogHeat2)
+# })
+observeEvent(input$confirmUpdateAnalogHeat,{
   
   set.seed(123)
   #checks: ROIlist must be >0 and lelected ROI must be >0, otherwise plot NULL
@@ -2764,6 +2938,7 @@ observeEvent(toListenAnalogHeat(),{
     roi=ROIvariables$listROI[pos]
 
     rawvals=Enrichlist$rawcoverage[pos]
+    keyvals=Enrichlist$decryptkey[pos]
     normvals=Enrichlist$normfactlist[pos]
 
     maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
@@ -2779,6 +2954,8 @@ observeEvent(toListenAnalogHeat(),{
       bamnames=list()
       normlisttouse=list() #for usage, same as bigbamlist
       normlisttostore=list() #for extraction, same as BAMs
+      keylisttouse=list()
+      keylisttostore=list()
       completerange=list()
       for(i in 1:length(roi)){
         #may cause problems: slow and when re-build ROI from heatmap selection,
@@ -2796,29 +2973,38 @@ observeEvent(toListenAnalogHeat(),{
         
         #when collapsing ranges (for example alternative promoters identical),
         #we must also collapse enrichments. uniqueROI function works only for ranges and fixes
-        #because BAMlist attribute has been removed in the last version
+        #because BAMlist attribute has been removed in the last version. for enrichments, we removed duplicated positions 
+        #later
         totbams=rawvals[[i]]
-		bamlist2=list()
-		if(length(totbams)>0){
-		  	for(j in 1:length(totbams)){
-		    	element_i=totbams[[j]]
-		    	#remove duplicated positions
-		    	bamlist2[[j]]=element_i[pos_notdup_range]
-		    }		    
-		}
-		totbams=bamlist2
-		BAMs[[i]]=totbams
+        totkeys=keyvals[[i]]
+    		bamlist2=list()
+        keyvals2=list()
+    		if(length(totbams)>0){
+    		  	for(j in 1:length(totbams)){
+    		    	element_i=totbams[[j]]
+    		    	#remove duplicated positions
+    		    	bamlist2[[j]]=element_i[pos_notdup_range]
+              element_k=totkeys[[j]]
+              keyvals2[[j]]=element_k[pos_notdup_range]
+    		    }		    
+    		}
+    		totbams=bamlist2
+        totkeys=keyvals2
+    		BAMs[[i]]=totbams
+        keylisttostore[[i]]=totkeys
         normlisttostore[[i]]=normvals[[i]]
         #order even if BAM reordered, should be fine
         bamnames[[i]]=names(rawvals[[i]])
         pos2=match(toplot$analogic$BAMsForAnalogHeat,bamnames[[i]])
         bigbamlist[[i]]=totbams[pos2]
+        keylisttouse[[i]]=totkeys[pos2]
         normlisttouse[[i]]=normvals[[i]][pos2]
         
       }
       #collapse all selected ranges into a single, big range list
       #this is useful for random sampling, to keep the proportions of the lengths
       
+
       finalrange=Reduce(c,bigrange)
       # finalfixes=Reduce(c,fixes)
       
@@ -2882,11 +3068,12 @@ observeEvent(toListenAnalogHeat(),{
             if(length(roi)==length(unique(labelstosplit))){
               strand_sampled=split( as.factor(strand(finalrange_sampled)) ,factor(labelstosplit,levels=unique(labelstosplit)))
               positions_splitted=split( finalBAMs_sample_pos ,factor(labelstosplit,levels=unique(labelstosplit)))
+              
               #print("preparing material for ROI extraction...")
               #########prepare for ROI xtraction from heatmap#############
-              finalbam=list()
+              finalbam=finalkey=list()
               for(i in 1:length(BAMs)){
-                finalbam[[i]]=as.list(rep(NA,length(BAMs[[i]])))
+                finalbam[[i]]=finalkey[[i]]=as.list(rep(NA,length(BAMs[[i]])))
               }
               cumulatesum=0
               #for each ROI
@@ -2895,31 +3082,41 @@ observeEvent(toListenAnalogHeat(),{
                 #it's a RELATIVE position from the beginning of that label, so subtract what is previous
                 for (k in 1:length(BAMs[[i]])){
                   finalbam[[i]][[k]]=BAMs[[i]][[k]][positions_splitted[[i]]-cumulatesum]
+                  finalkey[[i]][[k]]=keylisttostore[[i]][[k]][positions_splitted[[i]]-cumulatesum]
                 }
-                names(finalbam[[i]])=bamnames[[i]]
+                names(finalbam[[i]])=names(finalkey[[i]])=bamnames[[i]]
                 #the same of ROIs (complete, if have different columns):
                 completerange[[i]]=completerange[[i]][positions_splitted[[i]]-cumulatesum]
                 fixes[[i]]=fixes[[i]][positions_splitted[[i]]-cumulatesum]
                 cumulatesum=cumulatesum+length(BAMs[[i]][[1]])
               }
-              names(finalbam)=input$ROIsForAnalogHeat
+              names(finalbam)=names(finalkey)=input$ROIsForAnalogHeat
+
               #here, the normalizations should keep the same as before: normlisttostore, because they 
               #do not undergo random sample (one single value for each enrichment!)
               #split also finalrange_sampled and fixes according to "labelstosplit"
               # finalrange_sampled_split=split( finalrange_sampled ,factor(labelstosplit,levels=unique(labelstosplit)))
               # fixes_sampled_split=split( fixes ,factor(labelstosplit,levels=unique(labelstosplit)))          
               ############################################################
+
               #print("prepared...")
               #combine lists from different ROIs (c)
               subselectedBAMlist=list()
+              subselectkeylist=list()
               for(i in 1:length(bigbamlist[[1]])){
                 provv=list()
+                provvkey=c()
                 #for each ROI
                 for (k in 1:length(bigbamlist)){
                   provv=c(provv,bigbamlist[[k]][[i]])
+                  provvkey=c(provvkey,keylisttouse[[k]][[i]])
                 }   
                 #subselect "provv": provv is the big union of all ROI for a specific BAM
                 provv=provv[finalBAMs_sample_pos]
+                provvkey=provvkey[finalBAMs_sample_pos]
+                #decrypt (now light because already subsampled)
+                #provv=decryptcov( list(provv,provvkey),chunk=length(provv))
+                subselectkeylist[[i]]=provvkey
                 subselectedBAMlist[[i]]=provv
               }
               #use only finalBAMs_sample_pos positions sample. This is because the "random" sample
@@ -2932,11 +3129,14 @@ observeEvent(toListenAnalogHeat(),{
               #ROIs must be in the higher order hierarchy of list 
               slicedbamlist=as.list(rep(NA,length(toplot$analogic$BAMsForAnalogHeat)))
               slicedbamlist=rep(list(slicedbamlist),length(input$ROIsForAnalogHeat))
+              slicedkeylist=slicedbamlist
               for(i in 1:length(subselectedBAMlist)){
                 slicedbamlist2=split(subselectedBAMlist[[i]],factor(labelstosplit,levels=unique(labelstosplit)))
+                slicedkeylist2=split(subselectkeylist[[i]],factor(labelstosplit,levels=unique(labelstosplit)))
                 #for each ROI obtained after split
                 for(k in 1:length(slicedbamlist2)){
                   slicedbamlist[[k]][[i]]=slicedbamlist2[[k]]
+                  slicedkeylist[[k]][[i]]=slicedkeylist2[[k]]
                 }      
               }
               #here, check if normlisttouse follows the same hierarchy of slicedbamlist (ROI/enrich)
@@ -2949,7 +3149,7 @@ observeEvent(toListenAnalogHeat(),{
               roisSelected=ROIvariables$listROI[pos]
               getwdth=lapply(roisSelected,getWidth) 
               widths=Reduce(union,getwdth)
-              
+
               if(length(slicedbamlist)<length(slicedbamlist[[1]])){
                 #if BAMs>ROIs, paralllize at BAM level
                 matlists=lapply(1:length(slicedbamlist),function(i) {
@@ -2957,13 +3157,14 @@ observeEvent(toListenAnalogHeat(),{
 
                   if(nc==1){
                     matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                       })
                   }else{
                     decision=0
                     tryCatch({
                       matlist=mclapply(1:length(slicedbamlist[[i]]),function(k) {
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                       
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                       },mc.cores=nc) 
                       #if multicore returned correctly, decision==1, following if won't be calculated..
                       decision=1
@@ -2978,14 +3179,14 @@ observeEvent(toListenAnalogHeat(),{
                     if(decision==0){
                       print("Detected problems, maybe memory limits...")
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                                        return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                       })
                     }
                   }
 
                   ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                   ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-                  pos_toinvert=as.character(strand_sampled[[i]])=="-"
+                  #pos_toinvert=as.character(strand_sampled[[i]])=="-"
                   #for k in matlist (k should be the bam)
                   # for(k in 1:length(matlist)){
                   #   #for each of the BAM file in this current ROI;
@@ -3005,19 +3206,10 @@ observeEvent(toListenAnalogHeat(),{
                   matlists=lapply(1:length(slicedbamlist),function(i) {
                     #in case, filter for transcript flag if mem problems
                     matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                          return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                                          return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                         }) 
                     ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                     ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-                    pos_toinvert=as.character(strand_sampled[[i]])=="-"
-                    # for(k in 1:length(matlist)){
-                    #   #for each of the BAM file in this current ROI;
-                    #   matprovv=matlist[[k]]
-                    #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                    #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                    #   }
-                    # }
-
                     return(matlist)    
                   })                
                 }else{
@@ -3026,18 +3218,11 @@ observeEvent(toListenAnalogHeat(),{
                     matlists=mclapply(1:length(slicedbamlist),function(i) {
                       #in case, filter for transcript flag if mem problems
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                        
+                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                       ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-                      pos_toinvert=as.character(strand_sampled[[i]])=="-"
-                      # for(k in 1:length(matlist)){
-                      #   #for each of the BAM file in this current ROI;
-                      #   matprovv=matlist[[k]]
-                      #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                      #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                      #   }
-                      # }
                       return(matlist)    
                     },mc.cores=nc)  
                     #if multicore returned correctly, decision==1, following if won't be calculated..
@@ -3056,27 +3241,16 @@ observeEvent(toListenAnalogHeat(),{
                       #in case, filter for transcript flag if mem problems
 
                       matlist=lapply(1:length(slicedbamlist[[i]]),function(k) {
-                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]]))
+                                            return(makeMatrixFrombaseCoverage(slicedbamlist[[i]][[k]],Nbins=nbintouse,Snorm=TRUE,norm_factor=normlisttouse[[i]][[k]],key=slicedkeylist[[i]][[k]]))
                                           }) 
                       ###HERE invert "-" strand. They are in strand_sampled list. each element of this list
                       ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-                      pos_toinvert=as.character(strand_sampled[[i]])=="-"
-
-                      #for k in matlist (k should be the bam)
-                      # for(k in 1:length(matlist)){
-                      #   #for each of the BAM file in this current ROI;
-                      #   matprovv=matlist[[k]]
-                      #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-                      #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-                      #   }
-                      # }
                       return(matlist)    
                     }) 
 
                   }
                 }
               }
-
 
 
               #return matlists in any case. If fixed size is the same for all, return complete matrix
@@ -3215,6 +3389,8 @@ observeEvent(toListenAnalogHeat(),{
                 }
               }
               
+
+
               #print("clustering done if selected...")
               #if completematrix is not NULL (fixed size, cluster it with the same order as returned by
               # finalmats!)
@@ -3225,11 +3401,13 @@ observeEvent(toListenAnalogHeat(),{
                 fixes[[i]]=fixes[[i]][toorder_final[[i]]]
                 for(k in 1:length(finalbam[[i]])){
                   finalbam[[i]][[k]]=finalbam[[i]][[k]][toorder_final[[i]]]
+                  finalkey[[i]][[k]]=finalkey[[i]][[k]][toorder_final[[i]]]
                 }
               }
               
               toplot$analogic$finalrange=completerange
               toplot$analogic$finalbam=finalbam
+              toplot$analogic$finalkey=finalkey
               toplot$analogic$finalnorm=normlisttostore
               toplot$analogic$finalfixes=fixes
 
@@ -3270,7 +3448,6 @@ observeEvent(toListenAnalogHeat(),{
 
 
               toplot$analogic$numbersamples=numbersamples
-              toplot$analogic$method=input$chooseQuantileMethodAnalogHeat
               toplot$analogic$matrixes_processed=matrixes_processed
               toplot$analogic$labelstosplit=labelstosplit
               toplot$analogic$clusterTypeAnalogHeat=input$clusterTypeAnalogHeat
@@ -3282,12 +3459,11 @@ observeEvent(toListenAnalogHeat(),{
               
               toplot$analogic$clusternumbermatrix=NULL
               if(isclusteringok){
-                set.seed(123)
-                #for this line of code, thanks to
-                # http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r
-                # Jelena-bioinf / Megatron
-                color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-                color_distinct_cluster=sample(color, heatvariables$clustnumAnalogHeat)
+                #set.seed(123)
+                #color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+                #color_distinct_cluster=sample(color, heatvariables$clustnumAnalogHeat)
+                color_distinct_cluster=colors_list[1:heatvariables$clustnumAnalogHeat]
+
                 toplot$analogic$color_distinct_cluster=color_distinct_cluster
                 #if clustering is hierarchical
                 if (toplot$analogic$clusterTypeAnalogHeat=="hierarchical"){
@@ -3308,6 +3484,8 @@ observeEvent(toListenAnalogHeat(),{
               }
 
 
+
+              #plotting elments. 
 
               #plot cluster color heatmap on the left;
               if(isclusteringok){
@@ -3330,34 +3508,69 @@ observeEvent(toListenAnalogHeat(),{
 
 
               #reset the color menu:
-              if(input$optioncolorsforAnalogHeat=="custom"){
-                bams=heatvariables$BAMsForAnalogHeat
-                lista=list()
 
-                if(length(bams)>0){
-                  output$showcolorsheat<-renderUI({
-                    for (i in 1:length(bams)){
-                      lista[[i]]=fluidRow(
-                                          column(12,
-                                                colorSelectorInput(inputId=paste("colorCustomAnalogHeat",i,sep=""),label=bams[i],choices=ColsArray,
-                                                              selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
-                                          )
-                                  )
+              bams=heatvariables$BAMsForAnalogHeat
+              lista=list()
 
-                    }
-                    wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-                      lista
+              if(length(bams)>0){
+                output$showoptioncolorsforAnalogHeat<-renderUI({
+                  radioButtons("optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),
+                            choiceValues=c("global","custom"),selected="global")
+                })
+                output$showcolorsheat<-renderUI({
+                  selectInput("colorCustomAnalogHeat_global",label="Choose global color:",c("white/red"="white_red4",
+                                                          "white/blue"="white_blue",
+                                                          "rainbow"="rainbow",
+                                                          "blue/white/red"="blue_white_red",
+                                                          "exponential blue"="white_white_white_blue_blue4",
+                                                          "gray scale"="white_grey90_grey80_grey70_grey50_black"))
+                })
+
+                output$showchooseQuantileMethodAnalogHeat<-renderUI({
+                  list(
+                    HTML("<b>Quantile threshold</b>"),
+                    radioButtons("chooseQuantileMethodAnalogHeat",label=NULL,
+                        choiceNames=list(
+                          htmlhelp("Uniform","help_analogicHeatmap_parameters_uniform"),
+                          htmlhelp("Individual","help_analogicHeatmap_parameters_individual")
+                        ),
+                        choiceValues=list("allBAM","eachBAM")
                     )
-                  })        
-                }else{
-                  #bams are NULL. show nothing
-                  output$showcolorsheat<-renderUI({NULL})
-                }
+                  )
+                })
+                output$showquantileThreshAnalogHeat<-renderUI({
+                  sliderInput('quantileThreshAnalogHeat',label=NULL,min = 0.1, max = 1, value = 0.9,step=0.002)
+                })
+
+              }else{
+                #bams are NULL. show nothing
+                output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+                output$showquantileThreshAnalogHeat<-renderUI({NULL})  
+                output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
               }
+
 
 
               
               output$heatmapAnalog<-renderPlot({
+
+                if (isvalid(isolate(input$optioncolorsforAnalogHeat))){
+                  optioncolors= isolate(input$optioncolorsforAnalogHeat)
+                }else{
+                  optioncolors="global"
+                }
+
+                if (isvalid(input$chooseQuantileMethodAnalogHeat)){
+                  method=input$chooseQuantileMethodAnalogHeat
+                }else{
+                  method="allBAM"
+                }
+
+                if (isvalid(input$quantileThreshAnalogHeat)){
+                  quantThresh=input$quantileThreshAnalogHeat
+                }else{
+                  quantThresh=0.9
+                }                
 
                 if(numbersamples<10){
                   factormult=10/numbersamples
@@ -3367,9 +3580,7 @@ observeEvent(toListenAnalogHeat(),{
                 matProc_analogic=toplot$analogic$matrixes_processed
 
                 #modify max values above quantile threshold. one for each BAM (not fixed value)
-                quantThresh=input$quantileThreshAnalogHeat
                 nbin=heatvariables$binsAnalogHeat
-                method=input$chooseQuantileMethodAnalogHeat
 
                 if(method=="eachBAM"){
                   for(i in 1:length(heatvariables$BAMsForAnalogHeat)){
@@ -3406,7 +3617,7 @@ observeEvent(toListenAnalogHeat(),{
                 #for plotting only, each block of the matrix, for each bam, sum 1
                 brk=201
 
-                if(isolate(input$optioncolorsforAnalogHeat)=="global"){
+                if(optioncolors=="global"){
                   #here, only one palette for everything
                   if(palette_col=="rainbow"){
                     palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n =brk-1))
@@ -3417,12 +3628,14 @@ observeEvent(toListenAnalogHeat(),{
                   
                 }else{
 
-
                   if(length(palette_col)==1 ){
+                    #because it can be only ONE enrichment to show => if custom color, "red", and
+                    #should be treated differently from "white_red" or example
                     if(palette_col=="white_red4"){
                       colorsplitted=strsplit(palette_col,split="_")[[1]]
                       palette=colorRampPalette(colorsplitted)(n =brk-1)  
-                    }else{
+                    }
+                    else{
                       palette=c()
                       for(i in 1:length(palette_col)){
                         palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n =brk-1))
@@ -3430,7 +3643,7 @@ observeEvent(toListenAnalogHeat(),{
                     }
                               
                   }else{
-                    #if input$optioncolorsforAnalogHeat is custom, palette should have length==nbams
+                    #if optioncolors is custom, palette should have length==nbams
                     palette=c()
                     for(i in 1:length(palette_col)){
                       palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n=brk-1))
@@ -3455,13 +3668,8 @@ observeEvent(toListenAnalogHeat(),{
                         matProc_analogic[, ((i-1)*nbin+1):(i*nbin) ]=piecematrix
                         #palettes[i]=colorRampPalette(colorsplitted)(n=brk)
                     } 
-
-
                   }
-
                 }
-
-
 
                 trasp=t(matProc_analogic)
                 if(!inherits(trasp,"matrix")  ){
@@ -3474,14 +3682,12 @@ observeEvent(toListenAnalogHeat(),{
                   raster=TRUE
                 }
 
-
                 par(mar = rep(0, 4))
                 #here we are plotting with the parameters
                 image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
                 #REMOVE x,y lim if cordinates don't match
                       ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp)),useRaster=raster  
                       )
-
 
                 counter=seq(numberbins,numberbins*numbersamples,numberbins)
                 for (csep in counter){
@@ -3490,7 +3696,6 @@ observeEvent(toListenAnalogHeat(),{
                     ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
                     col = "black", border = "black")
                 }
-
 
                 #how many for each ROI? then revert, because the matrix is inverted in "image"
                 #but the matrix original is correct, with ROI order and columns=bins; rows=ranges
@@ -3562,15 +3767,23 @@ observeEvent(toListenAnalogHeat(),{
               output$colorScaleAnalogHeat<-renderPlot({
                 brk=201
                 palette_col=toplot$analogic$colorpalettes
-                if(isolate(input$optioncolorsforAnalogHeat)=="global"){
-                  
-                  if(palette_col=="rainbow"){
-                    my_palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n = brk-1))
+                if (isvalid(isolate(input$optioncolorsforAnalogHeat))){
+                  optioncolors= isolate(input$optioncolorsforAnalogHeat)
+                }else{
+                  optioncolors="global"
+                }
+                if(length(optioncolors)>0){
+                  if (optioncolors=="global"){
+                    if(palette_col=="rainbow"){
+                      my_palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n = brk-1))
+                    }else{
+                      colorsplitted=strsplit(palette_col,split="_")[[1]]
+                      my_palette <- colorRampPalette(colorsplitted)(n = brk-1 )
+                    }
+                    color.bar(my_palette, min=0,max=1)  
                   }else{
-                    colorsplitted=strsplit(palette_col,split="_")[[1]]
-                    my_palette <- colorRampPalette(colorsplitted)(n = brk-1 )
-                  }
-                  color.bar(my_palette, min=0,max=1)                    
+                    NULL
+                  }                  
                 }else{
                   NULL
                 }
@@ -3581,11 +3794,34 @@ observeEvent(toListenAnalogHeat(),{
             }else{
               heatvariables$BAMsForAnalogHeat=NULL
               output$heatmapAnalog<-renderPlot({NULL})
+              #clean also profiles and boxes from heat selection
+              output$profileAnalogHeat<-renderPlot({NULL})
+              output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+              output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+              output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+              output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+              output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+              output$corAnalogHeat<-renderPlot({NULL})
+              output$pcorAnalogHeat<-renderPlot({NULL})
+              output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+              output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+              output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+              output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+              output$showcolorsheat<-renderUI({NULL})
               output$textfractionelementsAnalogHeat<-renderText({NULL})
               output$colorScaleAnalogHeat<-renderPlot({NULL})
               output$textNameAnalogHeat <- renderPlot({NULL})
               toplot$analogic$finalrange=NULL
               toplot$analogic$finalbam=NULL
+              toplot$analogic$finalkey=NULL
               toplot$analogic$finalnorm=NULL
               toplot$analogic$finalfixes=NULL
               heatvariables$matlist=NULL   
@@ -3609,11 +3845,34 @@ observeEvent(toListenAnalogHeat(),{
           }else{
             heatvariables$BAMsForAnalogHeat=NULL
             output$heatmapAnalog<-renderPlot({NULL})
+            #clean also profiles and boxes from heat selection
+            output$profileAnalogHeat<-renderPlot({NULL})
+            output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+            output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+            output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+            output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+            output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+            output$corAnalogHeat<-renderPlot({NULL})
+            output$pcorAnalogHeat<-renderPlot({NULL})
+            output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+            output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+            output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+            output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+            output$showcolorsheat<-renderUI({NULL})
             output$textfractionelementsAnalogHeat<-renderText({NULL})
             output$colorScaleAnalogHeat<-renderPlot({NULL})
             output$textNameAnalogHeat <- renderPlot({NULL})
             toplot$analogic$finalrange=NULL
             toplot$analogic$finalbam=NULL
+            toplot$analogic$finalkey=NULL
             toplot$analogic$finalnorm=NULL
             toplot$analogic$finalfixes=NULL
             heatvariables$matlist=NULL   
@@ -3641,11 +3900,34 @@ observeEvent(toListenAnalogHeat(),{
           print("WARNING: some parameters not set in analogic heatmap...")
           heatvariables$BAMsForAnalogHeat=NULL
           output$heatmapAnalog<-renderPlot({NULL})
+          #clean also profiles and boxes from heat selection
+          output$profileAnalogHeat<-renderPlot({NULL})
+          output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+          output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+          output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+          output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+          output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+          output$corAnalogHeat<-renderPlot({NULL})
+          output$pcorAnalogHeat<-renderPlot({NULL})
+          output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+          output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+          output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+          output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+          output$showcolorsheat<-renderUI({NULL})
           output$textfractionelementsAnalogHeat<-renderText({NULL})
           output$colorScaleAnalogHeat<-renderPlot({NULL})
           output$textNameAnalogHeat <- renderPlot({NULL})
           toplot$analogic$finalrange=NULL
           toplot$analogic$finalbam=NULL
+          toplot$analogic$finalkey=NULL
           toplot$analogic$finalnorm=NULL
           toplot$analogic$finalfixes=NULL
           heatvariables$matlist=NULL   
@@ -3671,11 +3953,34 @@ observeEvent(toListenAnalogHeat(),{
       }else{
         heatvariables$BAMsForAnalogHeat=NULL
         output$heatmapAnalog<-renderPlot({NULL})
+        #clean also profiles and boxes from heat selection
+        output$profileAnalogHeat<-renderPlot({NULL})
+        output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+        output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+        output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+        output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+        output$corAnalogHeat<-renderPlot({NULL})
+        output$pcorAnalogHeat<-renderPlot({NULL})
+        output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+        output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+        output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+        output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+        output$showcolorsheat<-renderUI({NULL})
         output$textfractionelementsAnalogHeat<-renderText({NULL})
         output$colorScaleAnalogHeat<-renderPlot({NULL})
         output$textNameAnalogHeat <- renderPlot({NULL})
         toplot$analogic$finalrange=NULL
         toplot$analogic$finalbam=NULL
+        toplot$analogic$finalkey=NULL
         toplot$analogic$finalnorm=NULL
         toplot$analogic$finalfixes=NULL
         heatvariables$matlist=NULL
@@ -3695,11 +4000,34 @@ observeEvent(toListenAnalogHeat(),{
     }else{
       heatvariables$BAMsForAnalogHeat=NULL
       output$heatmapAnalog<-renderPlot({NULL})
+      #clean also profiles and boxes from heat selection
+      output$profileAnalogHeat<-renderPlot({NULL})
+      output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+      output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+      output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+      output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+      output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+      output$corAnalogHeat<-renderPlot({NULL})
+      output$pcorAnalogHeat<-renderPlot({NULL})
+      output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+      output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+      output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+      output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+      output$showcolorsheat<-renderUI({NULL})
       output$textfractionelementsAnalogHeat<-renderText({NULL})
       output$colorScaleAnalogHeat<-renderPlot({NULL})
       output$textNameAnalogHeat <- renderPlot({NULL})
       toplot$analogic$finalrange=NULL
       toplot$analogic$finalbam=NULL
+      toplot$analogic$finalkey=NULL
       toplot$analogic$finalnorm=NULL
       toplot$analogic$finalfixes=NULL
       heatvariables$matlist=NULL
@@ -3720,11 +4048,34 @@ observeEvent(toListenAnalogHeat(),{
   }else{
     heatvariables$BAMsForAnalogHeat=NULL
     output$heatmapAnalog<-renderPlot({NULL})
+    #clean also profiles and boxes from heat selection
+    output$profileAnalogHeat<-renderPlot({NULL})
+    output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+    output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+    output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+    output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+    output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+    output$corAnalogHeat<-renderPlot({NULL})
+    output$pcorAnalogHeat<-renderPlot({NULL})
+    output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$savecorAnalogHeat=renderUI({NULL})
+              output$savepcorAnalogHeat=renderUI({NULL})
+output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+    output$showoptioncolorsforAnalogHeat<-renderUI({NULL})
+    output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
+    output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
+    output$showcolorsheat<-renderUI({NULL})
     output$textfractionelementsAnalogHeat<-renderText({NULL})
     output$colorScaleAnalogHeat<-renderPlot({NULL})
     output$textNameAnalogHeat <- renderPlot({NULL})
     toplot$analogic$finalrange=NULL
     toplot$analogic$finalbam=NULL
+    toplot$analogic$finalkey=NULL
     toplot$analogic$finalnorm=NULL
     toplot$analogic$finalfixes=NULL
     heatvariables$matlist=NULL
@@ -3794,7 +4145,7 @@ output$saveheatmapAnalogbutton<- downloadHandler(
 
           if(isolate(input$optioncolorsforAnalogHeat)=="global"){
             #here, only one palette for everything
-            if(palette_col=="rainbow"){
+            if(any(palette_col=="rainbow")){
               palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n =brk-1))
             }else{
               colorsplitted=strsplit(palette_col,split="_")[[1]]
@@ -3807,7 +4158,8 @@ output$saveheatmapAnalogbutton<- downloadHandler(
               if(palette_col=="white_red4"){
                 colorsplitted=strsplit(palette_col,split="_")[[1]]
                 palette=colorRampPalette(colorsplitted)(n =brk-1)  
-              }else{
+              }
+              else{
                 palette=c()
                 for(i in 1:length(palette_col)){
                   palette=c(palette,colorRampPalette(c("white",palette_col[i]))(n =brk-1))
@@ -3959,26 +4311,28 @@ output$saveprofileAnalogHeatbutton<- downloadHandler(
   },
   content=function(file) {
       pdf(file)
-      
-      if(input$Log2BoxAnalogHeat){
-        portionlist_profile=lapply(toplot$gadgetanalogic$portionlist_profile,log2)
-        yl="Log2 read density (rpm/bp)"
+      if(input$colorscheme_profileAnalogHeat=="custom"){
+        tosearch=paste("colorCustomAnalogHeat_profile",1:length(toplot$gadgetanalogic$portionlist_profile),sep="")              
+        if(length(tosearch)>0){
+          listinputcols=list()
+          for(i in 1:length(tosearch)){
+            listinputcols[[i]]=input[[tosearch[i]]]
+          }
+          listinputcols=unlist(listinputcols)
+          if(length(listinputcols)==length(tosearch)){
+            colors=listinputcols
+          }else{
+            colors=toplot$gadgetanalogic$color_distinct
+          }
+        }else{
+          colors=toplot$gadgetanalogic$color_distinct
+        }
       }else{
-        portionlist_profile=toplot$gadgetanalogic$portionlist_profile
-        yl="Read density (rpm/bp)"
+        #random colors
+        colors=toplot$gadgetanalogic$color_distinct
       }
-      maxval=max(unlist(lapply(portionlist_profile,max)))
-      minval=min(unlist(lapply(portionlist_profile,min)))
-
-      par(mar=c(4,4,2,2))
-      plot(1, type="n", xlab="",xaxt="n", ylab=yl, xlim=c(1, length(portionlist_profile[[1]])), ylim=c(minval, maxval))
-      axis(1,at=c(1,length(portionlist_profile[[1]])/2 +0.5,length(portionlist_profile[[1]])),labels=c("start","center","end"))
-
-      for(i in 1:length(portionlist_profile)){
-        lines(portionlist_profile[[i]],lwd=2,col=toplot$gadgetanalogic$color_distinct[i])
-      }
-      legend("topright",legend=names(portionlist_profile),col=toplot$gadgetanalogic$color_distinct,lty=rep(1,length(toplot$gadgetanalogic$color_distinct)),cex=0.6,bg="transparent")   
-
+      plot_analog_profile(islog2=input$isLog2_profileAnalogHeat,portionlist_profile=toplot$gadgetanalogic$portionlist_profile,
+                      colors=colors,ispdf=TRUE)
       dev.off()
   } 
 )
@@ -3992,55 +4346,48 @@ output$saveboxplotByROIAnalogHeatbutton<- downloadHandler(
       paste('BoxplotByROI_analog_heatmap.pdf', sep='')
   },
   content=function(file) {
-      pdf(file)
-
-      factor_add=rep(0:(toplot$gadgetanalogic$roinumber-1),each=toplot$gadgetanalogic$bamnumber)
-      addingfactor=1:length(toplot$gadgetanalogic$portionlist_boxes)+factor_add
-  
-      if(input$Log2BoxAnalogHeat){
-        portionlist_boxes=lapply(toplot$gadgetanalogic$portionlist_boxes,log2)
-        yl="Log2 read density (rpm/bp)"
-      }else{
-        portionlist_boxes=toplot$gadgetanalogic$portionlist_boxes
-        yl="Read density (rpm/bp)"
-      }
-
-      isgrouped=input$GroupColorsAnalogHeat
       
-      #if grouping colors, adjust legend and colors by groups
-      if(!isgrouped){
-        newcols=toplot$gadgetanalogic$color_distinct
-        newnames=names(portionlist_boxes)
+
+      islog=input$isLog2_boxAnalogHeat
+      grouped=input$GroupColorsAnalogHeat_box
+
+      if (input$colorscheme_boxAnalogHeat=="random"){
+        if(!grouped){
+          newcols=toplot$gadgetanalogic$color_distinct
+          newnames=names(toplot$gadgetanalogic$portionlist_boxes)
+        }else{
+          newnames=unique(sapply(strsplit(names(toplot$gadgetanalogic$portionlist_boxes),split=";"),"[[",1))
+          newcols=rep(toplot$gadgetanalogic$color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
+        }
+
       }else{
-        #in this case, take n° ROI colors, repeated for n° BAMs
-        #in the legend, put n° ROI colors and tell which ROI with number
-        #in xlab, put BAMs
-        #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-        newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-        newcols=rep(toplot$gadgetanalogic$color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
+        #forse grouped to FALSE. Can happen sometimes that even with color=custom, group is still TRUE
+        grouped=FALSE
+        #here is valid color scheme but not random: extract single colors
+        tosearch=paste("colorCustomAnalogHeat_box",1:length(toplot$gadgetanalogic$portionlist_boxes),sep="")              
+        if(length(tosearch)>0){
+          listinputcols=list()
+          for(i in 1:length(tosearch)){
+            listinputcols[[i]]=input[[tosearch[i]]]
+          }
+          listinputcols=unlist(listinputcols)
+          if(length(listinputcols)==length(tosearch)){
+            newcols=listinputcols
+            newnames=names(toplot$gadgetanalogic$portionlist_boxes)
+          }else{
+            newcols=toplot$gadgetanalogic$color_distinct
+            newnames=names(toplot$gadgetanalogic$portionlist_boxes)
+          }
+        }else{
+          newcols=toplot$gadgetanalogic$color_distinct
+          newnames=names(toplot$gadgetanalogic$portionlist_boxes)
+        }
       }
 
-
-      par(mar=c(14,4,1,1))
-      suppressWarnings(boxplot(portionlist_boxes,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-      ats=c()
-      for(i in 1:toplot$gadgetanalogic$roinumber){
-        window=addingfactor[(((i-1)*toplot$gadgetanalogic$bamnumber)+1):(i*toplot$gadgetanalogic$bamnumber)]
-        currentvalue=(window[length(window)]-window[1])/2
-        currentvalue=window[1]+currentvalue
-        ats=c(ats,currentvalue)
-      }
-
-      if(!isgrouped){
-        axis(1,at=ats,label=toplot$gadgetanalogic$roiname,las=2)
-        legend("topright",legend=newnames,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))          
-      }else{
-        axis(1,at=ats,label=newnames,las=2)
-        legend("topright",legend=toplot$gadgetanalogic$bamname,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-      }
-
-      # axis(1,at=ats,label=toplot$gadgetanalogic$roiname,las=2)
-      # legend("right",inset=c(-0.7,0),legend=names(portionlist_boxes),col=toplot$gadgetanalogic$color_distinct,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))
+      pdf(file)
+      plot_analog_boxByROI(materialtoplot=toplot$gadgetanalogic$portionlist_boxes,roiname=toplot$gadgetanalogic$roiname,
+                                bamname=toplot$gadgetanalogic$bamname,newnames=newnames,islog=islog,
+                                isgrouped=grouped,colors=newcols,ispdf=TRUE)
 
       dev.off()
   } 
@@ -4056,58 +4403,74 @@ output$saveboxplotByBAMAnalogHeatbutton<- downloadHandler(
       paste('BoxplotByBAM_analog_heatmap.pdf', sep='')
   },
   content=function(file) {
-      pdf(file)
       
-      #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
-      #invert the order
       newlist=list()
       newcols=c()
       newnames=c()
-      #if grouping colors, adjust legend and colors by groups
-      if(!input$GroupColorsAnalogHeat){
-        for(i in 1:toplot$gadgetanalogic$bamnumber){
-          pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
-          newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
-          newcols=c(newcols,toplot$gadgetanalogic$color_distinct[pos_inverted])
-          newnames=c(newnames,names(toplot$gadgetanalogic$portionlist_boxes)[pos_inverted])
-        }          
+
+      #if random, check if group or not
+      if (input$colorscheme_boxAnalogHeat=="random"){
+        #if grouping colors, adjust legend and colors by groups
+        if(!input$GroupColorsAnalogHeat_box){
+          for(i in 1:toplot$gadgetanalogic$bamnumber){
+            pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
+            newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+            newcols=c(newcols,toplot$gadgetanalogic$color_distinct[pos_inverted])
+            newnames=c(newnames,names(toplot$gadgetanalogic$portionlist_boxes)[pos_inverted])
+          }          
+        }else{
+          #in this case, take n° ROI colors, repeated for n° BAMs
+          #in the legend, put n° ROI colors and tell which ROI with number
+          #in xlab, put BAMs
+          for(i in 1:toplot$gadgetanalogic$bamnumber){
+            pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
+            newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+          }
+          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(toplot$gadgetanalogic$portionlist_boxes)))
+          newnames=unique(sapply(strsplit(names(toplot$gadgetanalogic$portionlist_boxes),split=";"),"[[",1))
+          newcols=rep(toplot$gadgetanalogic$color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
+        }            
       }else{
-        #in this case, take n° ROI colors, repeated for n° BAMs
-        #in the legend, put n° ROI colors and tell which ROI with number
-        #in xlab, put BAMs
-        for(i in 1:toplot$gadgetanalogic$bamnumber){
-          pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
-          newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+        #extract all colors,because color scheem is custom
+        tosearch=paste("colorCustomAnalogHeat_box",1:length(toplot$gadgetanalogic$portionlist_boxes),sep="")              
+        if(length(tosearch)>0){
+          listinputcols=list()
+          for(i in 1:length(tosearch)){
+            listinputcols[[i]]=input[[tosearch[i]]]
+          }
+          listinputcols=unlist(listinputcols)
+          if(length(listinputcols)==length(tosearch)){
+            newcols=listinputcols
+            for(i in 1:toplot$gadgetanalogic$bamnumber){
+              pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
+              newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+              newnames=c(newnames,names(toplot$gadgetanalogic$portionlist_boxes)[pos_inverted])
+            }
+          }else{
+            for(i in 1:toplot$gadgetanalogic$bamnumber){
+              pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
+              newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+              newcols=c(newcols,toplot$gadgetanalogic$color_distinct[pos_inverted])
+              newnames=c(newnames,names(toplot$gadgetanalogic$portionlist_boxes)[pos_inverted])
+            }
+          }
+        }else{
+          for(i in 1:toplot$gadgetanalogic$bamnumber){
+            pos_inverted=seq(i,length(toplot$gadgetanalogic$portionlist_boxes),toplot$gadgetanalogic$bamnumber)
+            newlist=c(newlist,toplot$gadgetanalogic$portionlist_boxes[pos_inverted])
+            newcols=c(newcols,toplot$gadgetanalogic$color_distinct[pos_inverted])
+            newnames=c(newnames,names(toplot$gadgetanalogic$portionlist_boxes)[pos_inverted])
+          }
         }
-        #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(toplot$gadgetanalogic$portionlist_boxes)))
-        newnames=unique(sapply(strsplit(names(toplot$gadgetanalogic$portionlist_boxes),split=";"),"[[",1))
-        newcols=rep(toplot$gadgetanalogic$color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
-      }
+      }            
 
 
-      factor_add=rep(0:(toplot$gadgetanalogic$bamnumber-1),each=toplot$gadgetanalogic$roinumber)
-      addingfactor=1:length(newlist)+factor_add
-      par(mar=c(14,4,1,1))
 
-      if(input$Log2BoxAnalogHeat){
-        newlist=lapply(newlist,log2)
-        yl="Log2 read density (rpm/bp)"
-      }else{
-        yl="Read density (rpm/bp)"
-      }
+      pdf(file)
 
-      suppressWarnings(boxplot(newlist,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-      ats=c()
-      for(i in 1:toplot$gadgetanalogic$bamnumber){
-        window=addingfactor[(((i-1)*toplot$gadgetanalogic$roinumber)+1):(i*toplot$gadgetanalogic$roinumber)]
-        currentvalue=(window[length(window)]-window[1])/2
-        currentvalue=window[1]+currentvalue
-        ats=c(ats,currentvalue)
-      }
+      plot_analog_boxByBAM(materialtoplot=newlist,roinumber=toplot$gadgetanalogic$roinumber,newcols=newcols,newnames=newnames,
+                                bamname=toplot$gadgetanalogic$bamname,islog=input$isLog2_boxAnalogHeat,colors=newcols,ispdf=TRUE)
 
-      axis(1,at=ats,label=toplot$gadgetanalogic$bamname,las=2)
-      legend("topright",legend=newnames,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$gadgetanalogic$portionlist_boxes)))
-   
       dev.off()
   } 
 )
@@ -4234,12 +4597,14 @@ observeEvent(input$confirmImportROIfromAnalogHeat,{
             correct_range=toplot$analogic$finalrange[[pos]][newstart:newstop]
             correct_fix=toplot$analogic$finalfixes[[pos]][newstart:newstop]
             correct_bams=toplot$analogic$finalbam[[pos]]
+            correct_keys=toplot$analogic$finalkey[[pos]]
             correct_norm=toplot$analogic$finalnorm[[pos]]
-            newBAMlist=as.list(rep(NA,length(correct_bams)))
+            newBAMlist=newkeylist=as.list(rep(NA,length(correct_bams)))
             for(i in 1:length(newBAMlist)){
               newBAMlist[[i]]=correct_bams[[i]][newstart:newstop]
+              newkeylist[[i]]=correct_keys[[i]][newstart:newstop]
             }
-            names(newBAMlist)=names(correct_bams)
+            names(newBAMlist)=names(newkeylist)=names(correct_bams)
             nomitot=unlist(lapply(ROIvariables$listROI,getName))
             postot=match(unique(label_selected),nomitot)
 
@@ -4253,6 +4618,7 @@ observeEvent(input$confirmImportROIfromAnalogHeat,{
               newSource=c(oldSource,list(toadd))
               #we should have all the elements... create ROI!
               Enrichlist$rawcoverage[[input$newROIfromAnalogHeat]]=newBAMlist
+              Enrichlist$decryptkey[[input$newROIfromAnalogHeat]]=newkeylist
               Enrichlist$normfactlist[[input$newROIfromAnalogHeat]]=correct_norm
               ROIvariables$listROI[[length(ROIvariables$listROI)+1]]=new("RegionOfInterest",
                                               name=input$newROIfromAnalogHeat,
@@ -4348,6 +4714,30 @@ observeEvent(input$confirmImportROIfromAnalogHeat,{
 observeEvent(input$msg_enrichmentInRois_parameters, {
   boxHelpServer(msg_enrichmentInRois_parameters)
 })
+
+
+#respond to help buttons for parameters
+observeEvent(input$help_enrichmentInRois_parameters_ROIs, {boxHelpServer(help_enrichmentInRois_parameters_ROIs)})
+observeEvent(input$help_enrichmentInRois_parameters_enrichments, {boxHelpServer(help_enrichmentInRois_parameters_enrichments)})
+observeEvent(input$help_enrichmentInRois_parameters_bins, {boxHelpServer(help_enrichmentInRois_parameters_bins)})
+
+observeEvent(input$help_enrichmentInRois_profile_totalread, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_enrichmentInRois_profile_readdensity, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+observeEvent(input$help_enrichmentInRois_box_totalread, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_enrichmentInRois_box_readdensity, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+observeEvent(input$help_enrichmentInRois_heat_totalread, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_enrichmentInRois_heat_readdensity, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+
+
+
+
+
+
+
+
+
+
+
 #profiles
 observeEvent(input$msg_enrichmentInRois_profiles, {
   boxHelpServer(msg_enrichmentInRois_profiles)
@@ -4388,51 +4778,48 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     #all rois selected
     roi=ROIvariables$listROI[pos]
     rawvals=Enrichlist$rawcoverage[pos]
+    keyvals=Enrichlist$decryptkey[pos]
     normvals=Enrichlist$normfactlist[pos]
     maxbinstohave=min(unlist(lapply(roi,checkMaxBins)))
 
     toplot$profileAndBoxes$maxbinstohave=maxbinstohave
     
-    if(input$binsProfilesAndBox<maxbinstohave){
+    #execute everything only if number of bins acceptable
+    if(input$binsProfilesAndBox<=maxbinstohave){
+      lengthROIs=list()
       nameROI=unlist(lapply(roi,getName))
       bigbamlist=list()
+      bigkeyvalslist=list()
       bignormlist=list()
-      strands=as.list(rep(NA,length(roi)))
       for(i in 1:length(roi)){
-        unifROI=uniqueROI(roi[[i]])
-        strands[[i]]=as.factor(strand(getRange(uniqueROI(roi[[i]]))))
-
+        lengthROIs[[i]]=list(width(getRange(roi[[i]])))
         allbams=names(rawvals[[i]] )
         pos2=match(input$BAMsForProfilesAndBox,allbams)
         #order even if BAM reordered, should be fine
         bigbamlist[[i]]=rawvals[[i]][pos2]
+        bigkeyvalslist[[i]]=keyvals[[i]][pos2]
         bignormlist[[i]]=normvals[[i]][pos2]
-        names(bigbamlist[[i]])=input$BAMsForProfilesAndBox
-        names(bignormlist[[i]])=input$BAMsForProfilesAndBox
+        names(bigbamlist[[i]])=names(bigkeyvalslist[[i]])=names(bignormlist[[i]])=input$BAMsForProfilesAndBox
       }
-      names(bigbamlist)=names(bignormlist)=nameROI
-      
+      names(lengthROIs)=names(bigbamlist)=names(bigkeyvalslist)=names(bignormlist)=nameROI
+
+
+
+
       #from bigbamlist (1st order: roi, 2nd order: BAM) do the binning from baseCOverage to matrix
-
-
       matlists=list()
-      if(input$chooseNormalizationProfilesAndBox=="readdensity"){
-        Snorm_logic=TRUE
-      }else{
-        Snorm_logic=FALSE
-      }
     
-      #print("doing matrix from basecoverage")
-
       if(nc==1){
         matlists=lapply(1:length(bigbamlist),function(i) {
           matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                      return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
+                      provv=bigbamlist[[i]][[k]]
+                      #provv=decryptcov( list(provv,bigkeyvalslist[[i]][[k]]),chunk=length(provv))
+                      return(makeMatrixFrombaseCoverage(GRbaseCoverageOutput=provv,Nbins=binstouse,Snorm=FALSE,key=bigkeyvalslist[[i]][[k]],norm_factor=bignormlist[[i]][[k]]))
                     }) 
           names(matlist)=names(bigbamlist[[i]])
           # ###HERE invert "-" strand. They are in strands list. each element of this list
           # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-          pos_toinvert=as.character(strands[[i]])=="-"
+          #pos_toinvert=as.character(strands[[i]])=="-"
           # for(k in 1:length(matlist)){
           #   #for each of the BAM file in this current ROI;
           #   matprovv=matlist[[k]]
@@ -4450,44 +4837,28 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
           if(length(bigbamlist)>length(bigbamlist[[i]])){
             matlists=mclapply(1:length(bigbamlist),function(i) {
               matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
+                      provv=bigbamlist[[i]][[k]]
+                      #provv=decryptcov( list(provv,bigkeyvalslist[[i]][[k]]),chunk=length(provv))
+                      return(makeMatrixFrombaseCoverage(GRbaseCoverageOutput=provv,Nbins=binstouse,Snorm=FALSE,key=bigkeyvalslist[[i]][[k]],norm_factor=bignormlist[[i]][[k]]))
                         }) 
               names(matlist)=names(bigbamlist[[i]])
 
               # ###HERE invert "-" strand. They are in strands list. each element of this list
               # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-              pos_toinvert=as.character(strands[[i]])=="-"
-              #
-              # for(k in 1:length(matlist)){
-              #   #for each of the BAM file in this current ROI;
-              #   matprovv=matlist[[k]]
-              #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-              #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-              #   }
-              # }
-
               return(matlist)
             },mc.cores=nc)            
           
           }else{
             matlists=lapply(1:length(bigbamlist),function(i) {
               matlist=mclapply(1:length(bigbamlist[[i]]),function(k) {
-                          return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
+                      provv=bigbamlist[[i]][[k]]
+                      #provv=decryptcov( list(provv,bigkeyvalslist[[i]][[k]]),chunk=length(provv))
+                      return(makeMatrixFrombaseCoverage(GRbaseCoverageOutput=provv,Nbins=binstouse,Snorm=FALSE,key=bigkeyvalslist[[i]][[k]],norm_factor=bignormlist[[i]][[k]]))
                         },mc.cores=nc) 
               names(matlist)=names(bigbamlist[[i]])
 
               # ###HERE invert "-" strand. They are in strands list. each element of this list
               # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-              pos_toinvert=as.character(strands[[i]])=="-"
-              #
-              # for(k in 1:length(matlist)){
-              #   #for each of the BAM file in this current ROI;
-              #   matprovv=matlist[[k]]
-              #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-              #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-              #   }
-              # }
-
               return(matlist)
             })               
           }
@@ -4504,227 +4875,374 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
         if(decision==0){
           matlists=lapply(1:length(bigbamlist),function(i) {
             matlist=lapply(1:length(bigbamlist[[i]]),function(k) {
-                        return(makeMatrixFrombaseCoverage(bigbamlist[[i]][[k]],Nbins=binstouse,Snorm=Snorm_logic,norm_factor=bignormlist[[i]][[k]]))
+                      provv=bigbamlist[[i]][[k]]
+                      #provv=decryptcov( list(provv,bigkeyvalslist[[i]][[k]]),chunk=length(provv))
+                      return(makeMatrixFrombaseCoverage(GRbaseCoverageOutput=provv,Nbins=binstouse,Snorm=FALSE,key=bigkeyvalslist[[i]][[k]],norm_factor=bignormlist[[i]][[k]]))
                       }) 
             names(matlist)=names(bigbamlist[[i]])
 
             # ###HERE invert "-" strand. They are in strands list. each element of this list
             # ###is a ROI. With "bamsignals" package, negative strand is already reversed at the beginning
-            pos_toinvert=as.character(strands[[i]])=="-"
-            #
-            # for(k in 1:length(matlist)){
-            #   #for each of the BAM file in this current ROI;
-            #   matprovv=matlist[[k]]
-            #   if(!all(pos_toinvert)==FALSE | dim(matprovv)[2]>1){
-            #     matlist[[k]][pos_toinvert,]=matprovv[pos_toinvert,][,ncol(matprovv[pos_toinvert,]):1]
-            #   }
-            # }
-
             return(matlist)
           })
         }
       }
    
       names(matlists)=nameROI
-
+      
       #print("reordering lists")
       #obtain list form list of lists
       portionlist=list()
       listforbox=list()
+      keysforbox=list()
       normforbox=list()
+      lengthROIs_unrolled=list()
       for(i in 1:length(matlists)){
         provv=matlists[[i]]
         provv_box=bigbamlist[[i]]
+        provv_keybox=bigkeyvalslist[[i]]
         provv_normbox=bignormlist[[i]]
-        names(provv)=names(provv_box)=names(provv_normbox)=paste("ROI:",names(matlists)[i]," (",nrow(matlists[[i]][[1]]),"); ",names(matlists[[i]]),sep="" )
+        l_ROI=rep(lengthROIs[[i]],length(provv))
+        names(l_ROI)=names(provv)=names(provv_box)=names(provv_normbox)=paste("ROI:",names(matlists)[i]," (",nrow(matlists[[i]][[1]]),"); ",names(matlists[[i]]),sep="" )
         portionlist=c(portionlist,provv)
+        lengthROIs_unrolled=c(lengthROIs_unrolled,l_ROI)
         listforbox=c(listforbox,provv_box)
+        keysforbox=c(keysforbox,provv_keybox)
         normforbox=c(normforbox,provv_normbox)
       }
 
       #while values for profiles were already normalized, values for boxes are not
 
-      #print("collapse matrixes")
-      #apply mean on the matrix/median
-      portionlist_profile=lapply(1:length(portionlist),function(i){
-        mat=portionlist[[i]]
-        mat_profile=apply(mat,2,mean)
-      })
+      #do not apply mean. Wait the plot to decide is Snorm 
+      portionlist_profile=portionlist
+
+
       #apply cumulative enrichment for boxplots.
       #need to use the original bamlist, because in binning we loose the remaining
       #of the division
       portionlist_boxes=lapply(1:length(listforbox),function(i){
         block=listforbox[[i]]
+        key=keysforbox[[i]]
         norm=normforbox[[i]]
         len=sapply(block,length)
-        mat_boxes=sapply(block,sum)*norm
-        if(input$chooseNormalizationProfilesAndBox=="readdensity"){
-          mat_boxes=mat_boxes/len
-        }  
+        #decrypt and normalize data for boxes
+        mat_boxes=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=block,Nbins=1,Snorm=FALSE,key=key,norm_factor=norm) 
         return(mat_boxes) 
       })
       names(portionlist_profile)=names(portionlist_boxes)=names(portionlist)
 
       n=length(portionlist_profile)
-      #ROIvariables$colorsfordensity <- distinctColorPalette(n)
-      qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
-      col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-      color_distinct <-sample(col_vector, n)
+      color_distinct=colors_list[1:n]
 
-      if(input$chooseNormalizationProfilesAndBox=="readdensity"){
-        yl="Read density (rpm/bp)"
-        corvariables$is.density=TRUE
-      }else{
-        yl="Normalized reads (rpm)"
-        corvariables$is.density=FALSE
-      }
 
       #kep the values for the scatterplot, when you select cells in the correlation heatmap
-      corvariables$portionlist_boxes=portionlist_boxes
+
       names(portionlist_profile)=names(portionlist_boxes)=names(portionlist)
-      toplot$profileAndBoxes$Log2BoxProfilesAndBox=input$Log2BoxProfilesAndBox
       toplot$profileAndBoxes$portionlist_profile=portionlist_profile
       toplot$profileAndBoxes$portionlist_boxes=portionlist_boxes
-      toplot$profileAndBoxes$yl=yl
+      toplot$profileAndBoxes$lengthROIs_unrolled=lengthROIs_unrolled
       toplot$profileAndBoxes$color_distinct=color_distinct
-
-
-
-      print("Drawing profiles and boxplots")
-      ##PLOT profiles and boxplots using the obtained matrix lists
-      output$profileProfilesAndBox<-renderPlot({
-        if(input$Log2BoxProfilesAndBox){
-          portionlist_profile=lapply(1:length(portionlist_profile),function(i) {log2(portionlist_profile[[i]])})
-          yl=paste("Log2",yl)
-        }else{
-        }
-        #
-
-        maxval=max(unlist(lapply(portionlist_profile,max)))
-        if(min(unlist(lapply(portionlist_profile,min))) <0){
-          minval=min(unlist(lapply(portionlist_profile,min)))
-        }else{
-          minval=0
-        }
-        par(mar=c(10,4,1,1),xpd=TRUE)
-        plot(1, type="n", xlab="",xaxt="n", ylab=yl, xlim=c(1, length(portionlist_profile[[1]])), ylim=c(minval, maxval))
-        axis(1,at=c(1,length(portionlist_profile[[1]])/2 +0.5,length(portionlist_profile[[1]])),labels=c("start","center","end"))
-        for(i in 1:length(portionlist_profile)){
-          lines(portionlist_profile[[i]],lwd=2,col=color_distinct[i])
-        }
-        legend("bottom",inset=c(0,-0.5),legend=names(portionlist),col=color_distinct,lty=rep(1,length(color_distinct)),cex=0.6,bg="transparent")   
-      })
-
-      #PDF download button for profiles
-      output$saveprofileProfilesAndBox=renderUI({downloadButton('saveprofileProfilesAndBoxbutton', 'Get PDF')})
 
       roinumber=length(matlists)
       bamnumber=length(matlists[[1]])
 
       toplot$profileAndBoxes$roinumber=roinumber
       toplot$profileAndBoxes$bamnumber=bamnumber
-
       toplot$profileAndBoxes$bamname=names(bigbamlist[[1]])
       toplot$profileAndBoxes$roiname=names(bigbamlist)
 
 
 
+      #custom options for profile
+      output$showprofileProfileAndBox_logOptions<-renderUI({
+        checkboxInput("isLog2_profileProfileAndBox", label="log2",value = FALSE, width = NULL)
+      })
+
+      output$showprofileProfileAndBox_colorschemeOptions<-renderUI({
+        radioButtons("colorscheme_profileProfileAndBox",label="Choose color scheme:",choices=c(
+                                                  "Random colors"="random",
+                                                  "Custom colors"="custom"
+                                                        ),selected="random")       
+      }) 
+      output$showprofileProfileAndBox_isdensityOptions<-renderUI({
+        radioButtons("normalization_profileProfileAndBox",label="Normalization method:",
+                                      choiceNames=list(
+                                        htmlhelp("Total reads","help_enrichmentInRois_profile_totalread"),
+                                        htmlhelp("Read density (reads/bp)","help_enrichmentInRois_profile_readdensity")
+                                      ),
+                                      choiceValues=list("totread","readdensity"),selected="readdensity")
+      })     
+
+
+      print("Drawing profiles and boxplots")
+      ##PLOT profiles and boxplots using the obtained matrix lists
+      output$profileProfilesAndBox<-renderPlot({
+        orig_names=names(portionlist_profile)
+        if(isvalid(input$isLog2_profileProfileAndBox)){
+          islog2=input$isLog2_profileProfileAndBox
+        }else{
+          islog2=FALSE
+        }
+
+        if (isvalid(input$normalization_profileProfileAndBox)){
+          norm_method=input$normalization_profileProfileAndBox
+        }else{
+          norm_method="readdensity"
+        }
+
+        if (isvalid(input$colorscheme_profileProfileAndBox)){
+          if(input$colorscheme_profileProfileAndBox=="custom"){
+            #only the first if custom
+            if (isvalid(input$colorCustomProfileAndBox_profile1)){
+              #extract colors based on choice (loop through them):
+              tosearch=paste("colorCustomProfileAndBox_profile",1:length(portionlist_profile),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  colors=listinputcols
+                }else{
+                  colors=color_distinct
+                }
+              }else{
+                colors=color_distinct
+              }
+            }else{
+              colors=color_distinct
+            }
+          }else{
+            colors=color_distinct
+          }
+        }else{
+          colors=color_distinct
+        }
+
+
+        yl="Total reads"
+        #here Snorm:
+        if (norm_method=="readdensity"){
+          portionlist_profile=lapply(1:length(portionlist_profile),function(i){
+            mat=portionlist_profile[[i]]
+            mat2=mat/lengthROIs_unrolled[[i]]
+            return(mat2)
+          })
+          yl="Read density (reads/bp)"
+        }#else, do not do anything
+
+        portionlist_profile=lapply(1:length(portionlist_profile),function(i){
+          mat=portionlist_profile[[i]]
+          mat_profile=apply(mat,2,mean)
+        })
+        names(portionlist_profile)=orig_names
+        plot_profilesAndBox_profile(islog2=islog2,portionlist_profile=portionlist_profile,
+                                colors=colors,yl=yl,ispdf=FALSE) 
+      })
+
+      #PDF download button for profiles
+      output$saveprofileProfilesAndBox=renderUI({downloadButton('saveprofileProfilesAndBoxbutton', 'Get PDF')})
+
+
+
+
+
+
+      #custom options for boxes
+      output$showBoxProfileAndBox_logOptions<-renderUI({
+        checkboxInput("isLog2_boxProfileAndBox", label="log2",value = FALSE, width = NULL)
+      })
+
+      output$showBoxProfileAndBox_colorschemeOptions<-renderUI({
+        radioButtons("colorscheme_boxProfileAndBox",label="Choose color scheme:",choices=c(
+                                                  "Random colors"="random",
+                                                  "Custom colors"="custom"
+                                                        ),selected="random")       
+      }) 
+      output$showBoxProfileAndBox_isdensityOptions<-renderUI({
+        radioButtons("normalization_boxProfileAndBox",label="Normalization method:",
+                                                choiceNames=list(
+                                                  htmlhelp("Total reads","help_enrichmentInRois_box_totalread"),
+                                                  htmlhelp("Read density (reads/bp)","help_enrichmentInRois_box_readdensity")
+                                                ),choiceValues=list("totread","readdensity"),selected="readdensity")
+      })  
+
+
+
+
+
       #plot boxplots of regions selected. Use portionlist_boxes
       output$boxByBAMProfilesAndBox<-renderPlot({
+
+        if (isvalid(input$isLog2_boxProfileAndBox)){
+          islog=input$isLog2_boxProfileAndBox
+        }else{
+          islog=FALSE
+        }
+        if (isvalid(input$normalization_boxProfileAndBox)){
+          normalization=input$normalization_boxProfileAndBox
+        }else{
+          normalization="readdensity"
+        }
+        if (isvalid(input$GroupColorsProfileAndBox_box)){
+          grouped=input$GroupColorsProfileAndBox_box
+        }else{
+          grouped=FALSE
+        }
+
+        yl="Total reads"
+        if(normalization=="readdensity"){
+          for (i in 1:length(portionlist_boxes)){
+            portionlist_boxes[[i]]=portionlist_boxes[[i]]/lengthROIs_unrolled[[i]]
+          }
+          yl="Read density (reads/bp)"
+        } 
+
         #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
         #invert the order
         newlist=list()
         newcols=c()
         newnames=c()
 
-        #if grouping colors, adjust legend and colors by groups
-        if(!input$GroupColorsProfilesAndBox){
+
+        if (isvalid(input$colorscheme_boxProfileAndBox)){
+          if (input$colorscheme_boxProfileAndBox=="random"){
+            if (!grouped){
+              #if random, not grouped colors, default simple color block
+              for(i in 1:bamnumber){
+                pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                newlist=c(newlist,portionlist_boxes[pos_inverted])
+                newcols=c(newcols,color_distinct[pos_inverted])
+                newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+              } 
+            }else{
+              for(i in 1:bamnumber){
+                pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                newlist=c(newlist,portionlist_boxes[pos_inverted])
+              }
+              newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+              newcols=rep(color_distinct[1:toplot$profileAndBoxes$roinumber],toplot$profileAndBoxes$bamnumber)
+            }
+
+          }else{
+            #color not random: extract all colors from input variables
+            tosearch=paste("colorCustomProfileAndBox_box",1:length(portionlist_boxes),sep="")
+            if (length(tosearch)>0){
+              listinputcols=list()
+              for(i in 1:length(tosearch)){
+                listinputcols[[i]]=input[[tosearch[i]]]
+              }
+              listinputcols=unlist(listinputcols)
+              if(length(listinputcols)==length(tosearch)){
+                newcols=listinputcols
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                }
+              }else{
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newcols=c(newcols,color_distinct[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                } 
+              }
+            }else{
+              for(i in 1:bamnumber){
+                pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                newlist=c(newlist,portionlist_boxes[pos_inverted])
+                newcols=c(newcols,color_distinct[pos_inverted])
+                newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+              } 
+            }
+          }
+
+        }else{
+          #option not existing => default = random colors!
           for(i in 1:bamnumber){
             pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
             newlist=c(newlist,portionlist_boxes[pos_inverted])
             newcols=c(newcols,color_distinct[pos_inverted])
             newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
-          }          
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          for(i in 1:bamnumber){
-            pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
-            newlist=c(newlist,portionlist_boxes[pos_inverted])
-          }
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-          newcols=rep(color_distinct[1:toplot$profileAndBoxes$roinumber],toplot$profileAndBoxes$bamnumber)
+          } 
         }
 
-        factor_add=rep(0:(bamnumber-1),each=roinumber)
-        addingfactor=1:length(newlist)+factor_add
-        par(mar=c(10,4,1,1),xpd=TRUE)
-        if(input$Log2BoxProfilesAndBox){
-          newlist=lapply(1:length(newlist),function(i) {log2(newlist[[i]])})
-          yl=paste("Log2",yl)
-        }else{
-        }
-        suppressWarnings(boxplot(newlist,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-        ats=c()
-        for(i in 1:bamnumber){
-          window=addingfactor[(((i-1)*roinumber)+1):(i*roinumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
-        axis(1,at=ats,label=names(bigbamlist[[1]]),las=2)
-        legend("bottom",inset=c(0,-0.5),legend=newnames,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))
+        plot_profilesAndBox_boxByBAM(materialtoplot=newlist,colors=newcols,yl=yl,newnames=newnames,
+                                    roinumber=roinumber,bamname=names(bigbamlist[[1]]),islog=islog)
+
       })
  
 
 
       output$boxByROIProfilesAndBox<-renderPlot({
-        factor_add=rep(0:(roinumber-1),each=bamnumber)
-        addingfactor=1:length(portionlist_boxes)+factor_add
-        if(input$Log2BoxProfilesAndBox){
-          portionlist_boxes=lapply(1:length(portionlist_boxes),function(i) {log2(portionlist_boxes[[i]])})
-          yl=paste("Log2",yl)
+        if (isvalid(input$isLog2_boxProfileAndBox)){
+          islog=input$isLog2_boxProfileAndBox
         }else{
+          islog=FALSE
         }
-        isgrouped=input$GroupColorsProfilesAndBox
-        
-        #if grouping colors, adjust legend and colors by groups
-        if(!isgrouped){
+        if (isvalid(input$normalization_boxProfileAndBox)){
+          normalization=input$normalization_boxProfileAndBox
+        }else{
+          normalization="readdensity"
+        }
+        if (isvalid(input$GroupColorsProfileAndBox_box)){
+          grouped=input$GroupColorsProfileAndBox_box
+        }else{
+          grouped=FALSE
+        }
+        yl="Total reads"
+        if(normalization=="readdensity"){
+          for (i in 1:length(portionlist_boxes)){
+            portionlist_boxes[[i]]=portionlist_boxes[[i]]/lengthROIs_unrolled[[i]]
+          }
+          yl="Read density (reads/bp)"
+        } 
+
+
+        if (isvalid(input$colorscheme_boxProfileAndBox)){
+          if (input$colorscheme_boxProfileAndBox=="random"){
+            if (!grouped){
+              newcols=color_distinct
+              newnames=names(portionlist)
+            }else{
+              newnames=unique(sapply(strsplit(names(portionlist),split=";"),"[[",1))
+              newnames=sapply(strsplit(newnames,split="ROI:"),"[[",2)
+              newcols=rep(color_distinct[1:toplot$profileAndBoxes$bamnumber],toplot$profileAndBoxes$roinumber)
+            }
+          }else{
+            grouped=FALSE
+            #here is valid color scheme but not random: extract single colors
+            tosearch=paste("colorCustomProfileAndBox_box",1:length(portionlist_boxes),sep="") 
+            if(length(tosearch)>0){
+              listinputcols=list()
+              for(i in 1:length(tosearch)){
+                listinputcols[[i]]=input[[tosearch[i]]]
+              }
+              listinputcols=unlist(listinputcols)
+              if (length(listinputcols)==length(tosearch)){
+                newcols=listinputcols
+                newnames=names(portionlist)
+              }else{
+                newcols=color_distinct
+                newnames=names(portionlist)
+              }
+            }else{
+              newcols=color_distinct
+              newnames=names(portionlist)
+            }
+
+          }
+        }else{
+          grouped=FALSE
           newcols=color_distinct
           newnames=names(portionlist)
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          #Warning: Error in strsplit: non-character argument
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(portionlist),split=";"),"[[",1))
-          #remove "ROI:" from newnames
-          newnames=sapply(strsplit(newnames,split="ROI:"),"[[",2)
-          newcols=rep(color_distinct[1:toplot$profileAndBoxes$bamnumber],toplot$profileAndBoxes$roinumber)
         }
 
-        par(mar=c(10,4,1,1),xpd=TRUE)
-        suppressWarnings(boxplot(portionlist_boxes,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE,las=2))
-        ats=c()
-        for(i in 1:roinumber){
-          window=addingfactor[(((i-1)*bamnumber)+1):(i*bamnumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
-
-        if(!isgrouped){
-          axis(1,at=ats,label=toplot$profileAndBoxes$roiname,las=2)
-          legend("bottom",inset=c(0,-0.5),legend=newnames,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))          
-        }else{
-          axis(1,at=ats,label=newnames,las=2)
-          legend("bottom",inset=c(0,-0.5),legend=toplot$profileAndBoxes$bamname,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-        }
-
-
+        plot_profilesAndBox_boxByROI(materialtoplot=portionlist_boxes,roiname=names(bigbamlist),bamname=names(bigbamlist[[1]]),
+                              newnames=newnames,islog=islog,yl=yl,isgrouped=grouped,
+                              colors=newcols,ispdf=FALSE)
       })  
 
 
@@ -4733,67 +5251,116 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       #PDF download buttons for boxplots by ROI and by BAM
       output$saveboxByROIProfilesAndBox=renderUI({downloadButton('saveboxByROIProfilesAndBoxbutton', 'Get PDF')})
       output$saveboxByBAMProfilesAndBox=renderUI({downloadButton('saveboxByBAMProfilesAndBoxbutton', 'Get PDF')})
-
       #download data of boxplot by ROI
       output$saveboxdataProfANDbox=renderUI({downloadButton('saveenrichmentBoxProfANDboxdata', 'Download data')})
 
+
+
       if(bamnumber>1 & roinumber==1){
 
-        toplot$profileAndBoxes$choosecorMethodProfilesAndBox=input$choosecorMethodProfilesAndBox
+
+
+        #specific options for cor heatmap (readdensity, log2, cormethod)
+        #log2 present only if cormethod==pearson
+
+        output$showCorProfileAndBox_isdensityOptions<-renderUI({
+          radioButtons("normalization_CorProfileAndBox",label="Normalization method:",
+                                                choiceNames=list(
+                                                  htmlhelp("Total reads","help_enrichmentInRois_heat_totalread"),
+                                                  htmlhelp("Read density (reads/bp)","help_enrichmentInRois_heat_readdensity")
+                                                ),choiceValues=list("totread","readdensity"),selected="readdensity")
+        })  
+        output$showCorProfileAndBox_corMethodOptions<-renderUI({
+          radioButtons("corMethodProfilesAndBox_Cor",label="Type of correlation",choices=c(
+                                                  "Pearson"="pearson",
+                                                  "Spearman"="spearman"
+                                                        ),selected="pearson")
+        })  
 
         output$corProfilesAndBox<-renderPlot({
-          if(input$Log2BoxProfilesAndBox){
+          if (isvalid(input$normalization_CorProfileAndBox)){
+            normalization=input$normalization_CorProfileAndBox
+          }else{
+            normalization="readdensity"
+          }
+
+          if (isvalid(input$isLog2_CorProfileAndBox)){
+            islog=input$isLog2_CorProfileAndBox
+          }else{
+            islog=FALSE
+          }
+
+          if (isvalid(input$corMethodProfilesAndBox_Cor)){
+            #force islog=FALSE if cor method=spearman
+            cormethod=input$corMethodProfilesAndBox_Cor
+            if (!cormethod=="pearson"){
+              islog=FALSE
+            }
+          }else{
+            cormethod="pearson"
+          }
+          
+
+          #respond to Snorm and change accordingly
+          if(normalization=="readdensity"){
+            for (i in 1:length(portionlist_boxes)){
+              portionlist_boxes[[i]]=portionlist_boxes[[i]]/lengthROIs_unrolled[[i]]
+            }
+          } 
+          if(islog){
             portionlist_boxes=lapply(portionlist_boxes,log2)
           }
-          mat=do.call(cbind,portionlist_boxes)
-          #if log2, 0 will be -Inf. Correct them
-          mat[is.infinite(mat) &mat<0 ]=0
-          #colnames(mat)=bamselected[xleft:xright]
-          colnames(mat)=names(matlists[[1]])
-          #according to the input, use pearson or spearman
-          correlation_total=cor(mat,method=input$choosecorMethodProfilesAndBox)    
-          trasp_cor=t(correlation_total)
-          brk=c( seq( -1 , 1,0.01))
-          my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
-
-          par(mar=c(12,12,1,1),xpd=TRUE)
-          image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1,drop=FALSE],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-          axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
-          axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
-          for (x in (nrow(correlation_total)-1+0.5):0.5  )
-            for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
-              text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
+          plot_profilesAndBox_corheat(portionlist_boxes=portionlist_boxes,bamname=names(bigbamlist[[1]]),
+                        cormethod=cormethod)
         })
         
+
+
         #PDF download button for cor matrix
         output$savecorProfilesAndBox=renderUI({downloadButton('savecorProfilesAndBoxbutton', 'Get PDF')})
+        output$scatterProfilesAndBox<-renderPlot({plot_text(text="click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
+
+
 
         #at least 3 for partial correlation, otherwise problems with lm
         if(bamnumber>2){
+
+
           output$pcorProfilesAndBox<-renderPlot({
-	          if(input$Log2BoxProfilesAndBox){
+            if (isvalid(input$normalization_CorProfileAndBox)){
+              normalization=input$normalization_CorProfileAndBox
+            }else{
+              normalization="readdensity"
+            }
+
+            if (isvalid(input$isLog2_CorProfileAndBox)){
+              islog=input$isLog2_CorProfileAndBox
+            }else{
+              islog=FALSE
+            }
+
+            if (isvalid(input$corMethodProfilesAndBox_Cor)){
+              #force islog=FALSE if cor method=spearman
+              cormethod=input$corMethodProfilesAndBox_Cor
+              if (!cormethod=="pearson"){
+                islog=FALSE
+              }
+            }else{
+              cormethod="pearson"
+            }
+            #respond to Snorm and change accordingly
+            if(normalization=="readdensity"){
+              for (i in 1:length(portionlist_boxes)){
+                portionlist_boxes[[i]]=portionlist_boxes[[i]]/lengthROIs_unrolled[[i]]
+              }
+            } 
+
+	          if(islog){
 	            portionlist_boxes=lapply(portionlist_boxes,log2)
 	          }
-	          mat=do.call(cbind,portionlist_boxes)
-	          #colnames(mat)=bamselected[xleft:xright]
-	          colnames(mat)=names(matlists[[1]])
-	          mat[is.infinite(mat) &mat<0 ]=0
-	          #accroding to the input, use pearson or spearman
-	          correlation_partial=pcor(mat,method=input$choosecorMethodProfilesAndBox)$estimate
-	          colnames(correlation_partial)=rownames(correlation_partial)= colnames(mat)
-	          #correction for likely a bug in pcor function
 
-	          trasp_pcor=t(correlation_partial)
-	          brk=c( seq( -1 , 1,0.01))
-	          my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
-
-	          par(mar=c(12,12,1,1),xpd=TRUE)
-	          image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1,drop=FALSE],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-	          axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
-	          axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
-	          for (x in (nrow(correlation_partial)-1+0.5):0.5  )
-	            for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
-	              text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
+            plot_profilesAndBox_pcorheat(portionlist_boxes=portionlist_boxes,bamname=names(bigbamlist[[1]]),
+                                cormethod=cormethod)
           })
   
           #PDf download button for partial correlation
@@ -4801,19 +5368,24 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
 
 
         }else{
-        	output$pcorProfilesAndBox <-renderPlot({NULL})
+        	output$pcorProfilesAndBox <-renderPlot({plot_text(text="you need to select a single ROI\nwith at least\n3 enrichment files associated",cex=1.4)})
           output$savepcorProfilesAndBox=renderUI({NULL})
+          output$scatterProfilesAndBox<-renderPlot({plot_text(text="click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
 	        toplot$profileAndBoxes$px=NULL
 	        toplot$profileAndBoxes$py=NULL
         }
 
 
       }else{
-        output$corProfilesAndBox <-renderPlot({NULL})
-        output$savecorProfilesAndBox=renderUI({NULL}) 
-        output$pcorProfilesAndBox <-renderPlot({NULL})
+        output$corProfilesAndBox <-renderPlot({plot_text(text="you need to select a single ROI\nwith at least\n2 enrichment files associated",cex=1.4)})
+        output$savecorProfilesAndBox=renderUI({NULL})
+        output$scatterProfilesAndBox<-renderPlot({NULL}) 
+        output$pcorProfilesAndBox <-renderPlot({plot_text(text="you need to select a single ROI\nwith at least\n3 enrichment files associated",cex=1.4)})
         output$savepcorProfilesAndBox=renderUI({NULL})
-        corvariables$portionlist_boxes=NULL
+        output$showCorProfileAndBox_logOptions<-renderUI({NULL})
+        output$showCorProfileAndBox_isdensityOptions<-renderUI({NULL})
+        output$showCorProfileAndBox_corMethodOptions<-renderUI({NULL})
+        output$savescatterProfilesAndBox=renderUI({NULL})
         toplot$profileAndBoxes$x=NULL
         toplot$profileAndBoxes$y=NULL
         toplot$profileAndBoxes$px=NULL
@@ -4821,9 +5393,23 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       }
     }else{
       output$profileProfilesAndBox<-renderPlot({NULL})
+      output$showprofileProfileAndBox_logOptions<-renderUI({NULL})
+      output$showprofileProfileAndBox_colorschemeOptions<-renderUI({NULL})
+      output$showprofileProfileAndBox_isdensityOptions<-renderUI({NULL})
+      output$showprofileProfileAndBox_colorlistOptions<-renderUI({NULL})
+      output$showBoxProfileAndBox_logOptions<-renderUI({NULL})
+      output$showBoxProfileAndBox_colorschemeOptions<-renderUI({NULL})
+      output$showBoxProfileAndBox_isdensityOptions<-renderUI({NULL})
+      output$showBoxProfileAndBox_colorlistOptions<-renderUI({NULL})  
+      output$showBoxProfileAndBox_groupcolOptions<-renderUI({NULL})
+      output$showCorProfileAndBox_logOptions<-renderUI({NULL})
+      output$showCorProfileAndBox_isdensityOptions<-renderUI({NULL})
+      output$showCorProfileAndBox_corMethodOptions<-renderUI({NULL})
+      output$savescatterProfilesAndBox=renderUI({NULL})
       output$boxByROIProfilesAndBox<-renderPlot({NULL})
       output$saveboxdataProfANDbox=renderUI({NULL})
-      output$boxByBAMProfilesAndBox<-renderPlot({NULL})   
+      output$boxByBAMProfilesAndBox<-renderPlot({NULL})
+      output$scatterProfilesAndBox<-renderPlot({NULL})   
       output$corProfilesAndBox <-renderPlot({NULL})
       output$savecorProfilesAndBox=renderUI({NULL})    
       output$pcorProfilesAndBox <-renderPlot({NULL})
@@ -4831,7 +5417,6 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       output$saveprofileProfilesAndBox=renderUI({NULL})
       output$saveboxByROIProfilesAndBox=renderUI({NULL})
       output$saveboxByBAMProfilesAndBox=renderUI({NULL}) 
-      corvariables$portionlist_boxes=NULL
       toplot$profileAndBoxes$x=NULL
       toplot$profileAndBoxes$y=NULL
       toplot$profileAndBoxes$px=NULL
@@ -4851,11 +5436,24 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     output$saveprofileProfilesAndBox=renderUI({NULL})
     output$saveboxByROIProfilesAndBox=renderUI({NULL})
     output$saveboxByBAMProfilesAndBox=renderUI({NULL})
+    output$scatterProfilesAndBox<-renderPlot({NULL})
+    output$showprofileProfileAndBox_logOptions<-renderUI({NULL})
+    output$showprofileProfileAndBox_colorschemeOptions<-renderUI({NULL})
+    output$showprofileProfileAndBox_isdensityOptions<-renderUI({NULL})
+    output$showprofileProfileAndBox_colorlistOptions<-renderUI({NULL})
+    output$showBoxProfileAndBox_logOptions<-renderUI({NULL})
+    output$showBoxProfileAndBox_colorschemeOptions<-renderUI({NULL})
+    output$showBoxProfileAndBox_isdensityOptions<-renderUI({NULL})
+    output$showBoxProfileAndBox_colorlistOptions<-renderUI({NULL})  
+    output$showBoxProfileAndBox_groupcolOptions<-renderUI({NULL})
+    output$showCorProfileAndBox_logOptions<-renderUI({NULL})
+    output$showCorProfileAndBox_isdensityOptions<-renderUI({NULL})
+    output$showCorProfileAndBox_corMethodOptions<-renderUI({NULL})
+    output$savescatterProfilesAndBox=renderUI({NULL})
     output$corProfilesAndBox <-renderPlot({NULL})
     output$savecorProfilesAndBox=renderUI({NULL})    
     output$pcorProfilesAndBox <-renderPlot({NULL})
     output$savepcorProfilesAndBox=renderUI({NULL}) 
-    corvariables$portionlist_boxes=NULL
     toplot$profileAndBoxes$x=NULL
     toplot$profileAndBoxes$y=NULL
     toplot$profileAndBoxes$px=NULL
@@ -4879,30 +5477,54 @@ output$saveprofileProfilesAndBoxbutton<- downloadHandler(
       paste('Profiles.pdf', sep='')
   },
   content=function(file) {
-        pdf(file)
-
-        if(input$Log2BoxProfilesAndBox){
-          portionlist_profile=lapply(1:length(toplot$profileAndBoxes$portionlist_profile),function(i) {log2(toplot$profileAndBoxes$portionlist_profile[[i]])})
-          yl=paste("Log2",toplot$profileAndBoxes$yl)
+        portionlist_profile=toplot$profileAndBoxes$portionlist_profile
+        
+        #colors
+        if(input$colorscheme_profileProfileAndBox=="custom"){
+          #extract colors based on choice (loop through them):
+          tosearch=paste("colorCustomProfileAndBox_profile",1:length(portionlist_profile),sep="")              
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if(length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=toplot$profileAndBoxes$color_distinct
+            }
+          }else{
+            colors=toplot$profileAndBoxes$color_distinct
+          }
         }else{
-          yl=toplot$profileAndBoxes$yl
-          portionlist_profile=toplot$profileAndBoxes$portionlist_profile
+          colors=toplot$profileAndBoxes$color_distinct
         }
+  
+
+
+        #here Snorm:
+        yl="Total reads"
+        if (input$normalization_profileProfileAndBox=="readdensity"){
+          portionlist_profile=lapply(1:length(portionlist_profile),function(i){
+            mat=portionlist_profile[[i]]
+            mat2=mat/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+            return(mat2)
+          })
+          yl="Read density (reads/bp)"
+        }#else, do not do anything
+
+        portionlist_profile=lapply(1:length(portionlist_profile),function(i){
+          mat=portionlist_profile[[i]]
+          mat_profile=apply(mat,2,mean)
+        })
         names(portionlist_profile)=names(toplot$profileAndBoxes$portionlist_profile)
-        maxval=max(unlist(lapply(portionlist_profile,max)))
-        if(min(unlist(lapply(portionlist_profile,min))) <0){
-          minval=min(unlist(lapply(portionlist_profile,min)))
-        }else{
-          minval=0
-        }
-        par(mar=c(10,4,1,1),xpd=TRUE)
-        plot(1, type="n", xlab="",xaxt="n", ylab=yl, xlim=c(1, length(portionlist_profile[[1]])), ylim=c(minval, maxval))
-        axis(1,at=c(1,length(portionlist_profile[[1]])/2 +0.5,length(portionlist_profile[[1]])),labels=c("start","center","end"))
-        for(i in 1:length(portionlist_profile)){
-          lines(portionlist_profile[[i]],lwd=2,col=toplot$profileAndBoxes$color_distinct[i])
-        }
-        legend("bottom",inset=c(0,-0.25),legend=names(portionlist_profile),col=toplot$profileAndBoxes$color_distinct,lty=rep(1,length(toplot$profileAndBoxes$color_distinct)),cex=0.6,bg="transparent")   
+        
 
+
+        pdf(file)
+        plot_profilesAndBox_profile(islog2=input$isLog2_profileProfileAndBox,portionlist_profile=portionlist_profile,
+                                colors=colors,yl=yl,ispdf=TRUE)
         dev.off()
   } 
 )
@@ -4917,50 +5539,54 @@ output$saveboxByROIProfilesAndBoxbutton<- downloadHandler(
       paste('BoxplotByROI.pdf', sep='')
   },
   content=function(file) {
-        pdf(file)        
+        portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+        yl="Total reads"
+        if(input$normalization_boxProfileAndBox=="readdensity"){
+          for (i in 1:length(portionlist_boxes)){
+            portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+          }
+          yl="Read density (reads/bp)"
+        } 
+        grouped=input$GroupColorsProfileAndBox_box
 
-        factor_add=rep(0:(toplot$profileAndBoxes$roinumber-1),each=toplot$profileAndBoxes$bamnumber)
-        addingfactor=1:length(toplot$profileAndBoxes$portionlist_boxes)+factor_add
-        if(input$Log2BoxProfilesAndBox){
-          portionlist_boxes=lapply(1:length(toplot$profileAndBoxes$portionlist_boxes),function(i) {log2(toplot$profileAndBoxes$portionlist_boxes[[i]])})
-          yl=paste("Log2",toplot$profileAndBoxes$yl)
+        if (input$colorscheme_boxProfileAndBox=="random"){
+          if (!grouped){
+            newcols=toplot$profileAndBoxes$color_distinct
+            newnames=names(portionlist_boxes)
+          }else{
+            newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+            newnames=sapply(strsplit(newnames,split="ROI:"),"[[",2)
+            newcols=rep(toplot$profileAndBoxes$color_distinct[1:toplot$profileAndBoxes$bamnumber],toplot$profileAndBoxes$roinumber)
+          }
         }else{
-          yl=toplot$profileAndBoxes$yl
-          portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+          #here is valid color scheme but not random: extract single colors
+          tosearch=paste("colorCustomProfileAndBox_box",1:length(portionlist_boxes),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+
+            if (length(listinputcols)==length(tosearch)){
+              newcols=listinputcols
+              newnames=names(portionlist_boxes)
+            }else{
+              newcols=toplot$profileAndBoxes$color_distinct
+              newnames=names(portionlist_boxes)
+            }
+          }else{
+            newcols=toplot$profileAndBoxes$color_distinct
+            newnames=names(portionlist_boxes)
+          }
+
         }
 
-        isgrouped=input$GroupColorsProfilesAndBox
-        #if grouping colors, adjust legend and colors by groups
-        if(!isgrouped){
-          newcols=toplot$profileAndBoxes$color_distinct
-          newnames=names(toplot$profileAndBoxes$portionlist_boxes)
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(toplot$profileAndBoxes$portionlist_boxes),split=";"),"[[",1))
-          #remove "ROI:" from newnames
-          newnames=sapply(strsplit(newnames,split="ROI:"),"[[",2)
-          newcols=rep(toplot$profileAndBoxes$color_distinct[1:toplot$profileAndBoxes$bamnumber],toplot$profileAndBoxes$roinumber)
-        }
 
-        par(mar=c(15,4,1,1),xpd=TRUE)
-        suppressWarnings(boxplot(portionlist_boxes,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE,las=2))
-        ats=c()
-        for(i in 1:toplot$profileAndBoxes$roinumber){
-          window=addingfactor[(((i-1)*toplot$profileAndBoxes$bamnumber)+1):(i*toplot$profileAndBoxes$bamnumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
-        if(!isgrouped){
-          axis(1,at=ats,label=toplot$profileAndBoxes$roiname,las=2)
-          legend("bottom",inset=c(0,-0.25),legend=newnames,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))          
-        }else{
-          axis(1,at=ats,label=newnames,las=2)
-          legend("bottom",inset=c(0,-0.25),legend=toplot$profileAndBoxes$bamname,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-        }
+        pdf(file)
+        plot_profilesAndBox_boxByROI(materialtoplot=portionlist_boxes,roiname=toplot$profileAndBoxes$roiname,
+                              bamname=toplot$profileAndBoxes$bamname,newnames=newnames,islog=input$isLog2_boxProfileAndBox,
+                              yl=yl,isgrouped=grouped,colors=newcols,ispdf=TRUE)
         dev.off()
   } 
 )
@@ -4973,14 +5599,22 @@ output$saveenrichmentBoxProfANDboxdata<- downloadHandler(
       paste('boxplot_data.xls', sep='')
   },
   content=function(file) {
+
+      portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+      if(input$normalization_boxProfileAndBox=="readdensity"){
+        for (i in 1:length(portionlist_boxes)){
+          portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+        }
+      } 
+
       factor_add=rep(0:(toplot$profileAndBoxes$roinumber-1),each=toplot$profileAndBoxes$bamnumber)
-      addingfactor=1:length(toplot$profileAndBoxes$portionlist_boxes)+factor_add
-      if(input$Log2BoxProfilesAndBox){
-        portionlist_boxes=lapply(1:length(toplot$profileAndBoxes$portionlist_boxes),function(i) {log2(toplot$profileAndBoxes$portionlist_boxes[[i]])})
+      addingfactor=1:length(portionlist_boxes)+factor_add
+      if(input$isLog2_boxProfileAndBox){
+        portionlist_boxes=lapply(1:length(portionlist_boxes),function(i) {log2(portionlist_boxes[[i]])})
       }else{
-        portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+        portionlist_boxes=portionlist_boxes
       }
-      names(portionlist_boxes)=names(toplot$profileAndBoxes$portionlist_boxes)
+      names(portionlist_boxes)=names(portionlist_boxes)
       maxvalues=max(unlist(lapply(portionlist_boxes,length)))
       arr=matrix(rep("",maxvalues*length(portionlist_boxes)),ncol=length(portionlist_boxes))
       for(i in 1:length(portionlist_boxes)){
@@ -5003,53 +5637,81 @@ output$saveboxByBAMProfilesAndBoxbutton<- downloadHandler(
       paste('BoxplotByBAM.pdf', sep='')
   },
   content=function(file) {
-        pdf(file)
+
+        portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+        yl="Total reads"
+        if(input$normalization_boxProfileAndBox=="readdensity"){
+          for (i in 1:length(portionlist_boxes)){
+            portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+          }
+          yl="Read density (reads/bp)"
+        } 
+
         #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
         #invert the order
         newlist=list()
         newcols=c()
         newnames=c()
 
-        #if grouping colors, adjust legend and colors by groups
-        if(!input$GroupColorsProfilesAndBox){
-          for(i in 1:toplot$profileAndBoxes$bamnumber){
-            pos_inverted=seq(i,length(toplot$profileAndBoxes$portionlist_boxes),toplot$profileAndBoxes$bamnumber)
-            newlist=c(newlist,toplot$profileAndBoxes$portionlist_boxes[pos_inverted])
-            newcols=c(newcols,toplot$profileAndBoxes$color_distinct[pos_inverted])
-            newnames=c(newnames,names(toplot$profileAndBoxes$portionlist_boxes)[pos_inverted])
-          }          
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          for(i in 1:toplot$profileAndBoxes$bamnumber){
-            pos_inverted=seq(i,length(toplot$profileAndBoxes$portionlist_boxes),toplot$profileAndBoxes$bamnumber)
-            newlist=c(newlist,toplot$profileAndBoxes$portionlist_boxes[pos_inverted])
+
+
+        if (input$colorscheme_boxProfileAndBox=="random"){
+          if (!input$GroupColorsProfileAndBox_box){
+            #if random, not grouped colors, default simple color block
+            for(i in 1:toplot$profileAndBoxes$bamnumber){
+              pos_inverted=seq(i,length(portionlist_boxes),toplot$profileAndBoxes$bamnumber)
+              newlist=c(newlist,portionlist_boxes[pos_inverted])
+              newcols=c(newcols,toplot$profileAndBoxes$color_distinct[pos_inverted])
+              newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+            } 
+          }else{
+            for(i in 1:toplot$profileAndBoxes$bamnumber){
+              pos_inverted=seq(i,length(portionlist_boxes),toplot$profileAndBoxes$bamnumber)
+              newlist=c(newlist,portionlist_boxes[pos_inverted])
+            }
+            newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+            newcols=rep(toplot$profileAndBoxes$color_distinct[1:toplot$profileAndBoxes$roinumber],toplot$profileAndBoxes$bamnumber)
           }
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(toplot$profileAndBoxes$portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(toplot$profileAndBoxes$portionlist_boxes),split=";"),"[[",1))
-          newcols=rep(toplot$profileAndBoxes$color_distinct[1:toplot$profileAndBoxes$roinumber],toplot$profileAndBoxes$bamnumber)
+
+        }else{
+          #color not random: extract all colors from input variables
+          tosearch=paste("colorCustomProfileAndBox_box",1:length(portionlist_boxes),sep="")
+          if (length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if(length(listinputcols)==length(tosearch)){
+              newcols=listinputcols
+              for(i in 1:toplot$profileAndBoxes$bamnumber){
+                pos_inverted=seq(i,length(portionlist_boxes),toplot$profileAndBoxes$bamnumber)
+                newlist=c(newlist,portionlist_boxes[pos_inverted])
+                newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+              }
+            }else{
+              for(i in 1:toplot$profileAndBoxes$bamnumber){
+                pos_inverted=seq(i,length(portionlist_boxes),toplot$profileAndBoxes$bamnumber)
+                newlist=c(newlist,portionlist_boxes[pos_inverted])
+                newcols=c(newcols,toplot$profileAndBoxes$color_distinct[pos_inverted])
+                newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+              } 
+            }
+          }else{
+            for(i in 1:toplot$profileAndBoxes$bamnumber){
+              pos_inverted=seq(i,length(portionlist_boxes),toplot$profileAndBoxes$bamnumber)
+              newlist=c(newlist,portionlist_boxes[pos_inverted])
+              newcols=c(newcols,toplot$profileAndBoxes$color_distinct[pos_inverted])
+              newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+            } 
+          }
         }
 
-        factor_add=rep(0:(toplot$profileAndBoxes$bamnumber-1),each=toplot$profileAndBoxes$roinumber)
-        addingfactor=1:length(newlist)+factor_add
-        par(mar=c(15,4,1,1),xpd=TRUE)
-        if(input$Log2BoxProfilesAndBox){
-          newlist=lapply(1:length(newlist),function(i) {log2(newlist[[i]])})
-          yl=paste("Log2",toplot$profileAndBoxes$yl)
-        }else{
-          yl=toplot$profileAndBoxes$yl
-        }
-        suppressWarnings(boxplot(newlist,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE,las=2))
-        ats=c()
-        for(i in 1:toplot$profileAndBoxes$bamnumber){
-          window=addingfactor[(((i-1)*toplot$profileAndBoxes$roinumber)+1):(i*toplot$profileAndBoxes$roinumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
-        axis(1,at=ats,label=toplot$profileAndBoxes$bamname,las=2)
-        legend("bottom",inset=c(0,-0.25),legend=newnames,col=newcols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$profileAndBoxes$portionlist_boxes)))
+
+        pdf(file)
+        plot_profilesAndBox_boxByBAM(materialtoplot=newlist,colors=newcols,yl=yl,newnames=newnames,
+                                    roinumber=toplot$profileAndBoxes$roinumber,bamname=toplot$profileAndBoxes$bamname,
+                                    islog=input$isLog2_boxProfileAndBox,ispdf=TRUE)
         dev.off()
   } 
 )
@@ -5064,32 +5726,23 @@ output$savecorProfilesAndBoxbutton<- downloadHandler(
       paste('Correlation_heatmap.pdf', sep='')
   },
   content=function(file) {
-          pdf(file)
+          portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+          #respond to Snorm and change accordingly
+          if(input$normalization_CorProfileAndBox=="readdensity"){
+            for (i in 1:length(portionlist_boxes)){
+              portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+            }
+          } 
 
-          if(input$Log2BoxProfilesAndBox){
-            portionlist_boxes=lapply(toplot$profileAndBoxes$portionlist_boxes,log2)
+          if(input$isLog2_CorProfileAndBox){
+            portionlist_boxes=lapply(portionlist_boxes,log2)
           }else{
-            portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+            portionlist_boxes=portionlist_boxes
           }
-          mat=do.call(cbind,portionlist_boxes)
-          #if log2, 0 will be -Inf. Correct them
-          mat[is.infinite(mat) &mat<0 ]=0
-          #colnames(mat)=bamselected[xleft:xright]
-          colnames(mat)=toplot$profileAndBoxes$bamname
-          #accroding to the input, use pearson or spearman
-          correlation_total=cor(mat,method=toplot$profileAndBoxes$choosecorMethodProfilesAndBox)    
-          trasp_cor=t(correlation_total)
-          brk=c( seq( -1 , 1,0.01))
-          my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
 
-          par(mar=c(12,12,1,1),xpd=TRUE)
-          image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1,drop=FALSE],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-          axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
-          axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
-          for (x in (nrow(correlation_total)-1+0.5):0.5  )
-            for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
-              text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
-
+          pdf(file)
+          plot_profilesAndBox_corheat(portionlist_boxes=portionlist_boxes,bamname=toplot$profileAndBoxes$bamname,
+                                cormethod=input$corMethodProfilesAndBox_Cor)
           dev.off()
   } 
 )
@@ -5105,31 +5758,21 @@ output$savepcorProfilesAndBoxbutton<- downloadHandler(
       paste('PartialCorrelation_heatmap.pdf', sep='')
   },
   content=function(file) {
-          
-          if(input$Log2BoxProfilesAndBox){
-            portionlist_boxes=lapply(toplot$profileAndBoxes$portionlist_boxes,log2)
-          }else{
-            portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+          portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+          #respond to Snorm and change accordingly
+          if(input$normalization_CorProfileAndBox=="readdensity"){
+            for (i in 1:length(portionlist_boxes)){
+              portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+            }
+          } 
+
+          if(input$isLog2_CorProfileAndBox){
+            portionlist_boxes=lapply(portionlist_boxes,log2)
           }
-          mat=do.call(cbind,portionlist_boxes)
-          #colnames(mat)=bamselected[xleft:xright]
-          colnames(mat)=toplot$profileAndBoxes$bamname
-          mat[is.infinite(mat) &mat<0 ]=0
-          #accroding to the input, use pearson or spearman
-          correlation_partial=pcor(mat,method=toplot$profileAndBoxes$choosecorMethodProfilesAndBox)$estimate
-          trasp_pcor=t(correlation_partial)
-          brk=c( seq( -1 , 1,0.01))
-          my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
 
           pdf(file)
-          par(mar=c(12,12,1,1),xpd=TRUE)
-          image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1,drop=FALSE],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-          axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
-          axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
-          for (x in (nrow(correlation_partial)-1+0.5):0.5  )
-            for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
-              text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
-        
+          plot_profilesAndBox_pcorheat(portionlist_boxes=portionlist_boxes,bamname=toplot$profileAndBoxes$bamname,
+                                cormethod=input$corMethodProfilesAndBox_Cor)
           dev.off()
   } 
 )
@@ -5181,30 +5824,27 @@ observeEvent(input$msg_dynamicsOnGenes_parameters, {
 observeEvent(input$msg_dynamicsOnGenes_profiles, {
   boxHelpServer(msg_dynamicsOnGenes_profiles)
 })
-#TSS enrichment
-observeEvent(input$msg_dynamicsOnGenes_TSSenrichment, {
-  boxHelpServer(msg_dynamicsOnGenes_TSSenrichment)
-})
-#genebodies enrichment
-observeEvent(input$msg_dynamicsOnGenes_genebodiesEnrichment, {
-  boxHelpServer(msg_dynamicsOnGenes_genebodiesEnrichment)
-})
-#TES enrichment
-observeEvent(input$msg_dynamicsOnGenes_TESenrichment, {
-  boxHelpServer(msg_dynamicsOnGenes_TESenrichment)
-})
-#TSS ranked
-observeEvent(input$msg_dynamicsOnGenes_TSSranked, {
-  boxHelpServer(msg_dynamicsOnGenes_TSSranked)
-})
-#Genebodies ranked enrichments
-observeEvent(input$msg_dynamicsOnGenes_genebodiesRanked, {
-  boxHelpServer(msg_dynamicsOnGenes_genebodiesRanked)
-})
-#stalling Index
-observeEvent(input$msg_dynamicsOnGenes_stallingIndexRanked, {
-  boxHelpServer(msg_dynamicsOnGenes_stallingIndexRanked)
-})
+
+
+#help buttons for parameters
+observeEvent(input$help_dynamicsOnGenes_parameters_genelist, {boxHelpServer(help_dynamicsOnGenes_parameters_genelist)})
+observeEvent(input$help_dynamicsOnGenes_parameters_ROIassociated, {boxHelpServer(help_dynamicsOnGenes_parameters_ROIassociated)})
+observeEvent(input$help_dynamicsOnGenes_parameters_ernichments, {boxHelpServer(help_dynamicsOnGenes_parameters_ernichments)})
+observeEvent(input$help_dynamicsOnGenes_parameters_nbins, {boxHelpServer(help_dynamicsOnGenes_parameters_nbins)})
+observeEvent(input$help_dynamicsOnGenes_parameters_fractionexclude, {boxHelpServer(help_dynamicsOnGenes_parameters_fractionexclude)})
+
+observeEvent(input$help_dynamicsOnGenes_parameters_totread, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
+observeEvent(input$help_dynamicsOnGenes_parameters_readdensity, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})
+
+
+
+
+
+
+
+
+
+
 
 
 observeEvent(input$plotDynamics,{
@@ -5221,14 +5861,6 @@ observeEvent(input$plotDynamics,{
     toplot$dynamics$nbin=input$binsforDynamics
     #at this point, at least one valid genelist selected and at least one BAM file
     #select promoters, transcripts and TES of genelists selected
-
-    if(input$chooseNormalizationforDynamics=="totread"){
-      Snormalization=FALSE
-      ylabel="Normalized reads (rpm)"
-    }else{
-      Snormalization=TRUE
-      ylabel="Read density (rpm/bp)"
-    }
     nomi=unlist(lapply(ROIvariables$listROI,getName))
 
     totallist_boxplot=rep(list(NA),length(input$BAMforDynamics))
@@ -5237,14 +5869,22 @@ observeEvent(input$plotDynamics,{
     names(totallist_boxplot)=input$genelistsforDynamics 
     totallist_boxplot=rep(list(totallist_boxplot),3)
     names(totallist_boxplot)=c("TSS","GB","TES")
-
+    #create list for lengths (normalization)
+    totallist_lengths_forNorm_profile=as.list(rep(NA,length(input$genelistsforDynamics)))
+    totallist_lengths_forNorm_SI_GB=as.list(rep(NA,length(input$genelistsforDynamics)))
+    totallist_lengths_forNorm_box_SI_prom=as.list(rep(NA,length(input$genelistsforDynamics)))
+    totallist_lengths_forNorm_box_GB=as.list(rep(NA,length(input$genelistsforDynamics)))
+    totallist_lengths_forNorm_box_TES=as.list(rep(NA,length(input$genelistsforDynamics)))
     totallist_SI=totallist_boxplot
     names(totallist_SI)=c("TSS","GB","SI")
 
     totallist_profile=rep(list(NA),length(input$BAMforDynamics))
     names(totallist_profile)=input$BAMforDynamics
     totallist_profile=rep(list(totallist_profile),length(input$genelistsforDynamics))
-    names(totallist_profile)=input$genelistsforDynamics        
+    names(totallist_profile)=names(totallist_lengths_forNorm_profile)=names(totallist_lengths_forNorm_SI_GB)=
+    names(totallist_lengths_forNorm_box_SI_prom)=
+    names(totallist_lengths_forNorm_box_GB)=
+    names(totallist_lengths_forNorm_box_TES)= input$genelistsforDynamics        
     #TO BE PARALLELIZED IF NC>1
     lengths_rois=rep(NA,length(input$genelistsforDynamics))
     lengths_uniquegeneIDs=rep(NA,length(input$genelistsforDynamics))
@@ -5265,17 +5905,75 @@ observeEvent(input$plotDynamics,{
       roi_transcripts= ROIvariables$listROI[[pos_transcripts]]
       pos_TES= which(searchname_TES==nomi)
       roi_TES= unifyStrand(ROIvariables$listROI[[pos_TES]])   
-      #get BAM for each roi of that genelist 
+      #get enrichment for each roi of that genelist 
       rawvals_promoters=Enrichlist$rawcoverage[[pos_promoters]]
+      keyvals_promoters=Enrichlist$decryptkey[[pos_promoters]]
       normvals_promoters=Enrichlist$normfactlist[[pos_promoters]]
       rawvals_transcripts=Enrichlist$rawcoverage[[pos_transcripts]]
+      keyvals_transcripts=Enrichlist$decryptkey[[pos_transcripts]]
       normvals_transcripts=Enrichlist$normfactlist[[pos_transcripts]]
       rawvals_TES=Enrichlist$rawcoverage[[pos_TES]]
+      keyvals_TES=Enrichlist$decryptkey[[pos_TES]]
       normvals_TES=Enrichlist$normfactlist[[pos_TES]]
       BAM_promoters=names(rawvals_promoters)
       BAM_transcripts=names(rawvals_transcripts)      
       BAM_TES=names(rawvals_TES) 
 
+      #calculate all ranges and 30% increment for transcripts of that genelit
+      range_transcripts=getRange(roi_transcripts)
+      smalllength=width(range_transcripts)
+      #biglength=unlist(lapply(content_transcripts,length))
+      thirtypercent=round((smalllength/10)*3)
+      #repeated for each BAM, but the important thing is that is the same i (ROI)
+      #required for the number of ranges each genelist have (for the legend)
+      lengths_rois[i]=length(range_transcripts)
+      lengths_uniquegeneIDs[i]=length(unique(as.character(range_transcripts$gene_id)))
+      #now cut TSS down
+      #find on + strand, the fix-end(TSS)
+      range_TSS=getRange(roi_promoters)
+      plusstrand= as.logical(strand(range_TSS)=="+")
+      part_TSS=unique(end(range_TSS[plusstrand])- start(getFixed(roi_promoters))[plusstrand])
+      #cut TES up
+      #find on + strans, the start(TES)-fix
+      range_TES=getRange(roi_TES)
+      plusstrand=as.logical(strand(range_TES)=="+")
+      part_TES=unique( start(getFixed(roi_TES))[plusstrand]-start(range_TES[plusstrand]))
+
+      #remove transcripts, promoters, TES whose length(GB)< smalllength-(part_TSS+part_TES)
+      tokeep=smalllength-(part_TSS+part_TES) > input$binsforDynamics
+      smalllength=smalllength[tokeep]
+      thirtypercent=thirtypercent[tokeep]
+      range_transcripts=range_transcripts[tokeep]
+
+      pos_plus=as.character(strand(range_transcripts))!="-"
+      pos_minus=as.character(strand(range_transcripts))=="-"
+      thirtypercent_plus=thirtypercent[pos_plus]
+      thirtypercent_minus=thirtypercent[pos_minus]
+      smalllength_plus=smalllength[pos_plus]
+      smalllength_minus=smalllength[pos_minus]
+      smalllength=c(smalllength_plus,smalllength_minus)
+      thirtypercent=c(thirtypercent_plus,thirtypercent_minus)
+
+      widthTES_reorder=width(getRange(roi_TES)[tokeep])
+      widthTES_reorder_plus=widthTES_reorder[pos_plus]
+      widthTES_reorder_minus=widthTES_reorder[pos_minus]
+      widthTES_reorder=c(widthTES_reorder_plus,widthTES_reorder_minus)
+
+      #remove the 30% up/downstream and part of TSS and TES
+      #for new function, remove +1, remove -1 in cpp function, multiply by 2 if key=TRUE
+      start_pos_plus=thirtypercent_plus+1+part_TSS
+      end_pos_plus=smalllength_plus+thirtypercent_plus-part_TES
+      start_pos_minus=thirtypercent_minus+1+part_TES
+      end_pos_minus=smalllength_minus+thirtypercent_minus-part_TSS
+
+      #the length of transcripts+ 30% for interval normalization of profiles (both before TSS and after TES)
+      #all bp widths normalizers
+      length_transcripts_filtered_plusFraction=smalllength+2*thirtypercent
+      totallist_lengths_forNorm_profile[[i]]=length_transcripts_filtered_plusFraction
+      totallist_lengths_forNorm_SI_GB[[i]]=( (smalllength-(part_TSS+part_TES))+ widthTES_reorder )
+      totallist_lengths_forNorm_box_SI_prom[[i]]=width(range_TSS[tokeep])
+      totallist_lengths_forNorm_box_GB[[i]]=(smalllength-(part_TSS+part_TES))
+      totallist_lengths_forNorm_box_TES[[i]]=width(range_TES[tokeep])
       for(k in 1:length(input$BAMforDynamics)){
         #extract baseCoverage for promoters/transcripts/TES for that gene list   
         BAMnametosearch=input$BAMforDynamics[k]
@@ -5283,80 +5981,39 @@ observeEvent(input$plotDynamics,{
         pos_BAM_transcripts=which(BAMnametosearch==BAM_transcripts)
         pos_BAM_TES=which(BAMnametosearch==BAM_TES)
         content_promoters=rawvals_promoters[[pos_BAM_promoters]]
+        contentkeys_promoters=keyvals_promoters[[pos_BAM_promoters]]
         contentnorm_promoters=normvals_promoters[[pos_BAM_promoters]]
         content_transcripts=rawvals_transcripts[[pos_BAM_transcripts]]
+        contentkeys_transcripts=keyvals_transcripts[[pos_BAM_transcripts]]
         contentnorm_transcripts=normvals_transcripts[[pos_BAM_transcripts]]
         content_TES=rawvals_TES[[pos_BAM_TES]]
+        contentkeys_TES=keyvals_TES[[pos_BAM_TES]]
         contentnorm_TES=normvals_TES[[pos_BAM_TES]]
         #for this genelist (p,t,t) and BAM, for promoter, transcripts and TES, calculate
         #profiles and box on the promoters,gb,TES
         #calculate content_transcripts_mod for gb only, where you cut 30% AND TSS down and TES up
         #to remove 30%, thirtypercentToRemove= l*15/80, where l is the length already increased by 30%
 
-        #PROBLEM: if no elements on plus strand?!
-        range_transcripts=getRange(roi_transcripts)
-        smalllength=width(range_transcripts)
-        biglength=unlist(lapply(content_transcripts,length))
-        thirtypercent=(biglength-smalllength)/2
-
-        #repeated for each BAM, but the important thing is that is the same i (ROI)
-        #required for the number of ranges each genelist have (for the legend)
-        lengths_rois[i]=length(range_transcripts)
-        lengths_uniquegeneIDs[i]=length(unique(as.character(range_transcripts$gene_id)))
-
-        #now cut TSS down
-        #find on + strand, the fix-end(TSS)
-        range_TSS=getRange(roi_promoters)
-        plusstrand= as.logical(strand(range_TSS)=="+")
-        part_TSS=unique(end(range_TSS[plusstrand])- start(getFixed(roi_promoters))[plusstrand])
-        #cut TES up
-        #find on + strans, the start(TES)-fix
-        range_TES=getRange(roi_TES)
-        plusstrand=as.logical(strand(range_TES)=="+")
-        part_TES=unique( start(getFixed(roi_TES))[plusstrand]-start(range_TES[plusstrand]))
-
-        #remove transcripts, promoters, TES whose length(GB)< smalllength-(part_TSS+part_TES)
-        tokeep=smalllength-(part_TSS+part_TES) > input$binsforDynamics
-        smalllength=smalllength[tokeep]
+        #here I have to decrypt, because length of raw data already depends on decryption key
         content_transcripts=content_transcripts[tokeep]
-        biglength=biglength[tokeep]
-        thirtypercent=thirtypercent[tokeep]
-        range_transcripts=range_transcripts[tokeep]
-        pos_plus=as.character(strand(range_transcripts))!="-"
-        pos_minus=as.character(strand(range_transcripts))=="-"
-        thirtypercent_plus=thirtypercent[pos_plus]
-        thirtypercent_minus=thirtypercent[pos_minus]
+        contentkeys_transcripts=contentkeys_transcripts[tokeep]
         content_transcripts_plus=content_transcripts[pos_plus]
         content_transcripts_minus=content_transcripts[pos_minus]
-        smalllength_plus=smalllength[pos_plus]
-        smalllength_minus=smalllength[pos_minus]
-        smalllength=c(smalllength_plus,smalllength_minus)
+        contentkeys_transcripts_plus=contentkeys_transcripts[pos_plus]
+        contentkeys_transcripts_minus=contentkeys_transcripts[pos_minus]
 
-        widthTES_reorder=width(getRange(roi_TES)[tokeep])
-        widthTES_reorder_plus=widthTES_reorder[pos_plus]
-        widthTES_reorder_minus=widthTES_reorder[pos_minus]
-        widthTES_reorder=c(widthTES_reorder_plus,widthTES_reorder_minus)
-
-        #remove the 30% up/downstream and part of TSS and TES
-        start_pos_plus=thirtypercent_plus+1+part_TSS
-        end_pos_plus=unlist(lapply(content_transcripts_plus,length))-thirtypercent_plus-part_TES
-
-        start_pos_minus=thirtypercent_minus+1+part_TES
-        end_pos_minus=unlist(lapply(content_transcripts_minus,length))-thirtypercent_minus-part_TSS
-        
         #PROFILES
-        
         #calc. matrixes for profiles, and invert negative strand
-        matcov_plus=makeMatrixFrombaseCoverage(content_transcripts_plus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
-        matcov_minus=makeMatrixFrombaseCoverage(content_transcripts_minus,Nbins=toplot$dynamics$nbin,Snorm=Snormalization,norm_factor=contentnorm_transcripts)
-        
-
+        #Snormalization will be done in the plot for interactivity
+        matcov_plus=makeMatrixFrombaseCoverage(content_transcripts_plus,Nbins=toplot$dynamics$nbin,Snorm=FALSE,key=contentkeys_transcripts_plus,norm_factor=contentnorm_transcripts)
+        matcov_minus=makeMatrixFrombaseCoverage(content_transcripts_minus,Nbins=toplot$dynamics$nbin,Snorm=FALSE,key=contentkeys_transcripts_minus,norm_factor=contentnorm_transcripts)
         #With "bamsignals" package, negative strand is already reversed at the beginning
         #matcov_minus <- matcov_minus[ , ncol(matcov_minus):1]
-        
         matcov=rbind(matcov_plus,matcov_minus)
-        #calculate median instead of mean
-        totallist_profile[[i]][[k]]=apply(matcov,2,input$chooseMetricforDynamics)
+        #for interval norm, keep list [i] for each genelist for lengths (length_transcripts_filtered_plusFraction)
+        totallist_profile[[i]][[k]]=matcov
+
+
 
         #here we sum the part of the transcripts that will be used:
         #    TSS      transcript    TES
@@ -5364,339 +6021,491 @@ observeEvent(input$plotDynamics,{
         #-30%   TSS part      TES part  +30%
         #we remove the 30% up and down from original BAM files from transcripts, plus the part
         #of the TSS and TES that will not be considered as "transcript". We keep only the internal part...
-
         #to improve efficiency, use the custom Rcpp function
-
         content_transcripts_mod_plus=cutAndSumTranscripts(GRbaseCoverageOutput=content_transcripts_plus,
                                                       StartingPositions=start_pos_plus,
                                                       EndingPositions=end_pos_plus,
-                                                      norm_factor=contentnorm_transcripts)
+                                                      norm_factor=contentnorm_transcripts,
+                                                      key=contentkeys_transcripts_plus
+                                                      )
         content_transcripts_mod_minus=cutAndSumTranscripts(GRbaseCoverageOutput=content_transcripts_minus,
                                                       StartingPositions=start_pos_minus,
                                                       EndingPositions=end_pos_minus,
-                                                      norm_factor=contentnorm_transcripts)
-
+                                                      norm_factor=contentnorm_transcripts,
+                                                      key=contentkeys_transcripts_minus)
         #join mod plus and minus
         content_transcripts_mod=c(content_transcripts_mod_plus,content_transcripts_mod_minus)
+
         #BOXPLOTS
         #for boxplots, sum everything inside TSS,TES and the part of the transcripts cut before
+        content_promoters=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=content_promoters,Nbins=1,Snorm=FALSE,key=contentkeys_promoters,norm_factor=contentnorm_promoters)
+        content_TES=makeMatrixFrombaseCoverage(GRbaseCoverageOutput=content_TES,Nbins=1,Snorm=FALSE,key=contentkeys_TES,norm_factor=contentnorm_TES)
 
-        totallist_boxplot[[1]][[i]][[k]]=sapply(content_promoters[tokeep],sum)*contentnorm_promoters
+        totallist_boxplot[[1]][[i]][[k]]=content_promoters[tokeep]
         totallist_boxplot[[2]][[i]][[k]]=content_transcripts_mod
-        totallist_boxplot[[3]][[i]][[k]]=sapply(content_TES[tokeep],sum)*contentnorm_TES
+        totallist_boxplot[[3]][[i]][[k]]=content_TES[tokeep]
+
 
         #STALLING INDEX
         #use content_transcripts_mod for gb previously calculated.
         #it depends on total reads, so the division of boxplot list must be carried out later
-        if(input$chooseNormalizationforDynamics=="totread"){
-          totallist_SI[[2]][[i]][[k]]=totallist_boxplot[[2]][[i]][[k]]+totallist_boxplot[[3]][[i]][[k]]#calculate with content_transcripts_mod, + totallist_boxplot[[3]][[i]][[k]] (TES part)
+        
+        totallist_SI[[2]][[i]][[k]]=totallist_boxplot[[2]][[i]][[k]]+totallist_boxplot[[3]][[i]][[k]]#calculate with content_transcripts_mod, + totallist_boxplot[[3]][[i]][[k]] (TES part)
         #else, divide by the GB + TES interval:
         # TSS      GB           TES
         #....|-------------|-----.-----|
-        }else{
-          totallist_SI[[2]][[i]][[k]]=(totallist_boxplot[[2]][[i]][[k]]+totallist_boxplot[[3]][[i]][[k]])/ ( (smalllength-(part_TSS+part_TES))+ widthTES_reorder     )
-        }
 
-        #if read density, divide by length
-        if(input$chooseNormalizationforDynamics!="totread"){
-          totallist_boxplot[[1]][[i]][[k]]=totallist_boxplot[[1]][[i]][[k]]/width(getRange(roi_promoters)[tokeep])
-          totallist_boxplot[[2]][[i]][[k]]=totallist_boxplot[[2]][[i]][[k]]/(smalllength-(part_TSS+part_TES)) # reduced block
-          totallist_boxplot[[3]][[i]][[k]]=totallist_boxplot[[3]][[i]][[k]]/width(getRange(roi_TES)[tokeep])     
-        }
 
         totallist_SI[[1]][[i]][[k]]=totallist_boxplot[[1]][[i]][[k]]
-        
-        #calculate good pseudocount: one tenth of the first percentile of non-zero totallist_SI[[2]] values
-        pseudocount=totallist_SI[[2]][[i]][[k]]
-        pseudocount=pseudocount[pseudocount!=0]
-        pseudocount=quantile(pseudocount,0.0001)/10
-        totallist_SI[[3]][[i]][[k]]=totallist_SI[[1]][[i]][[k]]/(totallist_SI[[2]][[i]][[k]]+pseudocount)#calculate stalling index
 
       }
     }
 
-    randomcolors = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-    cols=sample(randomcolors,length(input$genelistsforDynamics)*length(input$BAMforDynamics))
+
+    cols=colors_list[1:(length(input$genelistsforDynamics)*length(input$BAMforDynamics))]
+
     toplot$dynamics$cols=cols
-    toplot$dynamics$ylabel=ylabel
     toplot$dynamics$totallist_profile=totallist_profile
     toplot$dynamics$totallist_boxplot=totallist_boxplot
     toplot$dynamics$totallist_SI=totallist_SI
+    #widths for normalization
+    toplot$dynamics$totallist_lengths_forNorm_profile=totallist_lengths_forNorm_profile
+    toplot$dynamics$totallist_lengths_forNorm_SI_GB=totallist_lengths_forNorm_SI_GB
+    toplot$dynamics$totallist_lengths_forNorm_box_SI_prom=totallist_lengths_forNorm_box_SI_prom
+    toplot$dynamics$totallist_lengths_forNorm_box_GB=totallist_lengths_forNorm_box_GB
+    toplot$dynamics$totallist_lengths_forNorm_box_TES=totallist_lengths_forNorm_box_TES
     totalnames=c()
     for(i in 1:length(totallist_profile)){
       provv=names(totallist_profile[[i]])
       #add the number for each genelist (lengths_rois in position i)
       provv=paste(names(totallist_profile)[i],"(",lengths_rois[i],";",lengths_uniquegeneIDs[i],"unique ID); ",provv,sep="")
-      #remove "genelist " from names
-      # for(k in 1:length(provv)){
-      #   provv[k]=substr(provv[k],10,nchar(provv[k]))
-      # }
       totalnames=c(totalnames,provv)
     }
     toplot$dynamics$totalnames=totalnames
+
+
+
+
+
+
     #plot the profiles, boxplots, stalling index
+    print("Plotting metagene profile on genes")
+
+    #general options for all plots: log2, normalization, color
+    output$show_islogforDynamics<-renderUI({
+      checkboxInput("islogforDynamics", label="log2",value = FALSE, width = NULL)
+    })
 
 
-    print("Plotting dynamics on genes")
+    output$show_chooseNormalizationforDynamics<-renderUI({
+          radioButtons("chooseNormalizationforDynamics","Choose normalization:",
+                                                choiceNames=list(
+                                                  htmlhelp("Total reads","help_dynamicsOnGenes_parameters_totread"),
+                                                  htmlhelp("Read density (reads/bp)","help_dynamicsOnGenes_parameters_readdensity")
+                                                  ),choiceValues=list("totread","readdensity"),selected="readdensity"
+                      )
+    })
+    output$show_colorschemeDynamics<-renderUI({
+      radioButtons("colorschemeDynamics",label="Choose color scheme:",choices=c(
+                                                "Random colors"="random",
+                                                "Custom colors"="custom"
+                                                      ),selected="random")       
+    }) 
+
+
+
+    #custom option for profile (median or mean)
+    output$show_chooseMetricforDynamics<-renderUI({
+        radioButtons("chooseMetricforDynamics",label="Mean or median?",choices=c(
+                                                "median"="median",
+                                                "mean"="mean"
+                                                      ),selected="mean")
+    })
     #profiles
     output$plotProfileDynamics<-renderPlot({
+      #here normalize totallist_profile elements (i) based on lengths
+      #totallist_lengths_forNorm_profile. Each element of totallist_profile[i] must be divided by
+      #the array: totallist_lengths_forNorm_profile[[i]]. Then mean or median
+      profileList_to_plot=totallist_profile
+      if (isvalid(input$chooseMetricforDynamics)){
+        metric=input$chooseMetricforDynamics
+      }else{
+        metric="mean"
+      }
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
+      }
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
+        }
+      }else{
+        colors=cols
+      }
+
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(profileList_to_plot)){
+          for(k in 1:length(profileList_to_plot[[i]])){
+            profileList_to_plot[[i]][[k]]=profileList_to_plot[[i]][[k]]/totallist_lengths_forNorm_profile[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
+      }
+
+      for (i in 1:length(profileList_to_plot)){
+        for(k in 1:length(profileList_to_plot[[i]])){
+          profileList_to_plot[[i]][[k]]=apply(profileList_to_plot[[i]][[k]],2,metric)
+        }
+      }
+
       #find max and min of the profiles 
       mins=c()
       maxs=c()
-      for(i in 1:length(totallist_profile)){
-        for(k in 1:length(totallist_profile[[i]])){
-          if(input$islogforDynamics){
-            maxs=c(maxs,max( log2(totallist_profile[[i]][[k]])))
-            mins=c(mins,min( log2(totallist_profile[[i]][[k]])[!is.infinite(log2(totallist_profile[[i]][[k]]))]  ))
+      for(i in 1:length(profileList_to_plot)){
+        for(k in 1:length(profileList_to_plot[[i]])){
+          if(islog){
+            maxs=c(maxs,max( log2(profileList_to_plot[[i]][[k]])))
+            mins=c(mins,min( log2(profileList_to_plot[[i]][[k]])[!is.infinite(log2(profileList_to_plot[[i]][[k]]))]  ))
           }else{
-            maxs=c(maxs,max(totallist_profile[[i]][[k]]))
-            mins=c(mins,min(totallist_profile[[i]][[k]]))            
+            maxs=c(maxs,max(profileList_to_plot[[i]][[k]]))
+            mins=c(mins,min(profileList_to_plot[[i]][[k]]))            
           }
 
         }
       }
       maxvalue=max(maxs)
       minvalue=min(mins[!is.infinite(mins)])
-      if(input$islogforDynamics){
+      if(islog){
         ylabel=paste("log2",ylabel)
       }
 
-      par(mar=c(5,5,1,4))
-      plot(1, type="n", xlab="",xaxt="n", ylab=ylabel, xlim=c(1, toplot$dynamics$nbin), ylim=c(minvalue, maxvalue))
-      axis(1,at=c(1,toplot$dynamics$nbin/2 +0.5,toplot$dynamics$nbin),labels=c("TSS-30%","genes","TES+30%"))
-      count=1
-      for(i in 1:length(totallist_profile)){
-        for(k in 1:length(totallist_profile[[i]])){
-          if(input$islogforDynamics){
-            lines( log2(totallist_profile[[i]][[k]]),lwd=2,col= toplot$dynamics$cols[count],pch=".",cex=2,xaxt="n")
-          }else{
-            lines(totallist_profile[[i]][[k]],lwd=2,col= toplot$dynamics$cols[count],pch=".",cex=2,xaxt="n")
-          }
-          count=count+1
-        }
-      }
-
-      legend("topright",legend=totalnames,col= toplot$dynamics$cols,lty=rep(1,length(totalnames)),bg="transparent")  
-
+      plot_dynamics_profile(profileList_to_plot=profileList_to_plot,nbin=toplot$dynamics$nbin,islog=islog,
+                        minval=minvalue,maxval=maxvalue,ylabel=ylabel,totalnames=totalnames,colors=colors) 
+    
     })
+
+
+
 
 
     #boxplots
     output$plotboxTSSDynamics<-renderPlot({
       currentlist=totallist_boxplot[[1]]
-      list2=list()
-      #transform 2-order list in 1 order list
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
       }
-
-      #HERE put the log2 of input$islogforDynamics
-      #if Infinite values, those won't be drown
-      if(input$islogforDynamics){
-        for(i in 1:length(list2)){
-          list2[[i]]=log2(list2[[i]])
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
         }
+      }else{
+        colors=cols
       }
 
-      #boxplot list2. space at each ROI
-      numroi=length(currentlist)
-      numbam=length(currentlist[[1]])
-      factor_add=rep(0:(numroi-1),each=numbam)
-      addingfactor=1:length(list2)+factor_add
-      ats=c()
-      for(i in 1:numroi){
-        window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-        currentvalue=(window[length(window)]-window[1])/2
-        currentvalue=window[1]+currentvalue
-        ats=c(ats,currentvalue)
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            currentlist[[i]][[k]]=currentlist[[i]][[k]]/totallist_lengths_forNorm_box_SI_prom[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
       }
 
-      if(input$islogforDynamics){
-        ylabel=paste("log2",ylabel)
-      }
-      par(mar=c(10,4,1,1),xpd=TRUE)
-      suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-      axis(1,at=ats,label=toplot$dynamics$roinames)
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
-
+      plot_dynamics_box(currentlist=currentlist,islog=islog,ylabel=ylabel,colors=colors,
+                    totalnames=totalnames,main="TSS")
     })
-
     #download data of boxplot of TSS
     output$saveboxdatadynamicsTSS=renderUI({downloadButton('saveenrichmentBoxdynamicsTSSdata', 'Download data')})
 
+
+
     output$plotboxGBDynamics<-renderPlot({
       currentlist=totallist_boxplot[[2]]
-      list2=list()
-      #transform 2-order list in 1 order list
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
+
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
       }
-
-
-      #HERE put the log2 of input$islogforDynamics
-      #if Infinite values, those won't be drown
-      if(input$islogforDynamics){
-        for(i in 1:length(list2)){
-          list2[[i]]=log2(list2[[i]])
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
         }
+      }else{
+        colors=cols
       }
-      #boxplot list2. space at each ROI
-      numroi=length(currentlist)
-      numbam=length(currentlist[[1]])
-      factor_add=rep(0:(numroi-1),each=numbam)
-      addingfactor=1:length(list2)+factor_add
-      ats=c()
-      for(i in 1:numroi){
-        window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-        currentvalue=(window[length(window)]-window[1])/2
-        currentvalue=window[1]+currentvalue
-        ats=c(ats,currentvalue)
-      }
-      if(input$islogforDynamics){
-        ylabel=paste("log2",ylabel)
-      }
-      par(mar=c(10,4,1,1),xpd=TRUE)
-      suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-      axis(1,at=ats,label=toplot$dynamics$roinames)
 
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            currentlist[[i]][[k]]=currentlist[[i]][[k]]/totallist_lengths_forNorm_box_GB[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
+      }
+      plot_dynamics_box(currentlist=currentlist,islog=islog,ylabel=ylabel,colors=colors,
+                    totalnames=totalnames,main="Genebody")
     })
 
     #download data of boxplot of GB
     output$saveboxdatadynamicsGB=renderUI({downloadButton('saveenrichmentBoxdynamicsGBdata', 'Download data')})
 
+
+
+
     output$plotboxTESDynamics<-renderPlot({
       currentlist=totallist_boxplot[[3]]
-      list2=list()
-      #transform 2-order list in 1 order list
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
+      main="TES"
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
       }
-
-      #HERE put the log2 of input$islogforDynamics
-      #if Infinite values, those won't be drown
-      if(input$islogforDynamics){
-        for(i in 1:length(list2)){
-          list2[[i]]=log2(list2[[i]])
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
         }
+      }else{
+        colors=cols
       }
 
-      #boxplot list2. space at each ROI
-      numroi=length(currentlist)
-      numbam=length(currentlist[[1]])
-      factor_add=rep(0:(numroi-1),each=numbam)
-      addingfactor=1:length(list2)+factor_add
-      ats=c()
-      for(i in 1:numroi){
-        window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-        currentvalue=(window[length(window)]-window[1])/2
-        currentvalue=window[1]+currentvalue
-        ats=c(ats,currentvalue)
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            currentlist[[i]][[k]]=currentlist[[i]][[k]]/totallist_lengths_forNorm_box_TES[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
       }
-      if(input$islogforDynamics){
-        ylabel=paste("log2",ylabel)
-      }
-      par(mar=c(10,4,1,1),xpd=TRUE)
-      suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-      axis(1,at=ats,label=toplot$dynamics$roinames)
-
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
+      plot_dynamics_box(currentlist=currentlist,islog=islog,ylabel=ylabel,colors=colors,
+                    totalnames=totalnames,main="TES")
     })
     #download data of boxplot of TES
     output$saveboxdatadynamicsTES=renderUI({downloadButton('saveenrichmentBoxdynamicsTESdata', 'Download data')})
     
-    output$plotSITSSDynamics<-renderPlot({
-      currentlist=totallist_SI[[1]]
-      totalnames=c()
-      for(i in 1:length(currentlist)){
-        provv=names(currentlist[[i]])
-        provv=paste(names(currentlist)[i],provv)
-        totalnames=c(totalnames,provv)
-      }
-      list2=list()
-      #transform 2-order list in 1 order list
-      minvals=c()
-      maxvals=c()
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
-      }
 
 
 
-      outlayer_thresh=input$percentageOutlayerCumulPlots
-      for(i in 1:length(list2)){
-        mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-        maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-        minvals=c(minvals,mincurrent)
-        maxvals=c(maxvals,maxcurrent)
-      }
-
-
-      
-      maxvals=max(maxvals)
-      minvals=min(minvals)
-
-      lengths=sapply(list2,length)
-      par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
-      for(i in 1:length(list2)){
-        #remove a fraction of outlayers
-        #celan -Inf
-        vals=sort(log2(list2[[i]]))
-        vals=vals[!is.infinite(vals)]
-        vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
-      }
-
-
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
-
+    #specific option for cumulative plots (quantile threshold)
+    output$show_percentageOutlayerCumulPlots<-renderUI({
+      list(
+        list(HTML("<b>Fraction of outliers to exclude in cumulative plots:</b>"),htmlhelp("","help_dynamicsOnGenes_parameters_fractionexclude")),
+        sliderInput('percentageOutlayerCumulPlots',label=NULL,min = 0, max = 0.3, value = 0.05,step=0.01)
+      )
     })
 
+
+    output$plotSITSSDynamics<-renderPlot({
+      if(isvalid(input$percentageOutlayerCumulPlots)){
+        outlayer_thresh=input$percentageOutlayerCumulPlots
+      }else{
+        outlayer_thresh=0.05
+      }
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
+      }
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
+        }
+      }else{
+        colors=cols
+      }
+
+      currentlist=totallist_SI[[1]]
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            currentlist[[i]][[k]]=currentlist[[i]][[k]]/totallist_lengths_forNorm_box_SI_prom[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
+      }
+
+
+      plot_dynamics_cumulative(currentlist=currentlist,islog=islog,ylabel=ylabel,
+                              outlayer_thresh=outlayer_thresh,colors=colors,main="TSS")
+    })
+
+
+
+
     output$plotSIGBDynamics<-renderPlot({
+      if(isvalid(input$percentageOutlayerCumulPlots)){
+        outlayer_thresh=input$percentageOutlayerCumulPlots
+      }else{
+        outlayer_thresh=0.05
+      }
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
+      }
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
+        }
+      }else{
+        colors=cols
+      }
+
       currentlist=totallist_SI[[2]]
-      totalnames=c()
-      for(i in 1:length(currentlist)){
-        provv=names(currentlist[[i]])
-        provv=paste(names(currentlist)[i],provv)
-        totalnames=c(totalnames,provv)
-      }
-      list2=list()
-      #transform 2-order list in 1 order list
-      minvals=c()
-      maxvals=c()
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
-      }
-
-
-
-      outlayer_thresh=input$percentageOutlayerCumulPlots
-      for(i in 1:length(list2)){
-      	mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-      	maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-        minvals=c(minvals,mincurrent)
-        maxvals=c(maxvals,maxcurrent)
-      }
       
-      maxvals=max(maxvals)
-      minvals=min(minvals)
-
-      lengths=sapply(list2,length)
-      
-      par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
-      for(i in 1:length(list2)){
-      	#remove a fraction of outlayers
-      	#celan -Inf
-      	vals=sort(log2(list2[[i]]))
-      	vals=vals[!is.infinite(vals)]
-      	vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
+      if(normalization=="totread"){
+        ylabel="Total reads"
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            currentlist[[i]][[k]]=currentlist[[i]][[k]]/totallist_lengths_forNorm_SI_GB[[i]]
+          }
+        }
+        ylabel="Read density (reads/bp)"
       }
-
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
-
+      plot_dynamics_cumulative(currentlist=currentlist,islog=islog,ylabel=ylabel,
+                              outlayer_thresh=outlayer_thresh,colors=colors,main="Genebody")
     })
 
 
@@ -5704,48 +6513,81 @@ observeEvent(input$plotDynamics,{
 
 
     output$plotSISIDynamics<-renderPlot({
-      currentlist=totallist_SI[[3]]
-      totalnames=c()
-      for(i in 1:length(currentlist)){
-        provv=names(currentlist[[i]])
-        provv=paste(names(currentlist)[i],provv)
-        totalnames=c(totalnames,provv)
+      if(isvalid(input$percentageOutlayerCumulPlots)){
+        outlayer_thresh=input$percentageOutlayerCumulPlots
+      }else{
+        outlayer_thresh=0.05
       }
-      list2=list()
-      #transform 2-order list in 1 order list
-      minvals=c()
-      maxvals=c()
-      for(i in 1:length(currentlist)){
-        list2=c(list2,currentlist[[i]])
+      if (isvalid(input$islogforDynamics)){
+        islog=input$islogforDynamics
+      }else{
+        islog=FALSE
+      }
+      if (isvalid(input$chooseNormalizationforDynamics)){
+        normalization=input$chooseNormalizationforDynamics
+      }else{
+        normalization="readdensity"
+      }
+      if (isvalid(input$colorschemeDynamics)){
+        if (input$colorschemeDynamics=="random"){
+          colors=cols
+        }else{
+          tosearch=paste("colorCustomDynamics",1:length(totalnames),sep="") 
+          if(length(tosearch)>0){
+            listinputcols=list()
+            for(i in 1:length(tosearch)){
+              listinputcols[[i]]=input[[tosearch[i]]]
+            }
+            listinputcols=unlist(listinputcols)
+            if (length(listinputcols)==length(tosearch)){
+              colors=listinputcols
+            }else{
+              colors=cols
+            }
+          }else{
+            colors=cols
+          }
+        }
+      }else{
+        colors=cols
       }
 
+      currentlistTSS=totallist_SI[[1]]
+      currentlistGB=totallist_SI[[2]]
 
-      outlayer_thresh=input$percentageOutlayerCumulPlots
-      for(i in 1:length(list2)){
-        mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-        maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-        minvals=c(minvals,mincurrent)
-        maxvals=c(maxvals,maxcurrent)
-      }
+      currentlist=rep(list(NA),length(currentlistTSS[[1]]))
+      names(currentlist)=names(currentlistTSS[[1]])
+      currentlist=rep(list(currentlist),length(currentlistTSS))
+      names(currentlist)=names(currentlistTSS)
 
- 
-      maxvals=max(maxvals)
-      minvals=min(minvals)
-      
-      lengths=sapply(list2,length)
+      if(normalization=="totread"){
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            pseudocount=currentlistGB[[i]][[k]]
+            pseudocount=pseudocount[pseudocount!=0]
+            pseudocount=quantile(pseudocount,0.0001)/10
+            currentlist[[i]][[k]]=currentlistTSS[[i]][[k]]/(currentlistGB[[i]][[k]]+pseudocount)#calculate stalling index            
+          }
+        }
+        
+      }else{
+        for (i in 1:length(currentlist)){
+          for(k in 1:length(currentlist[[i]])){
+            normTSS=currentlistTSS[[i]][[k]]/totallist_lengths_forNorm_box_SI_prom[[i]]
+            normGB=currentlistGB[[i]][[k]]/totallist_lengths_forNorm_SI_GB[[i]]
+            pseudocount=normGB
+            pseudocount=pseudocount[pseudocount!=0]
+            pseudocount=quantile(pseudocount,0.0001)/10            
+            currentlist[[i]][[k]]=normTSS/(normGB+pseudocount)#calculate stalling index            
+          }
+        }
+      }      
 
-      par(mar=c(10,4,1,1))
-      plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
-      for(i in 1:length(list2)){
-        #remove a fraction of outlayers
-        #celan -Inf
-        vals=sort(log2(list2[[i]]))
-        vals=vals[!is.infinite(vals)]
-        vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-        lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
-      }
-      legend("bottom",inset=c(0,-0.4),legend=totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(totalnames)))
+      plot_dynamics_cumulative(currentlist=currentlist,islog=islog,ylabel="stalling index",
+                              outlayer_thresh=outlayer_thresh,colors=colors,main="Stalling index")
     })
+
+
 
     #buttons for downloads of PDF
     output$saveprofileDynamics=renderUI({downloadButton('saveprofileDynamicsbutton', 'Get PDF')})
@@ -5771,6 +6613,15 @@ observeEvent(input$plotDynamics,{
     output$saveSITSSDynamics=renderUI({NULL})
     output$saveSIGBDynamics=renderUI({NULL})
     output$saveSISIDynamics=renderUI({NULL})
+    output$saveboxdatadynamicsTSS=renderUI({NULL})
+    output$saveboxdatadynamicsGB=renderUI({NULL})
+    output$saveboxdatadynamicsTES=renderUI({NULL})
+    output$show_percentageOutlayerCumulPlots<-renderUI({NULL})
+    output$show_chooseMetricforDynamics<-renderUI({NULL})
+    output$show_islogforDynamics<-renderUI({NULL})
+    output$show_chooseNormalizationforDynamics<-renderUI({NULL})
+    output$show_colorschemeDynamics<-renderUI({NULL})
+    output$show_colorsDynamics<-renderUI({NULL})
     sendSweetAlert(
       session = session,
       title = "Genelist or enrichment not selected",
@@ -5792,19 +6643,56 @@ output$saveprofileDynamicsbutton<- downloadHandler(
       paste('Profile_dynamics.pdf', sep='')
   },
   content=function(file) {
-    pdf(file,width=15,height=8)
+    profileList_to_plot=toplot$dynamics$totallist_profile
+    #colors:
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
+      }
+    }
+    #normalization
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(profileList_to_plot)){
+        for(k in 1:length(profileList_to_plot[[i]])){
+          profileList_to_plot[[i]][[k]]=profileList_to_plot[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_profile[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
+    }
+    #mean vs median
+    for (i in 1:length(profileList_to_plot)){
+      for(k in 1:length(profileList_to_plot[[i]])){
+        profileList_to_plot[[i]][[k]]=apply(profileList_to_plot[[i]][[k]],2,input$chooseMetricforDynamics)
+      }
+    }
 
     #find max and min of the profiles 
     mins=c()
     maxs=c()
-    for(i in 1:length(toplot$dynamics$totallist_profile)){
-      for(k in 1:length(toplot$dynamics$totallist_profile[[i]])){
+    for(i in 1:length(profileList_to_plot)){
+      for(k in 1:length(profileList_to_plot[[i]])){
         if(input$islogforDynamics){
-          maxs=c(maxs,max( log2(toplot$dynamics$totallist_profile[[i]][[k]])))
-          mins=c(mins,min( log2(toplot$dynamics$totallist_profile[[i]][[k]])[!is.infinite(log2(toplot$dynamics$totallist_profile[[i]][[k]]))]  ))
+          maxs=c(maxs,max( log2(profileList_to_plot[[i]][[k]])))
+          mins=c(mins,min( log2(profileList_to_plot[[i]][[k]])[!is.infinite(log2(profileList_to_plot[[i]][[k]]))]  ))
         }else{
-          maxs=c(maxs,max(toplot$dynamics$totallist_profile[[i]][[k]]))
-          mins=c(mins,min(toplot$dynamics$totallist_profile[[i]][[k]]))            
+          maxs=c(maxs,max(profileList_to_plot[[i]][[k]]))
+          mins=c(mins,min(profileList_to_plot[[i]][[k]]))            
         }
 
       }
@@ -5812,28 +6700,19 @@ output$saveprofileDynamicsbutton<- downloadHandler(
     maxvalue=max(maxs)
     minvalue=min(mins[!is.infinite(mins)])
     if(input$islogforDynamics){
-      toplot$dynamics$ylabel=paste("log2",toplot$dynamics$ylabel)
+      ylabel=paste("log2",ylabel)
     }
 
-    par(mar=c(5,5,1,4))
-    plot(1, type="n", xlab="",xaxt="n", ylab=toplot$dynamics$ylabel, xlim=c(1, toplot$dynamics$nbin), ylim=c(minvalue, maxvalue))
-    axis(1,at=c(1,toplot$dynamics$nbin/2 +0.5,toplot$dynamics$nbin),labels=c("TSS-30%","genes","TES+30%"))
-    count=1
-    for(i in 1:length(toplot$dynamics$totallist_profile)){
-      for(k in 1:length(toplot$dynamics$totallist_profile[[i]])){
-        if(input$islogforDynamics){
-          lines( log2(toplot$dynamics$totallist_profile[[i]][[k]]),lwd=2,col= toplot$dynamics$cols[count],pch=".",cex=2,xaxt="n")
-        }else{
-          lines(toplot$dynamics$totallist_profile[[i]][[k]],lwd=2,col= toplot$dynamics$cols[count],pch=".",cex=2,xaxt="n")
-        }
-        count=count+1
-      }
-    }
-    legend("topright",legend=toplot$dynamics$totalnames,col= toplot$dynamics$cols,lty=rep(1,length(toplot$dynamics$totalnames)),bg="transparent")  
 
+    pdf(file,width=15,height=8)
+    plot_dynamics_profile(profileList_to_plot=profileList_to_plot,nbin=toplot$dynamics$nbin,islog=input$islogforDynamics,
+                        minval=minvalue,maxval=maxvalue,ylabel=ylabel,totalnames=toplot$dynamics$totalnames,colors=colors)
     dev.off()
   } 
 )
+
+
+
 
 #save PDF of TSS boxplot
 output$saveboxTSSDynamicsbutton<- downloadHandler(
@@ -5841,46 +6720,41 @@ output$saveboxTSSDynamicsbutton<- downloadHandler(
       paste('TSS_boxplot.pdf', sep='')
   },
   content=function(file) {
-    pdf(file)
-    
     currentlist=toplot$dynamics$totallist_boxplot[[1]]
-    list2=list()
-    #transform 2-order list in 1 order list
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
-    }
-
-    #HERE put the log2 of input$islogforDynamics
-    #if Infinite values, those won't be drown
-    if(input$islogforDynamics){
-      for(i in 1:length(list2)){
-        list2[[i]]=log2(list2[[i]])
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
       }
     }
 
-    #boxplot list2. space at each ROI
-    numroi=length(currentlist)
-    numbam=length(currentlist[[1]])
-    factor_add=rep(0:(numroi-1),each=numbam)
-    addingfactor=1:length(list2)+factor_add
-    ats=c()
-    for(i in 1:numroi){
-      window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-      currentvalue=(window[length(window)]-window[1])/2
-      currentvalue=window[1]+currentvalue
-      ats=c(ats,currentvalue)
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_SI_prom[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
     }
 
-    if(input$islogforDynamics){
-      toplot$dynamics$ylabel=paste("log2",toplot$dynamics$ylabel)
-    }
-    par(mar=c(10,4,1,1),xpd=TRUE)
-    suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=toplot$dynamics$ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-    axis(1,at=ats,label=toplot$dynamics$roinames)
-
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))
-
-
+    pdf(file)
+    plot_dynamics_box(currentlist=currentlist,islog=input$islogforDynamics,ylabel=ylabel,
+          colors=colors,totalnames=toplot$dynamics$totalnames,main="TSS",ispdf=TRUE)
     dev.off()
   } 
 )
@@ -5895,41 +6769,42 @@ output$saveboxGBDynamicsbutton<- downloadHandler(
       paste('GB_boxplot.pdf', sep='')
   },
   content=function(file) {
-    pdf(file)
     
     currentlist=toplot$dynamics$totallist_boxplot[[2]]
-    list2=list()
-    #transform 2-order list in 1 order list
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
-    }
-    #HERE put the log2 of input$islogforDynamics
-    #if Infinite values, those won't be drown
-    if(input$islogforDynamics){
-      for(i in 1:length(list2)){
-        list2[[i]]=log2(list2[[i]])
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
       }
     }
-    #boxplot list2. space at each ROI
-    numroi=length(currentlist)
-    numbam=length(currentlist[[1]])
-    factor_add=rep(0:(numroi-1),each=numbam)
-    addingfactor=1:length(list2)+factor_add
-    ats=c()
-    for(i in 1:numroi){
-      window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-      currentvalue=(window[length(window)]-window[1])/2
-      currentvalue=window[1]+currentvalue
-      ats=c(ats,currentvalue)
-    }
-    if(input$islogforDynamics){
-      toplot$dynamics$ylabel=paste("log2",toplot$dynamics$ylabel)
-    }
-    par(mar=c(10,4,1,1),xpd=TRUE)
-    suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=toplot$dynamics$ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-    axis(1,at=ats,label=toplot$dynamics$roinames)
 
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_GB[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
+    }
+
+    pdf(file)
+    plot_dynamics_box(currentlist=currentlist,islog=input$islogforDynamics,ylabel=ylabel,
+          colors=colors,totalnames=toplot$dynamics$totalnames,main="Genebody",ispdf=TRUE)
     dev.off()
   } 
 )
@@ -5942,43 +6817,45 @@ output$saveboxTESDynamicsbutton<- downloadHandler(
       paste('TES_boxplot.pdf', sep='')
   },
   content=function(file) {
-    pdf(file)
+    
     
     currentlist=toplot$dynamics$totallist_boxplot[[3]]
-    list2=list()
-    #transform 2-order list in 1 order list
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
-    }
 
-    #HERE put the log2 of input$islogforDynamics
-    #if Infinite values, those won't be drown
-    if(input$islogforDynamics){
-      for(i in 1:length(list2)){
-        list2[[i]]=log2(list2[[i]])
+
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
       }
     }
 
-    #boxplot list2. space at each ROI
-    numroi=length(currentlist)
-    numbam=length(currentlist[[1]])
-    factor_add=rep(0:(numroi-1),each=numbam)
-    addingfactor=1:length(list2)+factor_add
-    ats=c()
-    for(i in 1:numroi){
-      window=addingfactor[(((i-1)*numbam)+1):(i*numbam)]
-      currentvalue=(window[length(window)]-window[1])/2
-      currentvalue=window[1]+currentvalue
-      ats=c(ats,currentvalue)
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_TES[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
     }
-    if(input$islogforDynamics){
-      toplot$dynamics$ylabel=paste("log2",toplot$dynamics$ylabel)
-    }
-    par(mar=c(10,4,1,1),xpd=TRUE)
-    suppressWarnings(boxplot(list2,at=addingfactor,col=toplot$dynamics$cols,ylab=toplot$dynamics$ylabel,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-    axis(1,at=ats,label=toplot$dynamics$roinames)
 
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))
+    pdf(file)
+    plot_dynamics_box(currentlist=currentlist,islog=input$islogforDynamics,ylabel=ylabel,
+          colors=colors,totalnames=toplot$dynamics$totalnames,main="TES",ispdf=TRUE)
     dev.off()
   } 
 )
@@ -5993,6 +6870,15 @@ output$saveenrichmentBoxdynamicsTSSdata<- downloadHandler(
   },
   content=function(file) {
     currentlist=toplot$dynamics$totallist_boxplot[[1]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_SI_prom[[i]]
+        }
+      }
+    }
+
     list2=list()
     #transform 2-order list in 1 order list
     for(i in 1:length(currentlist)){
@@ -6026,6 +6912,15 @@ output$saveenrichmentBoxdynamicsGBdata<- downloadHandler(
   },
   content=function(file) {
     currentlist=toplot$dynamics$totallist_boxplot[[2]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_GB[[i]]
+        }
+      }
+    }
+
     list2=list()
     #transform 2-order list in 1 order list
     for(i in 1:length(currentlist)){
@@ -6058,6 +6953,15 @@ output$saveenrichmentBoxdynamicsTESdata<- downloadHandler(
   },
   content=function(file) {
     currentlist=toplot$dynamics$totallist_boxplot[[3]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_TES[[i]]
+        }
+      }
+    }
+
     list2=list()
     #transform 2-order list in 1 order list
     for(i in 1:length(currentlist)){
@@ -6091,42 +6995,44 @@ output$saveSITSSDynamicsbutton<- downloadHandler(
   filename=function() {
       paste('TSS_SI_dynamics.pdf', sep='')
   },
-  content=function(file) {
-    
+  content=function(file) {    
     currentlist=toplot$dynamics$totallist_SI[[1]]
 
-    list2=list()
-    #transform 2-order list in 1 order list
-    minvals=c()
-    maxvals=c()
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
+      }
     }
 
-	outlayer_thresh=input$percentageOutlayerCumulPlots
-    for(i in 1:length(list2)){
-	  mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-	  maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-	  minvals=c(minvals,mincurrent)
-	  maxvals=c(maxvals,maxcurrent)
-	}
-	  
-	maxvals=max(maxvals)
-	minvals=min(minvals)
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_SI_prom[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
+    }
 
-    lengths=sapply(list2,length)
 
     pdf(file)
-    par(mar=c(10,4,1,1))
-    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
-    for(i in 1:length(list2)){
-      vals=sort(log2(list2[[i]]))
-      vals=vals[!is.infinite(vals)]
-      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
-    }
-
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
+    plot_dynamics_cumulative(currentlist=currentlist,islog=input$islogforDynamics,ylabel=ylabel,
+                              outlayer_thresh=input$percentageOutlayerCumulPlots,colors=colors,main="TSS",ispdf=TRUE)     
     dev.off()
   } 
 )
@@ -6142,45 +7048,43 @@ output$saveSIGBDynamicsbutton<- downloadHandler(
       paste('GB_SI_dynamics.pdf', sep='')
   },
   content=function(file) {
-    
-    
     currentlist=toplot$dynamics$totallist_SI[[2]]
 
-    list2=list()
-    #transform 2-order list in 1 order list
-    minvals=c()
-    maxvals=c()
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
+      }
     }
 
-
-
-    outlayer_thresh=input$percentageOutlayerCumulPlots
-    for(i in 1:length(list2)){
-      mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-      maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-      minvals=c(minvals,mincurrent)
-      maxvals=c(maxvals,maxcurrent)
+    if(input$chooseNormalizationforDynamics=="totread"){
+      ylabel="Total reads"
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_SI_GB[[i]]
+        }
+      }
+      ylabel="Read density (reads/bp)"
     }
-    maxvals=max(maxvals)
-    minvals=min(minvals)
 
-    lengths=sapply(list2,length)
 
     pdf(file)
-    par(mar=c(10,4,1,1))
-
-    plot(1, type="n", ylab="Ranked Genes", xlab=paste("log2",toplot$dynamics$ylabel), ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh)) ), xlim=c(minvals, maxvals))
-    for(i in 1:length(list2)){
-      vals=sort(log2(list2[[i]]))
-      vals=vals[!is.infinite(vals)]
-      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
-    }
-
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
-
+    plot_dynamics_cumulative(currentlist=currentlist,islog=input$islogforDynamics,ylabel=ylabel,
+                              outlayer_thresh=input$percentageOutlayerCumulPlots,colors=colors,main="Genebody",ispdf=TRUE)     
     dev.off()
   } 
 )
@@ -6194,46 +7098,894 @@ output$saveSISIDynamicsbutton<- downloadHandler(
       paste('SI_SI_dynamics.pdf', sep='')
   },
   content=function(file) {
+    currentlistTSS=toplot$dynamics$totallist_SI[[1]]
+    currentlistGB=toplot$dynamics$totallist_SI[[2]]
+
+    if (input$colorschemeDynamics=="random"){
+      colors=toplot$dynamics$cols
+    }else{
+      tosearch=paste("colorCustomDynamics",1:length(toplot$dynamics$totalnames),sep="") 
+      if(length(tosearch)>0){
+        listinputcols=list()
+        for(i in 1:length(tosearch)){
+          listinputcols[[i]]=input[[tosearch[i]]]
+        }
+        listinputcols=unlist(listinputcols)
+        if (length(listinputcols)==length(tosearch)){
+          colors=listinputcols
+        }else{
+          colors=toplot$dynamics$cols
+        }
+      }else{
+        colors=toplot$dynamics$cols
+      }
+    }
+
+    currentlist=rep(list(NA),length(currentlistTSS[[1]]))
+    names(currentlist)=names(currentlistTSS[[1]])
+    currentlist=rep(list(currentlist),length(currentlistTSS))
+    names(currentlist)=names(currentlistTSS)
+    if(input$chooseNormalizationforDynamics=="totread"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          pseudocount=currentlistGB[[i]][[k]]
+          pseudocount=pseudocount[pseudocount!=0]
+          pseudocount=quantile(pseudocount,0.0001)/10
+          currentlist[[i]][[k]]=currentlistTSS[[i]][[k]]/(currentlistGB[[i]][[k]]+pseudocount)#calculate stalling index            
+        }
+      }
+      
+    }else{
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          normTSS=currentlistTSS[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_SI_prom[[i]]
+          normGB=currentlistGB[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_SI_GB[[i]]
+          pseudocount=normGB
+          pseudocount=pseudocount[pseudocount!=0]
+          pseudocount=quantile(pseudocount,0.0001)/10            
+          currentlist[[i]][[k]]=normTSS/(normGB+pseudocount)#calculate stalling index            
+        }
+      }
+    }      
+
+
     pdf(file)
+    plot_dynamics_cumulative(currentlist=currentlist,islog=input$islogforDynamics,ylabel="stalling index",
+                              outlayer_thresh=input$percentageOutlayerCumulPlots,colors=colors,main="Stalling index",ispdf=TRUE)    
+    dev.off()
+  } 
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+# GO gene ontology analysis
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+
+
+###react to help buttons:
+#parameters
+observeEvent(input$msg_goAnalysis_parameters, {
+  boxHelpServer(msg_goAnalysis_parameters)
+})
+#GO plot
+observeEvent(input$msg_goAnalysis_goPlot, {
+  boxHelpServer(msg_goAnalysis_goPlot)
+})
+
+#GO table
+observeEvent(input$msg_goAnalysis_goTable, {
+  boxHelpServer(msg_goAnalysis_goTable)
+})
+
+
+
+
+#observer for help buttons of parameters
+observeEvent(input$help_goAnalysis_parameters_fromROI, {boxHelpServer(help_goAnalysis_parameters_fromROI)})
+observeEvent(input$help_goAnalysis_parameters_fromgenelist, {boxHelpServer(help_goAnalysis_parameters_fromgenelist)})
+observeEvent(input$help_goAnalysis_parameters_kindofID, {boxHelpServer(help_goAnalysis_parameters_kindofID)})
+observeEvent(input$help_goAnalysis_parameters_nearestgenes, {boxHelpServer(help_goAnalysis_parameters_nearestgenes)})
+observeEvent(input$help_goAnalysis_parameters_genewindow, {boxHelpServer(help_goAnalysis_parameters_genewindow)})
+observeEvent(input$help_goAnalysis_parameters_signatures, {boxHelpServer(help_goAnalysis_parameters_signatures)})
+observeEvent(input$help_goAnalysis_parameters_orderresults, {boxHelpServer(help_goAnalysis_parameters_orderresults)})
+observeEvent(input$help_goAnalysis_parameters_minsize, {boxHelpServer(help_goAnalysis_parameters_minsize)})
+observeEvent(input$help_goAnalysis_parameters_maxsize, {boxHelpServer(help_goAnalysis_parameters_maxsize)})
+observeEvent(input$help_goAnalysis_parameters_generatio, {boxHelpServer(help_goAnalysis_parameters_generatio)})
+observeEvent(input$help_goAnalysis_parameters_padjthresh, {boxHelpServer(help_goAnalysis_parameters_padjthresh)})
+
+
+
+
+
+
+
+# toListenGO <- reactive({
+#     list(input$doTheGO)#,input$doTheGO2)
+# })
+
+observeEvent(input$doTheGO,{
+  if(!isvalid(input$minSizeGO)|!isvalid(input$maxSizeGO)){
+    #numeric input not valid
+    sendSweetAlert(
+      session = session,
+      title = "Geneset size thresholds not valid",
+      text = "Min or Max geneset size thresholds are not valid",
+      type = "error"
+    ) 
+    return() 
+  }
+  #check if any geneset was selected!!
+  if(isvalid(input$selectedGenesetsGO)){
+    #if selected ROI:
+    # if valid input$chooseCriteriaROIGO, ROI ok, otherwise ROI not seelcted or no DB or no ROI
+    #if selected fromcutomGenelist
+    # testarea must not be empty. If no DB, must be symbols
+    if(isolate(input$chooseSourceGO)=="fromROI"){
+
+      if(!isvalid(isolate(input$selectROIGO))){
+        sendSweetAlert(
+          session = session,
+          title = "No ROI selected",
+          text = "You have to select at least one ROI",
+          type = "error"
+        )          
+        return()
+      }
+
+      if(isvalid(input$chooseCriteriaROIGO)){
+        #create list for gene lists in input (n= number of ROI selected)
+        inputGeneList=as.list(rep(NA,length(input$selectROIGO)))
+        names(inputGeneList)=input$selectROIGO
+        nomi=unlist(lapply(ROIvariables$listROI,getName))
+        pos=match(input$selectROIGO,nomi)
+        ROI=ROIvariables$listROI[pos]
+
+
+        if(input$chooseCriteriaROIGO=="windowGene"){
+          if(isvalid(input$WindowROIGO)){
+            print( paste("GO analysis in genomic window from", paste(input$selectROIGO,collapse="; ")) )
+
+            pospromo=match("promoters",nomi)
+            ROIpromo=ROIvariables$listROI[[pospromo]]
+            fixedpromo=getFixed(ROIpromo)
+
+            #open the window around the Fix of promoters (TSSs), for example for 10kb window:
+            #                         10k  10k      
+            #promoters:             |----|----|       |----|----|
+            promo=suppressWarnings(unique(resize(fixedpromo,width=input$WindowROIGO*2,fix="center")))
+            #if (!is.null(ROI)) {}
+            for (i in 1:length(ROI)){
+              #center the range in the Fixed point
+              range=getFixed(ROI[[i]])
+
+              ov=suppressWarnings(countOverlaps(promo,range))
+              #WARNING: more than one midpoint of grange can be associated with the same
+              # promoter!!
+              #extract gene id of overlapping promoters with that window
+              promo_selected=promo[ov>0]
+
+              emd=as.data.frame(elementMetadata(promo_selected))
+              symbols=unique(as.character(emd$symbol))
+              inputGeneList[[i]]=symbols
+            }
+
+          }else{
+            #window not valid
+            sendSweetAlert(
+              session = session,
+              title = "Genomic window not valid",
+              text = "The genomic window is empty or is not a number",
+              type = "error"
+            )
+            return()
+          }
+          
+        }else{
+          #nearest gene, assign symbols in inputGeneList elements
+          print( paste("GO analysis of nearest genes annotated to", paste(input$selectROIGO,collapse="; ")) )
+          for (i in 1:length(ROI)){
+            range=getRange(ROI[[i]])
+            emd=as.data.frame(elementMetadata(range))
+            symbols=unique(as.character(emd$symbol))
+            inputGeneList[[i]]=symbols
+          }
+
+        }
+      }else{
+        #no ROI, no ROI selected or no database (ROI not annotated)
+        sendSweetAlert(
+          session = session,
+          title = "No database or no ROI",
+          text = "Be sure to select at least one ROI and that a genome assembly is active. Go to 'Assembly' section for that",
+          type = "error"
+        )   
+        return()
+        
+      }
+
+    }else{
+      #here, chosen custom gene list instead of ROI
+      if(isvalid(input$pastedGenesGO)){
+        print("GO analysis from a pasted set of genes")
+        genelist=strsplit(input$pastedGenesGO,split="\n")[[1]]
+        uniquegenelist=unique(genelist)
+        lostinunique=length(genelist)-length(uniquegenelist)
+        print (paste(lostinunique," genes lost because duplicated",sep=""))
+        if(isvalid(input$chooseIDgeneGO)){
+
+          nomi=unlist(lapply(ROIvariables$listROI,getName))
+          pospromo=match("promoters",nomi)
+          ROIpromo=ROIvariables$listROI[[pospromo]]
+          rangepromo=getFixed(ROIpromo)
+          emd=as.data.frame(elementMetadata(rangepromo))
+
+          #here, take promoters and translate ***-> to symbols
+          if(input$chooseIDgeneGO=="entrez"){
+            #gene_id column
+            pos=match(uniquegenelist,emd$gene_id)
+          }else if(input$chooseIDgeneGO=="ensembl"){
+            #ensembl_id column
+            pos=match(uniquegenelist,emd$ensembl_id)
+          }else if(input$chooseIDgeneGO=="refseq"){
+            #refSeq_id column
+            pos=match(uniquegenelist,emd$refSeq_id)
+          }else{
+            #match with itself, but same capital letters
+            pos=match(toupper(uniquegenelist),toupper(emd$symbol))
+          }
+          translatedSymbols=as.character(emd[pos,]$symbol)
+
+        }else{
+          #only symbols shuld be provided
+          translatedSymbols=uniquegenelist
+        }
+
+
+        translatedSymbols=translatedSymbols[!is.na(translatedSymbols)]
+        if(length(translatedSymbols)<1){
+          #no match found... problems
+          sendSweetAlert(
+            session = session,
+            title = "Invalid genes",
+            text = "Are you sure to have typed the correct gene IDs or symbols in the text area? Maybe you put spaces or the wrong kind of IDs",
+            type = "error"
+          )
+          return()
+        }
+
+
+
+        inputGeneList=as.list(rep(NA,1))
+        names(inputGeneList)="custom_gene_list"
+        inputGeneList[[1]]=translatedSymbols
+
+      }else{
+        sendSweetAlert(
+          session = session,
+          title = "Empty/not valid genes",
+          text = "I didn't find genes in the text area or those genes are not valid IDs/names",
+          type = "error"
+        )         
+        return()
+      }
+      
+    }
+
+    #from here, we have the list of gene symbols to query
+    #?parallel GO on elements of inputGeneList
+    #read geneSets files and store them in logvariables$temporary_GMTstorage list
+    #the elements of this list correspond to gene sets and are NA at the beginning
+    posSets=match(input$selectedGenesetsGO,names(GenesetsGMT))
+    SetsToRead=GenesetsGMT[posSets]
+    allterms=as.list(rep(NA,length(input$selectedGenesetsGO)))
+    names(allterms)=names(SetsToRead)
     
-    currentlist=toplot$dynamics$totallist_SI[[3]]
+    #do it in parallel even if reading files?
+    for(i in 1:length(SetsToRead)){
+      if(!is.na(logvariables$temporary_GMTstorage[names(SetsToRead)[i]])){
+        #take cached values from temporary file
+        allterms[[names(SetsToRead)[i]]]<-logvariables$temporary_GMTstorage[[names(SetsToRead)[i]]]
+      }else{
+        #read the geneset GMT file ex-novo
+        GMT=readGMT(SetsToRead[[i]])
+        logvariables$temporary_GMTstorage[[names(SetsToRead)[i]]]=GMT
+        allterms[[names(SetsToRead)[i]]]<-GMT
+      }
+    }
 
-    list2=list()
-    #transform 2-order list in 1 order list
-    minvals=c()
-    maxvals=c()
-    for(i in 1:length(currentlist)){
-      list2=c(list2,currentlist[[i]])
+    #union of all genesets of all categories
+    terms=do.call("rbind",allterms)
+    dt=data.table(terms)
+    dt=unique(dt)
+    termsdt=as.data.frame(unique(dt))
+    
+    ##################################################
+    #calculate how many genes are correctly found
+    allgenes=toupper(Reduce("union",inputGeneList))
+    identif=match(allgenes,as.character(termsdt$gene))
+    ##################################################
+
+
+
+    #now use the GO function for each roi or for genelist. Try in parallel
+    minsizeGO=input$minSizeGO
+    maxsizeGO=input$maxSizeGO
+    #execeute the GO in parallel. If nc==1 (maybe windows OS) use lapply
+    #be careful! if window gene, block of current range could be 0!!
+    if(nc==1){
+      reslist=lapply(1:length(inputGeneList),function(i){
+        currentblock=inputGeneList[[i]]
+        #transform uppercase 
+        currentblock=toupper(currentblock)
+        if (length(currentblock)>1){
+          #do the GO with hypergeometric test
+          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
+        }else{
+          res=NULL
+        }
+        return(res)
+      })
+    }else{
+      reslist=mclapply(1:length(inputGeneList),function(i){
+        currentblock=inputGeneList[[i]]
+        #transform uppercase 
+        currentblock=toupper(currentblock)
+        if (length(currentblock)>1){
+          #do the GO with hypergeometric test
+          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
+        }else{
+          res=NULL
+        }
+        return(res)
+      },mc.cores=nc)      
     }
 
 
-    outlayer_thresh=input$percentageOutlayerCumulPlots
-    for(i in 1:length(list2)){
-      mincurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],outlayer_thresh )
-      maxcurrent=quantile(log2(list2[[i]])[!is.infinite(log2(list2[[i]]))],1-outlayer_thresh )
-      minvals=c(minvals,mincurrent)
-      maxvals=c(maxvals,maxcurrent)
+    names(reslist)=names(inputGeneList)
+    #union of all terms resulting from all ROIs (if ROIs). If null, padj is the max(1) for each term.
+    #if all NULL, return problem with sweetalert
+    unionterms=lapply(reslist,rownames)
+    unionterms=unlist(unionterms)
+    unionterms=unique(unionterms)
+    
+    #union of all blocks in single df. Terms not present: put NA as genes, 0 as ratio, 1 as padj
+    #collector of all dfs
+    final_list=as.list(rep(NA,length(reslist)))
+    #names(final_list)=names(reslist)
+    #for loop is enough efficient, because at most we have 10/20 ROIs...
+    tofillNULL=c("NA",0,1)
+    for(i in 1:length(reslist)){
+      #for each ROI, fill entire unionterms, if NULL, fill with NA, 0, 1
+      #extract info from result
+      tempres=reslist[[i]]
+      tempdf=data.frame(matrix(rep(tofillNULL,length(unionterms)),byrow=TRUE,ncol=3))
+      rownames(tempdf)=unionterms
+      tempdf[,1]=as.character(tempdf[,1])
+      tempdf[,2]=as.numeric(tempdf[,2])
+      tempdf[,3]=as.numeric(tempdf[,3])
+      if(!is.null(tempres)){
+        #fill if the term is present with real values
+        partres=reslist[[i]][,c(2,7,10)]
+        partres[,1]=as.character(partres[,1])
+        colnames(partres)=colnames(tempdf)=paste(names(reslist)[i],c("Genes","gene_ratio","padj"),sep="_")
+        pos=match(unionterms,rownames(reslist[[i]]))
+        pos2=pos[!is.na(pos)]
+        tempdf[!is.na(pos),]=partres[pos2,]
+
+      }
+      final_list[[i]]=tempdf
+    }
+    finaldf=do.call("cbind",final_list)
+
+
+
+    ######## ORDERING THE MATRIX ######
+
+
+
+
+    mat=finaldf
+    #extract -log10 padj values of the matrix 
+    #this block can remain. It is removing NA,infinite from matrix and creating padj matrix
+    #the important thing is that the order keeps the same
+
+    partdfpadj=mat[,grepl("_padj$",colnames(mat)),drop=FALSE]
+    partdfpadj=-log10(partdfpadj)
+    #remove inf and NA values
+    posNA=apply(partdfpadj,1,function(i){any(is.na(i))})
+    posInf=apply(partdfpadj,1,function(i){any(is.infinite(i))})
+    partdfpadj=partdfpadj[!posNA & !posInf,,drop=FALSE]
+    mat=mat[!posNA & !posInf,,drop=FALSE]
+
+    ########################################################################
+    ########################################################################
+    ########################################################################
+    #in this part rank or cluster the matrix (put the desired ordering according to the inputs)
+    chooseOrderingGO=input$chooseOrderingGO
+    clustertypeGO=input$clustertypeGO
+    
+
+
+    #if clustering is valid and selected,
+    #respond interactively to the kind of clustering,
+    #otherwise, rank
+
+
+    RANKING=TRUE
+    ## if number of genelists are <=2 , only ranking! clustering won't make sense
+    if(ncol(partdfpadj)>1 &nrow(partdfpadj)>2 & isvalid(chooseOrderingGO)){
+      if(chooseOrderingGO=="clustering"){
+        RANKING=FALSE
+      }else{
+        RANKING=TRUE          
+      }
+    }else{
+      RANKING=TRUE
     }
 
+    
+    if(RANKING){
+      #ranking. We don't have a matrix, we will do simple barplot
+      # maxvals=apply(partdfpadj,1,max)
+      # ord=order(-maxvals)
+      print ("ranking")
+      maxvals=apply(partdfpadj,1,max)
+      ord=order(-maxvals)
+    }else{
+      clustnumGO=input$clustnumGO
+      clustrandomstartsGO=input$clustrandomstartsGO
+      clustnumiterationsGO=input$clustnumiterationsGO
+      distmethodGO=input$distmethodGO
+      clustmethodGO=input$clustmethodGO
+      if (!isvalid(clustertypeGO)){
+        print ("clsuter not valid")
+        return()
+      }
+      if( !(isvalid(clustnumGO)&isvalid(clustrandomstartsGO)&isvalid(clustnumiterationsGO) ) &
+         !(isvalid(distmethodGO)&isvalid(clustmethodGO))){
+        print ("cluster parameters not valid")
+        return()  
+      }
 
-    maxvals=max(maxvals)
-    minvals=min(minvals)
+      provv1=apply(partdfpadj, 2, as.list)
+      matlist=lapply(provv1,as.matrix)
+      #here,clustering. Use Kmeans or hierarchical, according to what has been chosen
+      if(clustertypeGO=="kmean"){
+        #do kmean
+        print ("kmean clustering")
+        clustobj=clusterMatrixKmeans(matlist=matlist,clustinds=1:length(matlist),numberclusters=clustnumGO,
+                                    startingpoints=clustrandomstartsGO,iter=clustnumiterationsGO)
 
-    lengths=sapply(list2,length)
-    par(mar=c(10,4,1,1))
-    plot(1, type="n", ylab="Ranked Genes", xlab="stalling index", ylim=c(0, quantile(1:max(lengths),1-(2*outlayer_thresh))), xlim=c(minvals, maxvals))
-    for(i in 1:length(list2)){
-      #remove a fraction of outlayers
-      #celan -Inf
-      vals=sort(log2(list2[[i]]))
-      vals=vals[!is.infinite(vals)]
-      vals=vals[vals<quantile(vals,1-outlayer_thresh) & vals>quantile(vals,outlayer_thresh)]
-      lines(vals,1:length(vals),col=toplot$dynamics$cols[i],lwd=2)
+      }else{
+        #do hierarchical
+        print ("h clustering")
+        clustobj=clusterMatrix(matlist=matlist,clustinds=1:length(matlist),distmethod=distmethodGO,clustmethod=clustmethodGO)
+        
+      } 
+    ord=clustobj$ord
     }
-    legend("bottom",inset=c(0,-0.4),legend=toplot$dynamics$totalnames,col=toplot$dynamics$cols,cex=0.6,bg="transparent",pch=rep(19,length(toplot$dynamics$totalnames)))      
+    ########################################################################
+    ########################################################################
+    ########################################################################
+    #whatever os the ordering (ranking, kmean, hclust..), order the matrix!
+    partdfpadj=partdfpadj[ord,,drop=FALSE]
+    mat=mat[ord,,drop=FALSE]
+
+
+    #save variables to be used later in other reactive contexts
+    toplot$GOvariables$tempmat=mat
+    toplot$GOvariables$temppadj=partdfpadj
+    toplot$GOvariables$termsdt=termsdt
+
+  }else{
+    #no geneset selected
+    sendSweetAlert(
+      session = session,
+      title = "No geneset selected",
+      text = "You have to select at least one geneset from the menu",
+      type = "error"
+    )     
+  }
+
+},ignoreInit=TRUE)
+
+
+
+##observer for GO plot/table from toplot$GOvariables$tempmat matrix
+observe({
+
+  #here the reactive variables of the observer. If they are not satisfied,
+  #return immediately
+
+
+  #observer using reactive parameters
+  if(!is.null(toplot$GOvariables$tempmat)){
+    mat=toplot$GOvariables$tempmat
+    partdfpadj=toplot$GOvariables$temppadj
+    padjthresh=10^(-(input$log10padjGO))
+    generatiothresh=input$quantileGeneRatioGO
+    topN=input$topNGO
+    
+    #here,filter the results according to parameters, and topN.
+    #topN: keep the topN hits based on the best padj in all the ROIs queried.
+    # padjthresh: save hit if any of ROI have a padj that is ok for this threshold
+    #maybe one of the 2 can be removed if text of genesets in the plot is reduced
+    pos_tokeep=filterGOres(GOres=mat,padjthresh=padjthresh,generatiothresh=generatiothresh,topN=topN)
+    mat=mat[pos_tokeep,,drop=FALSE]
+    partdfpadj=partdfpadj[pos_tokeep,,drop=FALSE]
+
+    #reset selected genes from the previous analysis
+    output$GenesClicked<-renderText({NULL})
+    output$showGenesClicked<-renderUI({NULL}) 
+    output$showTermClicked<-renderUI({NULL})
+    
+    #if real matrix, heatmap, otherwise barplot
+    if(min(dim(mat))>0){
+      
+      #here we should filter also padj matrix... or recreate it from filtered matrix...
+      toplot$GOvariables$partdfpadj=partdfpadj
+      toplot$GOvariables$completemat=mat
+      if(ncol(partdfpadj)>1){
+        #multiplying factor for height(n ROIs,=>ncol)
+        if(ncol(partdfpadj)<10){
+          factormult=10/ncol(partdfpadj)
+        }else{
+          factormult=1
+        }
+        #multiplying factor for width(n ontologies,=>nrow)
+        if(nrow(partdfpadj)<30){
+          factormult2=30/nrow(partdfpadj)
+        }else{
+          factormult2=1
+        }
+
+        trasp=as.matrix(partdfpadj)
+
+
+        #here put parameters only for heatmap (color scale and color)
+        output$show_colorScaleGO<-renderUI({
+          selectInput("colorScaleGO",label="Choose a color scale:",c("white/red"="white_red4",
+                                                              "white/blue"="white_blue",
+                                                              "white/green"= "white_green4"))
+        })
+        output$show_scaleQuantileGO<-renderUI({
+          sliderInput('scaleQuantileGO',label="Quantile threshold for padj colorscale",min = 0.1, max = 1, value = 0.9,step=0.002)
+        })
+        
+                        
+
+        output$plotOntology<-renderPlot({
+          if (isvalid(input$colorScaleGO)){
+            colorpal=input$colorScaleGO
+          }else{
+            colorpal="white_red4"
+          }
+          if(isvalid(input$scaleQuantileGO)){
+            scaleQuantile=input$scaleQuantileGO
+          }else{
+            scaleQuantile=0.9
+          }
+
+          brk=201
+          trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)
+          colorsplitted=strsplit(colorpal,split="_")[[1]]
+          palette=colorRampPalette(colorsplitted)(n=brk-1)
+          par(mar = rep(0, 4))
+          image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", 
+                ylab = "",col=palette,xlim=c(0,nrow(trasp)*factormult2),ylim=c(0,ncol(trasp)*factormult),useRaster=FALSE  )
+          #lines for the columns
+          for(csep in 1:nrow(trasp)){
+            rect(xleft = csep , ybottom = rep(0,length(csep)), 
+              xright = csep  + 0.01, 
+              ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
+              col = "black", border = "black"
+            )
+          }
+          #lines for the rows
+          for (csep2 in 1:ncol(trasp)){
+            rect(xleft = rep(0,length(csep2))  , ybottom = csep2 , 
+              xright = rep(nrow(trasp) , csep2), 
+              ytop = csep2 +0.01, lty = 1, lwd = 1, 
+              col = "black", border = "black")
+          }        
+        })
+
+        #left names of ROIs
+        output$plotMaterialLeft<-renderPlot({
+
+          par(mar = rep(0, 4))
+          plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i",yaxs="i")
+          #have to start from x coordinate of the half of first cell to half of the last
+          numbersample=ncol(partdfpadj)
+          if(numbersample<10){
+            #divide by 10 and multiply by number sample
+            newmax=(1/10)*numbersample
+            halfcellwidthmin=(newmax/numbersample)/2
+            halfcellwidthmax=newmax-halfcellwidthmin
+
+          }else{
+            halfcellwidthmin=(1/numbersample)/2
+            halfcellwidthmax=1-halfcellwidthmin
+          }
+          cextext=0.8
+          text(y=seq(halfcellwidthmin, halfcellwidthmax ,length.out=numbersample),labels=rev(colnames(partdfpadj)),x=rep(1,numbersample),cex=cextext,adj=1  )
+        })
+
+
+        #plot color legend (only if heatmap)
+        output$colorScaleGO<-renderPlot({ 
+          if (isvalid(input$colorScaleGO)){
+            palette_col=input$colorScaleGO
+          }else{
+            palette_col="white_red4"
+          }
+          if(isvalid(input$scaleQuantileGO)){
+            scaleQuantile=input$scaleQuantileGO
+          }else{
+            scaleQuantile=0.9
+          }   
+
+          trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)          
+          brk=201
+            
+            if(palette_col=="rainbow"){
+              my_palette <- rev(colorRampPalette(brewer.pal(9, 'Spectral'))(n = brk-1))
+            }else{
+              colorsplitted=strsplit(palette_col,split="_")[[1]]
+              my_palette <- colorRampPalette(colorsplitted)(n = brk-1 )
+            }
+            color.bar2(my_palette, min=round(0),max=round(max(trasp),2))                    
+
+        })
+        output$saveheatmapGO<-renderUI({downloadButton('saveheatmapGObutton', 'Get PDF')})
+      
+
+      }else{
+        #here only one block: plot barplot and not heatmap
+        output$show_colorScaleGO<-renderUI({NULL})
+        output$show_scaleQuantileGO<-renderUI({NULL})
+        #left axis
+        output$plotMaterialLeft<-renderPlot({
+       
+          if(nchar(round(max(partdfpadj[,1])))>2){
+            maxval=max(partdfpadj[,1])
+            labs=seq(0, maxval, round(max(partdfpadj[,1],1)/8))
+          }else{
+            maxval=round(max(partdfpadj[,1]),3)
+            labs=seq(0, maxval , signif(max(partdfpadj[,1],1)/8,digits=2)   )
+          }
+          #labs=c(labs,signif(max(partdfpadj[,1]),digits=2))
+          maxpoint=labs[length(labs)] /maxval
+          ats=seq(0,maxpoint,(1/(length(labs))))
+
+          ats[1]=ats[1]+0.01
+          ats[length(ats)]=ats[length(ats)]-0.01
+          par(mar = c(0,0,0,0))
+          plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i", yaxs="i")
+
+          axis(side=2, labels=labs,at=ats,pos=.98)
+          text(x=0.80,y=0.5,las=2,label="-log10 padj",srt = 90)
+        })
+
+        output$plotOntology<-renderPlot({
+          par(mar = c(0,0,0,0))
+          if(nrow(partdfpadj)<30){
+            factormult2=30/nrow(partdfpadj)
+          }else{
+            factormult2=1
+          }
+          
+          barplot(partdfpadj[,1],names=rownames(partdfpadj),las=2,ylab="-log10 padj",ylim=c(0,max(partdfpadj[,1])),xlim=c(0,nrow(partdfpadj)*factormult2),xaxt = 'n', yaxt = 'n',xaxs="i",space=rep(0,nrow(partdfpadj)))
+        })  
+
+        #no color scale if barplot
+        output$colorScaleGO<-renderPlot({NULL})
+        output$saveheatmapGO<-renderUI({downloadButton('savebarplotGObutton', 'Get PDF')})
+      }
+
+      #prepare table to show and download
+      toshow=mat  
+      toshow$Term=rownames(mat)
+      #rerder cols, Gene list must be at the end
+      pospadj=which(grepl("_padj$",colnames(toshow)))
+      posratio=which(grepl("_gene_ratio$",colnames(toshow)))
+      posgene=which(grepl("_Genes$",colnames(toshow)))
+      posterm=which(grepl("Term$",colnames(toshow)))
+      newpos=c(posterm,pospadj,posratio,posgene)
+      toshow=toshow[,newpos ]
+      toplot$GOvariables$filtereddf=toshow
+
+
+      output$tableOntology <- renderDataTable({
+        toshow
+      },options=list(pagingType = "simple",pageLength = 10,lengthChange=FALSE,searching=TRUE,autowidth=FALSE )   )
+
+      output$textNameGO <- renderPlot({
+        par(mar = rep(0, 4))
+        plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")
+        #have to start from x coordinate of the half of first cell to half of the last
+        numbersample=nrow(partdfpadj)
+        if(numbersample<30){
+          #divide by 10 and multiply by number sample
+          newmax=(1/30)*numbersample
+          halfcellwidthmin=(newmax/numbersample)/2
+          halfcellwidthmax=newmax-halfcellwidthmin
+          cextext=0.8
+        }else{
+          halfcellwidthmin=(1/numbersample)/2
+          halfcellwidthmax=1-halfcellwidthmin
+          coeff=(nrow(partdfpadj)/30 )
+          coeff2=(1-(30/nrow(partdfpadj)))/3
+          cextext=0.8/coeff +coeff2
+        }
+        
+        text(x=seq(halfcellwidthmin, halfcellwidthmax ,length.out=numbersample),labels=rownames(partdfpadj),y=rep(0.98,numbersample),srt=90,cex=cextext,adj=1  )     
+      })
+
+      output$tableGOdownloadButton<-renderUI({downloadButton('saveGOdataTable', 'Download data')})
+      
+    }else{
+      output$plotOntology<-renderPlot({NULL})
+      output$tableOntology <- renderDataTable({NULL})
+      output$textNameGO <- renderPlot({NULL})
+      output$tableGOdownloadButton<-renderUI({NULL})
+      output$plotMaterialLeft<-renderPlot({NULL})
+      output$colorScaleGO<-renderPlot({NULL})
+      output$saveheatmapGO<-renderUI({NULL})
+      output$show_colorScaleGO<-renderUI({NULL})
+      output$show_scaleQuantileGO<-renderUI({NULL})
+
+    }    
+  }else{
+    output$plotOntology<-renderPlot({NULL})
+    output$tableOntology <- renderDataTable({NULL})   
+    output$textNameGO <- renderPlot({NULL}) 
+    output$tableGOdownloadButton<-renderUI({NULL})
+    output$plotMaterialLeft<-renderPlot({NULL})
+    output$colorScaleGO<-renderPlot({NULL})
+    output$saveheatmapGO<-renderUI({NULL})
+    output$show_colorScaleGO<-renderUI({NULL})
+    output$show_scaleQuantileGO<-renderUI({NULL})
+
+  }
+  
+})
+
+
+
+#observer for download data button
+output$saveGOdataTable<- downloadHandler(
+  filename=function() {
+      paste('GeneOntology_data.xls', sep='')
+  },
+  content=function(file) {
+
+      write.table(toplot$GOvariables$filtereddf,file=file,row.names=FALSE,sep="\t",quote=FALSE,col.names=TRUE   ) 
+  } 
+  
+)
+
+
+
+
+output$saveheatmapGObutton<- downloadHandler(
+  filename=function() {
+      paste('Heatmap_GO.pdf', sep='')
+  },
+  content=function(file) {
+    partdfpadj=toplot$GOvariables$partdfpadj    
+    #multiplying factor for height(n ROIs,=>ncol)
+    if(ncol(partdfpadj)<10){
+      factormult=10/ncol(partdfpadj)
+    }else{
+      factormult=1
+    }
+    #multiplying factor for width(n ontologies,=>nrow)
+    if(nrow(partdfpadj)<30){
+      factormult2=30/nrow(partdfpadj)
+      cextext=1
+    }else{
+      factormult2=1
+      coeff=(nrow(partdfpadj)/30 )
+      coeff2=(1-(30/nrow(partdfpadj)))/3
+      cextext=1/coeff +coeff2
+    }
+
+    trasp=as.matrix(partdfpadj)
+    colorpal=input$colorScaleGO 
+    scaleQuantile=input$scaleQuantileGO
+    brk=201
+    trasp[trasp>quantile(trasp,scaleQuantile)]=quantile(trasp,scaleQuantile)
+    colorsplitted=strsplit(colorpal,split="_")[[1]]
+    palette=colorRampPalette(colorsplitted)(n=brk-1)
+
+    pdf(file,width=10,height=8)
+    block1=c(rep(1,9),2)
+    block2=c(rep(3,9),4)
+    mlay=matrix( c(block1,rep(block2,9)),ncol=10,nrow=10,byrow=TRUE)
+    layout(mlay)
+    par(mar=rep(0,4))
+    plot.new()
+
+    #draw color scale
+    color.bar2(palette, min=round(0),max=round(max(trasp),2),margins=c(2,1.2,2,1.2))  
+
+    par(mar = c(22,22,0,0))
+    image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", 
+          ylab = "",col=palette,xlim=c(0,nrow(trasp)*factormult2),ylim=c(0,ncol(trasp)*factormult),useRaster=FALSE  )
+    #lines for the columns
+    for(csep in 1:nrow(trasp)){
+      rect(xleft = csep , ybottom = rep(0,length(csep)), 
+        xright = csep  + 0.01, 
+        ytop = rep(ncol(trasp), csep), lty = 1, lwd = 1, 
+        col = "black", border = "black"
+      )
+    }
+    #lines for the rows
+    for (csep2 in 1:ncol(trasp)){
+      rect(xleft = rep(0,length(csep2))  , ybottom = csep2 , 
+        xright = rep(nrow(trasp) , csep2), 
+        ytop = csep2 +0.01, lty = 1, lwd = 1, 
+        col = "black", border = "black")
+    }    
+    #draw axes
+    
+    axis(1,at=(1:nrow(trasp)-0.5),labels=rownames(trasp),las= 2,tick=FALSE,cex.axis=cextext )
+    axis(2,at=(1:ncol(trasp)-0.5),labels=rev(colnames(trasp)),las= 1,tick=FALSE )
+    par(mar=rep(0,4))
+    plot.new()
+  
+
+    dev.off()
+
+  } 
+)
+
+
+
+output$savebarplotGObutton<- downloadHandler(
+  filename=function() {
+      paste('Barplot_GO.pdf', sep='')
+  },
+  content=function(file) {
+    partdfpadj=toplot$GOvariables$partdfpadj 
+    pdf(file,height=8,width=10)
+    par(mar = c(15,6,0,0))
+    if(nrow(partdfpadj)<30){
+      factormult2=30/nrow(partdfpadj)
+    }else{
+      factormult2=1
+    }
+    
+    barplot(partdfpadj[,1],names=rownames(partdfpadj),las=2,ylab="-log10 padj",xlim=c(0,nrow(partdfpadj)*factormult2),space=rep(0,nrow(partdfpadj)))
 
     dev.off()
   } 
 )
+
+
+
+
+
 
 

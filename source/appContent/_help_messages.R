@@ -56,94 +56,176 @@ Tip<-function(body,plural=F){
 	)	
 }
 
+
+
+
+############################################################
+# function for inline help (actionbutton in HTML block)
+############################################################
+
+htmlhelp<-function(text,id) {
+	return(
+		list(
+			HTML(text),
+			actionButton(id,"?",style="height:20px;width:14px;padding:0px;background-color: #b7b7b7;font-weight: bold")
+		)
+	)
+}
+
+
+
+
+
+
 ############################################################
 ############################################################
-# coordinate files
+############################################################
+# ROI coordinate files
+############################################################
 ############################################################
 ############################################################
 
-#choose coordinates
+############################################################
+# import
+############################################################
+
+
 msg_coordinateFiles_chooseCoordinates<-list(
-	title="From file",
+	title="Import a new ROI",
 	text=list(
-		tags$h3("File to import"),
-		"Choose the BED/GTF/GFF file to import",
-		tags$br(),
-		tags$br(),
-		tags$h4("Parameters:"),
-		"Choose the parameters to use to open a ROI from file",
-		tags$br(),
-		Field("Header","Tick if the file has a header"),
-		Field("Lines to skip","If you have extra-lines at the beginning of your file, you can skip them by
-			inserting their number here"),
-
-		tags$br(),
-		tags$h4("Open file:"),
-		"You can use two different ways to open a BED/GTF/GFF file",
-		tags$br(),
-		Field("Select a file...","Select the BED/GFF/GTF file by exploring the filesystem"),
-		Field("...or choose a file path","Type the complete path of the BED/GFF/GTF file"),
-		tags$br(),
-
-		Comment("If the file is opened correctly, the content of the table can be explored interactively 
-						in 'File preview' section (see below)"),
-
-		tags$br(),
-		tags$br(),
-		Warning("1. This file must be reachable from the machine on which ChroKit is running.<br>
-				2. It must be a tab-delimited text file with 3 (optionally 4) columns with the format :<br><br>
-
-				Column 1: chr&emsp;Column 2: start&emsp;Column 3: end&emsp;Column 4: strand<br><br>
-				
-				<b>'chr'</b> column should be in format 'chrN', where 'N' should be the number of the chromosome (1,2,...X,Y,M)<br>
-				<b>'start, end'</b> columns are numbers indicating the starting and ending point of the each region, respectively<br>
-				<b>'strand'</b> column (optional) represents the strand for each genomic range(can be either +, -, or * if strand is not determined)		
-				",plural=T),
-				
-		tags$br(),
-		tags$br(),
-		tags$br(),
-		tags$h3("File preview"),
-		"Here you can check the file you opened"		
+		"Here you can import new ROIs from files, from sequence pattern occurrences in the genome and import genelists"
 	)
 )
 
 
+help_BED_fromfiles<-list(
+	title="Import a ROI from file",
+	text=list("Here you can import a ROI from a bed, gtf or gff file.",
+		tags$br(),	
+		tags$br(),
+		Warning("<b>1</b>. Files must be reachable from the machine on which ChroKit is running.<br>
+	 				<b>2</b>. It must be a tab-delimited text file with 3 (optionally 4) columns with the format :<br><br>
 
-#Import genelist
-msg_genelists_importGenelist<-list(
-	title="From genelist",
-	text=list(
-		tags$h3("Genes to import"),
-		"You can import promoters, transcripts and TES from a custom list of genes (one gene per line) in 3 different ways",
-		tags$br(),
-		tags$br(),
-		Field("Open a text file...","Select a text file containing the list of genes by exploring the filesystem"),
-		Field("...or select a path...","Type the path of the text file containing the list of genes"),
-		Field("...or put IDs/symbols here","Insert here the list of gene symbols or IDs to extract, and the name of the new gene list you are going to import"),
+	 				Column 1: <i>chr</i>&emsp;Column 2: <i>start</i>&emsp;Column 3: <i>end</i>&emsp;Column 4: <i>strand</i><br><br>
+					
+	 				<i>'chr'</i> column should be in format 'chrN', where 'N' is the number of the chromosome (1,2,...X,Y,M)<br>
+	 				<i>'start, end'</i> columns are numbers indicating the starting and ending point of each genomic range<br>
+	 				<i>'strand'</i> column (optional) is the strand for each genomic range(can be either +, -, or * if strand is not determined)		
+	 				",plural=T)
 
+	)
+)
+
+help_BED_fromgenelist<-list(
+	title="Import a genelist",
+	text=list("Here you can import a genelist by pasting the gene ID or symbols, or loading a text file containing IDs or symbols.",
 		tags$br(),
-		Comment("When a gene list is opened, the promoters, transcripts, TES of the genes associated to that gene lists are loaded in memory as new ROI. 
+		Comment("When a gene list is loaded, the promoters, transcripts, TES of the genes associated to that gene lists are loaded in memory as new ROIs. 
 				All annotated isoforms are loaded as well"),
 		tags$br(),
 		tags$br(),
-		Warning("1. The file containing the gene list must be a text file in which each row is a gene symbol/gene ID.<br> 
-				2. It must be readable from the system in which ChroKit is running.<br>
-				3. A genome assembly must be loaded to import a gene list (To load a genome assembly, go to the 'Assembly' section).",plural=T),
+		Warning("<b>1</b>. The file containing the gene list must be a text file in which each row is a gene symbol/gene ID.<br> 
+				<b>2</b>. It must be readable from the system in which ChroKit is running.<br>
+				<b>3</b>. A genome assembly must be loaded to import a gene list (To load a genome assembly, go to the 'Assembly' section).",plural=T)
+	)
+)
 
+
+help_BED_kindofID<-list(
+	title="Kind of gene IDs",
+	text=list("Select which kind of identifiers are in the gene list you are importing: Symbols, ENTREZ IDs, ...")
+)
+help_BED_maxtranscriptlen<-list(
+	title="Maximum transcript length",
+	text=list("Select the maximum length of the transcript allowed in the gene list you are going to import.
+					Genes with transcripts length above that threshold will not be loaded",
 		tags$br(),
-		tags$br(),
-		tags$h3("Parameters"),
-		tags$br(),
-		Field("What kind of identifiers are you importing?","Select which kind of identifiers are in the gene list you are importing: Symbols, ENTREZ IDs, ..."),
-		Field("Max length for transcripts","Select the maximum length of the transcript allowed in the gene list you are going to import.  
-				Genes with transcripts length above that threshold will not be loaded"),
 		tags$br(),
 		Warning("Association of enrichments to long transcripts may cause memory problems")
 
 	)
+
 )
 
+
+help_BED_frompatterngenome<-list(
+	title="Import a ROI from pattern occurrences",
+	text=list(
+		"Import a new ROI from a sequence pattern inside the genome. Coordinates of the created ROI will be the positions of occurrences
+			 of the pattern in the genome",
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>. A genome assembly must be loaded to search for patterns. To load a genome assembly, use 'Assembly' section.<br>
+				<b>2</b>. A BSgenome database must be also loaded: this database contains the information about the sequence 
+				in a specific genomic region in the genome assembly in use. If this database is not installed in the 
+				system, a new button will appear to enable the User to download it from bioConductor. 
+				Make sure your internet connection is working",plural=T)			 
+	)
+)
+
+
+help_BED_IUPACpattern<-list(
+	title="IUPAC nomenclature",
+	text=list(
+				HTML("Select the pattern you want to extract. Use the IUPAC nomenclature:<br>
+				<b>A,C,G,T,U</b>: known bases<br>
+				<b>R</b>: A or G<br>
+				<b>Y</b>: C or T<br>
+				<b>S</b>: G or C<br>
+				<b>W</b>: A or T<br>
+				<b>K</b>: G or T<br>
+				<b>M</b>: A or C<br>
+				<b>B</b>: C or G or T<br>
+				<b>D</b>: A or G or T<br>
+				<b>H</b>: A or C or T<br>
+				<b>V</b>: A or C or G<br>
+				<b>N</b>: any base<br>
+				<b>. or -</b>: gap<br>")
+	)
+
+)
+
+help_BED_headeroption<-list(
+	title="Is the header present?",
+	text=list("If the file has a header (the column names are present), check this option")
+)
+
+
+help_BED_linesskip<-list(
+	title="Skip lines",
+	text=list("Set the number of lines that should be ignored at the beginning of the file. If you have extra-lines at the beginning of your file, you can skip them by
+		 			inserting their number here")
+)
+
+help_BED_filepreview<-list(
+	title="View the file before importing",
+	text=list(
+		"Here you can interactively explore the opened file. If you are satisfied and you want to import it as new ROI, click 'Confirm and import as ROI' button"
+	)
+)
+
+
+############################################################
+# view ROI
+############################################################
+msg_quickviewROIs<-list(
+	title="Quick look at imported ROIs",
+	text="Select one or more ROIs to view the number of ranges or the ranges width distribution"
+)
+
+
+help_BED_viewoptions<-list(
+	title="Which info to display",
+	text=HTML("Select which information you want to display of the selected ROIs.<br>
+		<b>Distribution of ranges width</b>: This shows the distribution of the log2 of the width of the ranges<br>
+		<b>Number of ranges</b>: This shows a barplot of the number of genomic ranges for each of the selected ROIs")
+)
+
+
+
+############################################################
+# delete ROI
+############################################################
 
 #Delete ROIs
 msg_deleteRois_deleteRois<-list(
@@ -159,27 +241,56 @@ msg_deleteRois_deleteRois<-list(
 		Warning("When you remove a ROI, all the enrichments associated to it will be removed, as well")
 	)
 )
-#Rename ROIs
-msg_deleteRois_renameRois<-list(
-	title="Change the name of a ROI",
+
+
+
+############################################################
+# get ROI
+############################################################
+
+msg_getRois_BOX<-list(
+	title="Export a ROI to a file",
 	text=list(
-		"Select a ROI and type the new name",
-		tags$br(),
-		tags$br(),
-		Warning("You cannot use 'promoters', 'transcripts', 'TES' as names. Also names cannot begin with 'promoters_genelist_', 'transcripts_genelist_' or 'TES_genelist_'")
+		"Get all the info associated to a ROI and download it."
 	)
 )
-#Reorder ROIs
-msg_deleteRois_reorderRois<-list(
-	title="Change the order of ROIs",
-	text=list(
-		"For each ROI in the list, select the number corresponding to the new position 
-		in the ranking, and press the 'Reorder!' button",
-		tags$br(),
-		tags$br(),
-		Comment("This is the order used for some displayed items, as for example position-based heatmaps or menus")
-	)
+
+help_BED_getroi_eachGR<-list(
+	title="Information for each genomic range of the ROI",
+	text=list("Displays the genomic coordinates and/or nearest gene IDs and/or associated enrichments 
+				for each genomic range of the selected ROI.",
+				tags$br(),
+				tags$br(),
+				Warning("A genome assembly must be loaded to get the annotations. To load a genome assembly, 
+				use 'Assembly' section. Once an assembly has been loaded, every genomic range of a 
+				ROI is annotated to the nearest gene")
+		)
 )
+
+help_BED_getroi_genomicWindow<-list(
+	title="Annotated genes inside genomic window",
+	text=list("It retrieves the list of genes (IDs and/or symbols) 
+					found at a user-defined distance from the midpoint of all genomic ranges of the ROI.",
+
+		tags$br(),
+		tags$br(),
+		tags$br(),
+		Warning("A genome assembly must be loaded to get the annotations. To load a genome assembly, 
+				use 'Assembly' section")
+		)
+)
+
+
+
+
+help_BED_getroi_windowvalue<-list(
+	title="Number of bp for genomic window",
+	text=list("The number of base pair upstream and downstream the midpoint of each genomic range of the selected ROI.
+			All the genes inside this window will be displayed.")
+)
+
+
+
 
 ############################################################
 ############################################################
@@ -189,24 +300,24 @@ msg_deleteRois_reorderRois<-list(
 
 #import enrichment file
 msg_enrichmentFiles_importEnrichment<-list(
-	title="Import an enrichment file (BAM/WIG)",
+	title="Import an enrichment file (BAM/bigWIG)",
 	text=list(
 		"This section is used to associate enrichment files to a ChroKit session.",
 		tags$br(),
 		tags$br(),
-		Field("Choose a file...","Select the enrichment file (BAM or WIG) by exploring the filesystem"),
-		Field("...or select the path","Type here the path to the enrichment file (BAM or WIG)"),
+		Field("Choose one or more files from filesystem","Select the enrichment file(s) (BAM or bigWIG) by exploring the filesystem"),
+		Field("Manually type the path of a file","Type here the path to the enrichment file (BAM or bigWIG)"),
 		tags$br(),
-		Comment("Formats supported: BAM and WIG. When an enrichment file is selected and imported, the program keeps in memory the link (path)
+		Comment("Formats supported: BAM and bigWIG. When an enrichment file is selected and imported, the program keeps in memory the link (path)
 				 to that file"),
 		tags$br(),
 		tags$br(),
-		Warning("1. The file must be reachable from the machine in which ChroKit is running.<br>
+		Warning("<b>1</b>. The file must be reachable from the machine in which ChroKit is running.<br>
 
-				2. If a BAM file is chosen, a BAM index (.bai) file should be present in the same directory 
+				<b>2</b>. If a BAM file is chosen, a BAM index (.bai) file should be present in the same directory 
 				and must have the same name of the bam, plus the '.bai' extension. 
 				For example, if the file is 'enrichment.bam', the corresponding index should be 'enrichment.bam.bai'. 
-				WIG files are not currently supported by Windows operating systems",plural=T),
+				bigWIG files are not currently supported by Windows operating systems",plural=T),
 		tags$br(),
 		tags$br(),
 		Tip("To create a BAM index, use samtools (outside ChroKit) with the following syntax:<br><br> 
@@ -245,11 +356,107 @@ msg_enrichmentFiles_renameEnrichment<-list(
 	)
 )
 
+
+
+
+# #ROI selection
+# msg_getRois_roiSelection<-list(
+# 	title="Get all the info associated to a ROI",
+# 	text=list(
+# 		"Select the ROI for which you want to explore or download the information. 
+# 		Once a ROI is selected, the following information can be retrieved",
+# 		tags$br(),
+# 		tags$br(),
+# 		tags$h4("Features for each genomic range:"),
+# 		tags$br(),
+# 		"Displays the genomic coordinates and/or nearest gene IDs and/or associated enrichments for each genomic range of the selected ROI",
+# 		tags$br(),
+# 		tags$br(),
+# 		Field("View Ranges","Genomic coordinates of the ROI and the strand"),
+# 		Field("Select annotations to show","Here you can include IDs and/or symbols 
+# 											of the annotated genes"),
+# 		tags$br(),
+# 		Warning("A genome assembly must be loaded to get the annotations. To load a genome assembly, 
+# 				use 'Assembly' section. Once an assembly has been loaded, every genomic range of a 
+# 				ROI is annotated to the nearest gene"),
+# 		tags$br(),
+# 		tags$br(),
+# 		Field("Enrichments","These are the signal enrichments associated to the ROI. It shows the sum 
+# 				of the pileup of the reads for the selected enrichment within each genomic range of the ROI"),
+# 		tags$br(),
+# 		tags$h4("Gene list inside genomic window:"),
+# 		tags$br(),
+# 		"Displays the list of gene IDs and/or symbols inside a genomic window from the midpoint of each genomic range of the selected ROI",
+# 		tags$br(),
+# 		tags$br(),
+# 		Field("Get annotated genes within a genomic window","It retrieves the list of genes (IDs and/or symbols) 
+# 					found at a user-defined distance from the genomic ranges of the ROI. User defined 
+# 					distance is set in '<b>Select the genomic window (bp)</b>'"),
+# 		Field("Select the genomic window (bp)","Select the size of the genomic window flanking the genomic ranges 
+# 					of a ROI. The width is measured from  the center of the genomic ranges"),		
+# 		tags$br(),
+# 		tags$h4("Edit notes of the ROI:"),
+# 		tags$br(),
+# 		"Displays the notes of the selected ROI. These notes can be edited and saved or downloaded as text file",
+# 		tags$br()
+
+# 	)
+# )
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Rename ROIs
+msg_deleteRois_renameRois<-list(
+	title="Change the name of a ROI",
+	text=list(
+		"Select a ROI and type the new name",
+		tags$br(),
+		tags$br(),
+		Warning("You cannot use 'promoters', 'transcripts', 'TES' as names. Also names cannot begin with 'promoters_genelist_', 'transcripts_genelist_' or 'TES_genelist_'")
+	)
+)
+#Reorder ROIs
+msg_deleteRois_reorderRois<-list(
+	title="Change the order of ROIs",
+	text=list(
+		"For each ROI in the list, select the number corresponding to the new position 
+		in the ranking, and press the 'Reorder!' button",
+		tags$br(),
+		tags$br(),
+		Comment("This is the order used for some displayed items, as for example position-based heatmaps or menus")
+	)
+)
+
+
+
 ############################################################
 ############################################################
 # Assembly
 ############################################################
 ############################################################
+
+
+help_txdb_windowupdownstream<-list(
+	title="base pair for defining TSS and TES regions",
+	text=list(
+		HTML("By indicating the number of base pairs upstream and downstream from TSS and TES, 
+									you can choose the size of the genomic window encompassing the TSS and TES"),
+		tags$br(),
+		tags$br(),
+		Tip("By choosing 2000 upstream and 1000 downstream  of  a TSS,  you  will define promotorial regions of 3000bp, 
+					starting at  -2000 and ending at +1000 from the annotated TSS")
+	)
+)
 
 #Extract annotated elements from database
 msg_databases_extractAnnotatedElements<-list(
@@ -265,23 +472,7 @@ msg_databases_extractAnnotatedElements<-list(
 				3. ROIs already imported into the program will be automatically re-annotated according to the newly selected genome assembly 
 				(except those derived from a previous database, for example the promoters of a list of genes obtained from another database).<br>
 				4. Additional genome assemblies can be downloaded from bioconductor using the 'Download databases' box 
-				on the right. ",plural=T),
-		
-		tags$br(),
-		tags$br(),
-		Field("TSS and TES Upstream/Downstream","By indicating the number of base pairs selected upstream and downstream from TSS and TES, 
-									you can choose the size of the genomic window encompassing the TSS and TES"),
-		tags$br(),
-		Tip("By choosing 2000 upstream and 1000 downstream  of  a TSS,  you  will define promotorial regions of 3000bp, 
-					starting at  -2000 and ending at +1000 from the annotated TSS"),
-		
-		tags$br(),
-		tags$br(),
-		Field("Transcripts for annotation must contain (click)","Tick here to restrict the annotation of your ROI(s) 
-								only to those transcripts annotated by the indicated identifier"),
-		tags$br(),
-		Tip("To select only promoters/transcripts/TES which have the corresponding gene symbol and also 
-					a RefSeq ID, click 'SYMBOL' and 'RefSeq' buttons")
+				on the right. ",plural=T)
 		
 	)	
 )
@@ -298,616 +489,522 @@ msg_databases_downloadDatabases<-list(
 				for mm10 genome assembly it will download TxDb.Mmusculus.UCSC.mm10.knownGene and org.Mm.eg.db databases)"),
 		tags$br(),
 		tags$br(),
-		Warning("1. Be sure your internet connection is working! <br>
-				2. This may require some time",plural=T)		
+		Warning("<b>1</b>. Be sure your internet connection is working! <br>
+				<b>2</b>. This may require some time",plural=T)		
 	
 	)
 )
 
 
 
-
-
-
 ############################################################
 ############################################################
-# ROI management
-# IMAGES NEEDED FOR OVERLAPS
+# ROI preparation
 ############################################################
 ############################################################
 
-#### Overlaps
-msg_newRois_options<-list(
-	title="Options for the overlaps",
-	text=list(
-		"Here you can set the rules for defining overlapping or non-overlapping genomic ranges",
+
+############################################################
+# main menu
+############################################################
+msg_ROImanipulation<-list(
+	title="Prepare ROIs for analyses and visualization",
+	text=list("A set of tools to modify ROIs in order to have full visualization capabilities")
+)
+
+msg_prepare_ultraeasy<-list(
+	title="Prepare a ROI for visualization",
+	text=list("The easiest way to prepare a ROI for analyses. This step simply associates one or more enrichment files to a ROI.
+			This is the minimum requirement for basic quantitative analyses.",
 		tags$br(),
 		tags$br(),
-		Field("Minimum number of bp to consider for overlaps","Two genomic ranges will be deemed overlapping if 
-						the number of shared bases is equal or greater than the value indicated here"),
-		Field("Strand-specific overlaps","If selected, the overlaps will be determined considering the strand 
-						information: only genomic regions with concordant strand information (i.e. same strand) 
-						will be tested. If strand information is not available, Chrokit will ignore this option"),
+		Warning("You need to import enrichment files for this operation")
+	)
+)
+
+msg_prepare_forheat<-list(
+	title="Prepare a ROI for heatmaps",
+	text=list("Create a new modified ROI from a pre-existent one, that can be used for heatmaps visualization and analyses.
+			If enrichment files are not loaded, the resulting ROI can be used only for position-based heatmaps."
+	)
+)
+
+msg_prepare_formetagene<-list(
+	title="Prepare a genelist for metagene profiles",
+	text=list("Associates enrichments to imported genelists for metagene profile analyses.",
 		tags$br(),
-		Warning("The enrichments associated to the original ROI will be kept 
-				only if all the genomic ranges of the new ROI are narrower than those of the original ROI."),
 		tags$br(),
-		tags$br(),
-		Field("Name of the ROI","The name of the new ROI that will be created by the overlap analysis"),
-		tags$br(),
-		Warning("You cannot use 'promoters', 'transcripts', 'TES' as names. The name cannot begin with 
-					'promoters_genelist_', 'transcripts_genelist_' or 'TES_genelist_'")
-		
+		Warning("<b>1</b>. You need to import enrichment files<br>
+				<b>2</b>. You need to import the correct genome assembly<br>
+				<b>3</b>. You need to import genelists<br>",plural=T)	
+	)
+)
+
+msg_prepare_manual<-list(
+	title="In-depth ROI editing",
+	text=list("Manually edit ROIs. This is a 'swiss army knife' for modifying ranges, associating enrichments, filtering genomic intervals in detail."
 	)
 )
 
 
-#ROI combination
-msg_newRois_ROIcombination<-list(
-	title="Roles and rules for the overlap analysis",
-	text=list(
-		"You can build new ROIs according to combination of overlaps with other ROIs",
+
+############################################################
+# prepare ultraeasy
+############################################################
+help_ultraeasy_enrichmentAssoc<-list(
+	title="Associate enrichments",
+	text=list("Associate one or more enrichments to the ROI. This is required for quantitative analyses on the reads enrichment of NGS experiments",
 		tags$br(),
 		tags$br(),
-		Field("Choose the reference ROI","Here you can define the ROI that will be used as reference 
-				for calculating the overlaps"),
-		Field("Select ROI(s)","Select one or more ROIs. If more than one ROI is selected, 
-				a combination of them will be used as reference"),
-		Field("Criteria for building the aggregated reference ROI","If more than one ROI is selected, choose how 
-				multiple reference ROIs are aggregated together: the resulting reference ROI can be either 
-				the union or the intersection of the ROIs selected<br>
-				<li>Intersection: the aggregated reference ROI will be constituted by 
+		Comment("This step is required to perform quantitative analyses"),
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>.You need to import enrichment files for this operation<br>
+				<b>2</b>. bigWIG files are not supported in Windows operating systems",plural=T)
+	)
+)
+
+
+
+############################################################
+# prepare for heatmaps
+############################################################
+help_prepheat_subsample<-list(
+	title="Subsample ROI",
+	text=list("This value determines how many of the genomic ranges of the selected ROI will be used.")
+
+)
+
+help_prepheat_summit<-list(
+	title="Center the ranges on summits",
+	text=list("If 'Yes', set the midpoint of each genomic range on the summit (i.e. position with the highest amount of reads) of a specific enrichment.",
+		tags$br(),
+		tags$br(),
+		Warning("You need to import enrichment files for this operation")
+		)
+)
+
+help_prepheat_resize<-list(
+	title="Resize genomic ranges",
+	text=list("Resize each genomic range to a fixed window, by selecting the number of bp upstream and downstream the center of genomic ranges.")
+)
+
+
+help_prepheat_enrichmentAssoc<-list(
+	title="Associate enrichments",
+	text=list("Associate one or more enrichments to the ROI. This is required for quantitative analyses on the reads enrichment of NGS experiments",
+		tags$br(),
+		tags$br(),
+		Comment("This step is required to generate enrichment-based heatmaps and to perform quantitative analyses"),
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>.You need to import enrichment files for this operation<br>
+				<b>2</b>. bigWIG files are not supported in Windows operating systems",plural=T)	
+	)
+
+)
+
+############################################################
+# prepare for genelists
+############################################################
+
+
+help_prepgenelist_ROIassociated<-list(
+	title="ROIs which constitute the selected genelists",
+	text=list("The list of ROIs (promoters, transcripts and TES) that, together, form the selected genelists")
+)
+
+help_prepgenelist_enrichmentAssoc<-list(
+	title="Associate enrichments",
+	text=list("Associate one or more enrichments to genelists. 
+				Selected enrichments will be associated to both the promoters, transcripts and TES that constitute the genelists.",
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>.You need to import enrichment files for this operation<br>
+				<b>2</b>. bigWIG files are not supported in Windows operating systems",plural=T)	
+	)
+)
+
+
+
+############################################################
+# manual ROI editing
+############################################################
+
+#overlaps
+help_roimanual_overlaps<-list(
+	title="Overlap two or more ROIs",
+	text=list("Here you can set the rules for defining overlapping or non-overlapping genomic ranges and generate new ROIs"
+	)
+)
+
+
+help_roimanual_overlaps_selectref<-list(
+	title="Select reference ROI",
+	text="The ROI(s) that will be used as reference. If more than one ROI is selected, 
+				a combination of them will be used as starting point for the overlaps.",
+		tags$br(),
+		tags$br(),
+		Comment("1. If multiple ROIs are selected, the program will calculate 
+				the union or intersection of their genomic ranges and will produce a single reference.<br>
+				2. The new ROI will keep the enrichments associated to the reference ROI only if a single reference ROI is selected",plural=T)
+)
+
+help_roimanual_overlaps_intersectionref<-list(
+	title="Intersection of reference ROIs",
+	text=HTML("the aggregated reference ROI will be constituted by 
 					the genomic ranges common to all the ROIs selected. For example, if 3 ROIs 
 					are selected (i.e. A, B and C), the aggregated reference ROI will be: 
-					A&cap;B&cap;C</li>
-				<li>Union: The aggregated reference ROI will be the union of all the genomic 
+					A&cap;B&cap;C")
+)
+
+help_roimanual_overlaps_unionref<-list(
+	title="Union of reference ROIs",
+	text=HTML("The aggregated reference ROI will be the union of all the genomic 
 					ranges contained in the selected ROIs. For example, if 3 ROIs 
 					are selected (i.e. A, B and C), the aggregated reference ROI will be:
-					A&cup;B&cup;C</li>"),
-		tags$br(),
-		Comment("1. If multiple ROIs are aggregated together to form a reference, the program will calculate 
-				the union or intersection of genomic ranges of those ROIs, and will produce a single reference.<br>
-				2. The new ROI will keep the enrichments associated to the reference ROI only if a single reference ROI is selected",plural=T),
-		tags$br(),
-		tags$br(),
-		tags$br(),
-		Field("...that overlaps with contrast ROI","Here you can define the rules to build the contrast ROI 
-				that will be used for the overlap analysis with the reference ROI. The aggregated contrast ROI 
-				is built from the ROIs selected which are then aggregated following the rule defined in 
-				'<b>Criteria for building the aggregated contrast ROI</b>'"),
-		Field("Select ROI(s)","Select one or more contrast ROIs to be overlapped with the reference ROI"),
-		Field("Criteria for building the aggregated contrast ROI","If multiple contrast ROIs are selected here, 
-				they will be aggregated according to different criteria:
-				<li>Intersection of the contrast ROIs: the aggregated contrast ROI will be constituted by 
-					the genomic ranges common to all the ROIs selected. For example, if 3 contrast ROIs 
-					are selected (i.e. A, B and C), the aggregated contrast ROI will be: 
-					A&cap;B&cap;C</li>
+					A&cup;B&cup;C")
+)
 
-				<li>Union of the contrast ROIs: The aggregated contrast ROI will be the union of all the genomic 
-					ranges contained in the selected ROIs. For example, if 3 contrast ROIs 
-					are selected (i.e. A, B and C), the aggregated contrast ROI will be:
-					A&cup;B&cup;C</li>"),
-		tags$br(),
-		Comment("Only genomic ranges of the reference ROI that overlap with those of the contrast ROI will be kept"),
-		tags$br(),
-		tags$br(),
-		tags$br(),
-		Field("...that doesn't overlap with contrast ROI","Here you can define the rules to build the contrast ROI 
-				that will be used to identify genomic ranges non-overlapping with the reference ROI. 
-				For more information refer to:'<b>Criteria for building the aggregated contrast ROI</b>'"),
-		Field("Select ROI(s)","Select one or more contrast ROIs"),
-		Field("Criteria for building the aggregated contrast ROI","If multiple contrast ROIs are selected here, 
-				they will be aggregated according to different criteria:
-				<li>Intersection of the contrast ROIs:  The aggregated contrast ROI will be constituted by the 
-					genomic ranges common to all the ROIs selected. For example, if 3 contrast ROIs 
-					are selected (i.e. A, B and C), the aggregated contrast ROI will be: 
-					A&cap;B&cap;C</li>
-				<li>Union of the contrast ROIs :  The aggregated contrast ROI will be the union 
-				of all the genomic ranges contained in the selected ROIs. For example, if 3 contrast ROIs 
-					are selected (i.e. A, B and C), the aggregated contrast ROI will be:
-					A&cup;B&cup;C</li>"),
-		tags$br(),
-		Comment("The resulting ROI will contain only the genomic ranges of the reference ROI that 
-				do not overlap with those of contrast ROI")
-		
 
-	)
+help_roimanual_overlaps_selectoverlapwith<-list(
+	title="Select overlapping contrast ROI",
+	text="Select ROIs that have to overlap with the reference ROI",
+	tags$br(),
+	tags$br(),	
+	Comment("Only genomic ranges of the reference ROI that overlap with those selected here will be kept")
+)
+
+help_roimanual_overlaps_intersectionoverlapwith<-list(
+	title="Intersection of overlapping contrast ROI",
+	text=HTML("The aggregated contrast ROI will be the genomic ranges common to all the ROIs selected. For example, if 3 ROIs 
+					are selected (i.e. A, B and C), the aggregated contrast ROI will be: A&cap;B&cap;C")
+)
+
+help_roimanual_overlaps_unionoverlapwith<-list(
+	title="Union of overlapping contrast ROI",
+	text=HTML("The aggregated contrast ROI will be the union of all the genomic 
+					ranges contained in the selected ROIs. For example, if 3 ROIs 
+					are selected (i.e. A, B and C), the aggregated contrast ROI will be: A&cup;B&cup;C")
+)
+
+help_roimanual_overlaps_selectnotoverlapwith<-list(
+	title="Select not overlapping contrast ROI",
+	text="Select ROIs that do not have to overlap with the reference ROI",
+	tags$br(),
+	tags$br(),	
+	Comment("The resulting ROI will contain only the genomic ranges of the reference ROI that 
+				do not overlap with those selected here")
+)
+
+help_roimanual_overlaps_intersectionnotoverlapwith<-list(
+	title="Intersection of overlapping contrast ROI",
+	text=HTML("The aggregated contrast ROI will be the genomic ranges common to all the ROIs selected. For example, if 3 ROIs 
+					are selected (i.e. A, B and C), the aggregated contrast ROI will be: A&cap;B&cap;C")
+)
+
+help_roimanual_overlaps_unionnotoverlapwith<-list(
+	title="Union of overlapping contrast ROI",
+	text=HTML("The aggregated contrast ROI will be the union of all the genomic 
+					ranges contained in the selected ROIs. For example, if 3 ROIs 
+					are selected (i.e. A, B and C), the aggregated contrast ROI will be: A&cup;B&cup;C")
+)
+
+
+help_roimanual_overlaps_minimumbp<-list(
+	title="Minimum number of bp to consider for overlaps",
+	text="Two genomic ranges will be deemed overlapping if 
+						the number of shared bases is equal or greater than the value indicated here"
+
+)
+
+help_roimanual_overlaps_strandspecific<-list(
+	title="Strand-specific overlaps",
+	text="If selected, the overlaps will be determined considering the strand 
+						information: only genomic regions with concordant strand information (i.e. same strand) 
+						will be tested. If strand information is not available, Chrokit will ignore this option"
 )
 
 
 
 
-#### Modify ROIs
-
-#Resize
-msg_modifyRois_resize<-list(
-	title="Resize a ROI",
-	text=list(
-		"This lets you choose the width of the genomic ranges present in a ROI. The center of each genomic range 
-		is used as reference point, except when promoters are chosen. If the ROI is a set of promoters, 
-		then the center of the genomic ranges will correspond to the TSS (transcription start site)",
+#resize
+help_roimanual_resize<-list(
+	title="Resize ROI boundaries",
+	text=list("Change the width of the genomic ranges present in a ROI. The center of each genomic range 
+		is used as reference point, except when promoters are chosen: in this case, the center of the genomic ranges will correspond to the TSS (transcription start site)",
 		tags$br(),
-		tags$br(),
-		Field("Select ROI to resize","Select the ROI you want to resize"),
-		Field("Select Upstream/Downstream intervals","Set the number of base 
-						pairs upstream and downstream the center of the genomic regions"),
-		Field("Name of the ROI","Choose the name of the resized ROI"),
-		tags$br(),
-		Warning("The new ROI will keep the enrichments associated to the old ROI only if 
-				all genomic ranges of the old ROI decrease their width")
-	)
-)
-
-#Center on summit
-msg_modifyRois_summit<-list(
-	title="Center a ROI on the summit of an enrichment",
-	text=list(
-		"This section calculates the summit of the signal in each genomic range of a ROI and 
-		then center the genomic range on the summit of a signal. For each range of the ROI, 
-		the summit of the signal enrichment (i.e. the position with the maximum value of pileup reads) 
-		will be calculated. A new ROI, centred on the summit and with each range of width = 1bp, 
-		will be created (this corresponds  to coordinates of the summits)",
-		tags$br(),
-		tags$br(),
-		Field("Select ROI to center on summit","Select the ROI for which you want to extract the summit"),
-		Field("Select enrichment to use for summit","Select the enrichment used to calculate the summit"),
-		Field("Name of the ROI","Choose the name of the ROI centred on summit"),
-		tags$br(),
-		Warning("1. The enrichment used for calculating the summit must have been previously 
-				associated to the selected ROI (use 'Associate enrichments' tab). <br>
-				2. The new 
-				ROI won't keep the enrichments associated to the old ROI",plural=T)
-		
-	)
-)
-
-
-
-#Random sample
-msg_modifyRois_sample<-list(
-	title="Random subset a ROI",
-	text=list(
-		"Create a new ROI from a random sample of genomic rages of another ROI",
-		tags$br(),
-		tags$br(),
-		Field("Select ROI to sample","Select the ROI to subsample from the list. The new ROI 
-							will be a random subset of the original one"),
-		Field("Fraction to keep","Select the number or fraction of genomic ranges. 
-								You can scroll the bar to select the fraction of ranges to keep, 
-								or directly put the number in the field below"),
-		Field("Name of the ROI","Choose the name of the subsetted ROI"),
-		tags$br(),
-		Tip("Subsetting is useful to reduce memory usage. This is strongly suggested if you are 
-			dealing with large ROIs (with above 20/30000 genomic ranges), since it reduces processing 
-			time and memory usage during some downstream analysis (such as the association of enrichments), 
-			but preserve a statistically significant sample representative of the original ROI"),
-		tags$br(),
-		tags$br(),
-		Comment("The new ROI will keep the enrichments associated to the old ROI")
-		
-	)
-)
-#Filter for width
-msg_modifyRois_width<-list(
-	title="Subset a ROI based on the width of its ranges",
-	text=list(
-		"ROIs can be subsetted according to the width of their genomic ranges. Thresholds for 
-		selection can be absolute (by inserting min and max values) or relative (by defining quantiles 
-		of the witdh distribution)",
-		tags$br(),
-		tags$br(),
-		Field("Select ROI to filter","Select the ROI to filter from the list"),
-		Field("Select quantiles","Genomic Ranges with a width quantile below the minimum 
-								and above maximum will be discarded"),
-		Field("Min width/Max width","Genomic Ranges with a width below the minimum and above maximum will be discarded"),
-		Field("Name of the ROI","Choose the name of the subsetted ROI"),
-		tags$br(),
-		Comment("The new ROI will keep the enrichments associated to the old ROI")
-		
-	)
-)
-#Filter for enrichment
-msg_modifyRois_enrichment<-list(
-	title="Subset a ROI based on a specific enrichment",
-	text=list(
-		"ROIs can be subsetted by their signal enrichment.
-		Thresholds for subsetting can be absolute (by inserting min and max values) or relative 
-		(by defining quantiles of the signal distribution). The new ROI will have only the genomic 
-		ranges that have the enrichment levels in the range defined by the user",
-		tags$br(),
-		tags$br(),
-		Field("Select ROI to filter","Select the ROI to filter for enrichment from the list"),
-		tags$br(),
-		Warning("At least one enrichment must be associated to that ROI"),
-		tags$br(),
-		tags$br(),
-		Field("Select enrichment to use for filtering","Select one of the enrichments associated to the selected ROI"),
-		tags$br(),
-		Tip("To associate enrichments to ROIs, use the 'Associate enrichments' tab"),
-		tags$br(),
-		tags$br(),
-		Field("Select quantiles","Genomic ranges with an enrichment quantiles below the minimum and 
-									above maximum will be discarded"),
-		tags$br(),
-		Field("Min enrichment/Max enrichment","Genomic Ranges with an enrichment below the 
-										minimum and above maximum values will be discarded"),
-		Field("Name of the ROI","Choose the name of the subsetted ROI"),
-		tags$br(),
-		Comment("The new ROI will keep the enrichments associated to the old ROI")
-
-	)
-)
-
-#Extract patterns
-msg_modifyRois_pattern<-list(
-	title="Extract sequence patterns",
-	text=list(
-		"You can extract user-provided sequence patterns, either from a ROI or from the entire genome.
-			The output is a new ROI composed of genomic ranges that contain the user-defined pattern. 
-			The new ROI obtained after the pattern search will be strand-specific, based on the pattern found. 
-			The genomic ranges will be centred on the pattern.",
-		tags$br(),
-		tags$br(),
-		Field("Choose where to search for the pattern","This menu allows to choose if the pattern is searched 
-					in a existing ROI or from the entire genome. The genomic ranges of the new ROI will be all 
-					the occurrences of the pattern:
-					<li>From a ROI: select this to extract a pattern from an available ROI. This will let you 
-						choose the ROI from which extract the desired pattern</li>
-					<li>From the entire genome (SLOW): select this to extract a pattern from the entire genome 
-						(using the assembly in use)</li>"),
-		tags$br(),
-		Warning("1. A genome assembly must be loaded to search for patterns. To load a genome assembly, use 'Assembly' section.<br>
-				2. A BSgenome database must be also loaded: this database contains the information about the sequence 
-				in a specific genomic region in the genome assembly in use. If this database is not installed in the 
-				system, a new button will appear to enable the User to download it from bioConductor. 
-				Make sure your internet connection is working",plural=T),
-		tags$br(),
-		tags$br(),
-		Field("Select pattern (IUPAC nomenclature)","Select the pattern you want to extract. Use the IUPAC nomenclature:
-				<li><b>A,C,G,T,U</b>: known bases</li>
-				<li><b>R</b>: A or G</li>
-				<li><b>Y</b>: C or T</li>
-				<li><b>S</b>: G or C</li>
-				<li><b>W</b>: A or T</li>
-				<li><b>K</b>: G or T</li>
-				<li><b>M</b>: A or C</li>
-				<li><b>B</b>: C or G or T</li>
-				<li><b>D</b>: A or G or T</li>
-				<li><b>H</b>: A or C or T</li>
-				<li><b>V</b>: A or C or G</li>
-				<li><b>N</b>: any base</li>
-				<li><b>. or -</b>: gap</li>"),
-		Field("Strand selection","If a ROI with strand information has been selected, then a menu will appear to let
-				 you decide whether to perform the pattern search on both strands or on a single strand"),
-		Field("Name of the ROI","Choose the name of the ROI centred on the pattern"),
 		tags$br(),
 		Warning("The new ROI won't keep the enrichments associated to the old ROI")
 
 	)
 )
 
+help_roimanual_pattern<-list(
+	title="Extract sequence pattern from a ROI",
+	text=list("You can extract user-provided sequence patterns from a ROI.
+			The output is a new ROI composed of genomic ranges that contain the user-defined pattern. 
+			The new ROI obtained after the pattern search will be strand-specific, based on the pattern found. 
+			The genomic ranges will be centred on the pattern.",
+			tags$br(),
+			tags$br(),
+			Warning("<b>1</b>. A genome assembly must be loaded to search for patterns. To load a genome assembly, use 'Assembly' section.<br>
+				<b>2</b>. A BSgenome database must be also loaded: this database contains the information about the sequence 
+				in a specific genomic region in the genome assembly in use. If this database is not installed in the 
+				system, a new button will appear to enable the User to download it from bioConductor. 
+				Make sure your internet connection is working.<br>
+				<b>3</b>. The new ROI won't keep the enrichments associated to the old ROI.",plural=T)
 
-
-#### View ROIs
-
-#ROI selection
-msg_viewRois_selectRoi<-list(
-	title="Select the ROI",
-	text="Select one or more ROIs for which you want to obtain information (width/number of ranges and/or how it was created)"
-)
-#Visualization
-msg_viewRois_visualization<-list(
-	title="Visualize features of selected ROI(s)",
-	text=list(
-		Field("width distribution","It shows the distribution of the widths of the genomic ranges of the ROI(s)"),
-		Field("intervals number","It shows a barplot representing the number of genomic ranges for each of the ROI(s)")
 
 	)
 )
 
-#Information
-msg_viewRois_information<-list(
-	title="View info of a selected ROI",
-	text=list(
-		Field("Select quantiles of the width distribution","Shows how many genomic ranges 
-							have a width greater than the selected width quantile"),
-		Field("Where does this ROI come from?","Shows how the selected ROI was created (summarizes all the steps)"),
-		tags$br(),
-		Warning("To view information, only one ROI must be selected from the 'ROI selection' menu")
-
+help_roimanual_pattern_IUPAC<-list(
+	title="Select pattern (IUPAC nomenclature)",
+	text=HTML("Select the pattern you want to extract. Use the IUPAC nomenclature:<br>
+				<b>A,C,G,T,U</b>: known bases<br>
+				<b>R</b>: A or G<br>
+				<b>Y</b>: C or T<br>
+				<b>S</b>: G or C<br>
+				<b>W</b>: A or T<br>
+				<b>K</b>: G or T<br>
+				<b>M</b>: A or C<br>
+				<b>B</b>: C or G or T<br>
+				<b>D</b>: A or G or T<br>
+				<b>H</b>: A or C or T<br>
+				<b>V</b>: A or C or G<br>
+				<b>N</b>: any base<br>
+				<b>. or -</b>: gap<br>"
 	)
 )
 
-#### Get ROI
+help_roimanual_pattern_bothstrands<-list(
+	title="Search on both strands",
+	text="The sequence pattern will be searched on both strands for all genomic ranges of the ROI."
+)
 
-#ROI selection
-msg_getRois_roiSelection<-list(
-	title="Get all the info associated to a ROI",
-	text=list(
-		"Select the ROI for which you want to explore or download the information. 
-		Once a ROI is selected, the following information can be retrieved",
+help_roimanual_pattern_strandspecific<-list(
+	title="Strand-specific pattern search",
+	text=list("The sequence pattern will be searched only in the strand defined for each genomic range of the ROI.",
 		tags$br(),
-		tags$br(),
-		Field("View Ranges","Genomic coordinates of the ROI and the strand"),
-		Field("Select annotations to show","Here you can include IDs and/or symbols 
-											of the annotated genes"),
-		tags$br(),
-		Warning("A genome assembly must be loaded to get the annotations. To load a genome assembly, 
-				use 'Assembly' section. Once an assembly has been loaded, every genomic range of a 
-				ROI is annotated to the nearest gene"),
-		tags$br(),
-		tags$br(),
-		Field("Enrichments","These are the signal enrichments associated to the ROI. It shows the sum 
-				of the pileup of the reads for the selected enrichment within each genomic range of the ROI"),
-		tags$br(),
-		Field("Get annotated genes within a genomic window","It retrieves the list of genes (IDs and/or symbols) 
-					found at a user-defined distance from the genomic ranges of the ROI. User defined 
-					distance is set in '<b>Select the genomic window (bp)</b>'"),
-		Field("Select the genomic window (bp)","Select the size of the genomic window flanking the genomic ranges 
-					of a ROI. The width is measured from  the center of the genomic ranges")
-
+		tags$br(),	
+		Comment("For example, if one of the genomic ranges in the ROI is defined as '-' strand, the pattern will be searched only in the negative strand for this range")	
 	)
 )
-#Preview
-msg_getRois_preview<-list(
-	title="Preview of the ROI table",
-	text="Lets you preview the matrix file of a ROI with all the information selected"
+
+
+#summit
+help_roimanual_summit<-list(
+	title="Center a ROI on the summit of an enrichment",
+	text=list("For each genomic range of a ROI, it calculates the summit of a signal enrichment (i.e. the coordinate with the maximum value of pileup reads). 
+		Then, each range of the ROI will be centered on that summit",
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>. At least one enrichment must be associated to the ROI<br>
+				<b>2</b>. The new ROI won't keep the enrichments associated to the old ROI",plural=T)		
+	)
 )
 
 
+help_roimanual_summit_enrichmenttouse<-list(
+	title="Enrichment to use for summit detection",
+	text="This enrichment is used to calculate the point of maximum reads pileup (summit)"
+)
 
 
-
-#### Associate enrichments
-
-#ROI selection
-msg_associateEnrichments_associateRemove<-list(
+#association enrichments
+help_roimanual_enrichmentAssoc<-list(
 	title="Associate or remove enrichments to ROI(s)",
-	text=list(
-		"Associate one or more enrichments (BAM/WIG) to one or more ROIs",
+	text=list("Associate one or more enrichments (from BAM/bigWIG files imported) to one or more ROIs",
 		tags$br(),
 		tags$br(),
-		Field("Choose ROI(s)","Choose one or more ROIs to which you want to associate or remove enrichments"),
+		Comment(		
+		"This operation will calculate the pileup of the reads for each base of each range of each ROI selected.
+ 		The information of the reads come from the enrichment files (either BAM or bigWIG) selected.
+ 		This is a computationally intensive task, it may require time (from several seconds to few minutes, depending on the size of the ROIs, 
+ 		of the enrichment files and on the number of ROIs). Signals will be normalized only for BAM files: for bigWIG files the normalization coefficient will be 1."),
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>. You need to import enrichment files for the association<br>
+				<b>2</b>. bigWIG files are not supported in Windows operating systems",plural=T)	
+	)
+)
 
+
+help_roimanual_enrichmentAssoc_enrichments<-list(
+	title="Select enrichment(s) to associate to selected ROI(s)",
+	text=list("Select one or more enrichments (BAM/bigWIG) 
+				to associate. This operation will calculate the pileup of the reads 
+				from the enrichment files (either BAM or bigWIG) selected for each base of each range of the ROI(s)",
 		tags$br(),
-		tags$h3("Associate enrichment(s) to ROI(s)"),
-		"Select one or more enrichment(s) to associate to the selected ROI(s).",
-		tags$br(),
-		tags$br(),
-		Field("Select enrichment(s) to associate to selected ROI(s)","Select one or more enrichments (BAM/WIG) 
-				to associate to the selected ROI(s). This operation will calculate the pileup of the reads 
-				from the enrichment files (either BAM or WIG) selected  for each base of each range of each ROI selected"),
 		tags$br(),
 		Tip("To import enrichment files go to 'Enrichment files' in the 'Import data' section"),
 		tags$br(),
+		Comment("The normalization is available only for BAM files. bigWIG files will not be normalized.")
+	)
+)
+
+help_roimanual_enrichmentAssoc_NOnorm<-list(
+	title="Do not normalize",
+	text="The number of reads will not be normalized (obtaining raw pileup number for each base pair of each range)."
+)
+
+help_roimanual_enrichmentAssoc_librarysize<-list(
+	title="Library-size normalization",
+	text="The number of reads will be divided by the size of their library and multiplied by 1 million."
+)
+
+help_roimanual_enrichmentAssoc_customnorm<-list(
+	title="Use custom normalizer",
+	text="The number of reads will be divided by the library size of another enrichment file present in the list and multiplied by 1 million."
+)
+
+help_roimanual_enrichmentAssoc_spikein<-list(
+	title="Spike-in normalization",
+	text=list("The number of reads will be normalized by the library size of another enrichment file present in the list (spike-in);
+						this number will be divided by the number of reads of a control and multiplied by the number of 
+						reads of the spike-in of the control. Finally, the number will be multiplied by 1 million.",
 		tags$br(),
-		Warning("This is a computationally intensive task (it may require from several seconds to few minutes)"),
-		tags$br(),
-		tags$br(),
-		Field("Number of cores","Choose the number of cores to use for enrichment association"),
-		tags$br(),
-		Comment("The more cores you use, the faster the operation will be, and more memory will be required"),
-		tags$br(),
-		tags$br(),
-		Tip("Increase the number of cores to speed up this operation"),
-		tags$br(),
-		tags$br(),
-		Field("Normalization method","Select how to normalize the reads (only for BAM files):
-				<li>no normalization: the reads will not be normalized (raw pileup for each base pair)</li>
-				<li>library-size: the number of reads will be divided by the size of their library and multiplied by 1 million</li>
-				<li>custom normalizer: the number of reads will be divided by the library size of a user-defined enrichment file present in the list and multiplied by 1 million</li>
-				<li>spike-in: the number of reads will be normalized by the library size of a user-defined enrichment file present in the list (spike-in);
-						this number will be divided by the number of reads of control and multiplied by the number of 
-						reads of the spike-in of control. Finally, the number will be multiplied by 1 million</li>"),
 		tags$br(),
 		Comment("The normalizing factor in spike-in normalization will be:<br><br> (&ltspike-in reads in control&gt*1000000)/(&ltspike-in reads&gt*&ltcontrol reads&gt)<br><br>
-				This normalization is particularly useful for ChIP-Seq experiments."),
+					This normalization is particularly useful for ChIP-Seq experiments.")
+	)
+)
+
+help_roimanual_enrichmentAssoc_numbercores<-list(
+	title="Set CPU cores",
+	text=list("Choose the number of CPU cores to use for enrichment association",
 		tags$br(),
 		tags$br(),
-						
-		
-		# tags$p(
-		# 	tags$b("Enrichment files (BAM/WIG) to associate to selected ROI(s):"),
-		# 	tags$br(),
-		# 	"Select one or more enrichments to associate to selected ROI(s). To import those files go to 'Enrichment files'
-		# 	in the 'Import data' section"
-		# ),
-		Comment(		
-		"This operation will calculate the pileup of the reads for each base of each range of each ROI selected.
- 		The information of the reads come from the enrichment files (either BAM or WIG) selected.
- 		This is a computationally intensive task, it may require time (from several seconds to few minutes, depending on the size of the ROIs, 
- 		of the enrichment files and on the number of ROIs). Signals will be normalized only for BAM files: for WIG files the normalization coefficient will be 1."),
-		tags$br(),
-		tags$br(),
-		tags$p(
-			tags$b("Number of cores"),
-			tags$br(),
-			"Choose the number of cores to use for enrichment association. The more cores you use, 
-			the faster the operation, but the more memory it will require."
-		),
+		Comment("The more cores you use, the faster the association will be, but more memory will be required.
+			Leave '1' unless you have a lot of RAM or if you are unsure.")
+	)
+)
 
 
-
+#ROI sample
+help_roimanual_subsample<-list(
+	title="Random subset a ROI",
+	text=list("Create a new ROI from a random sample of genomic rages of another ROI",
 		tags$br(),
 		tags$br(),
-		tags$br(),
-		tags$h3("Remove enrichments from ROI(s)"),
-		"Select the enrichments to be removed from the selected ROI(s). 
-		The list  comprises all the signal enrichment loaded and associated to ROIs in the ChroKit session loaded",
-		tags$br(),
-		tags$br(),
-		Tip("This operation will free some memory"),
-		tags$br(),
-		tags$br(),
-		Warning("If an enrichment file is eliminated, its association to any of 
-				the selected ROIs in the ongoing session is eliminated as well")
+		Tip("Subsetting is useful to reduce memory usage. This is strongly suggested if you are 
+			dealing with large ROIs (with above 50/60000 genomic ranges), since it reduces processing 
+			time and memory usage during some downstream analysis (such as the association of enrichments), 
+			but preserve a statistically significant sample representative of the original ROI")				
 
 	)
 )
 
-#### Rename/Order enrichments
+#filter for width
+help_roimanual_filterwidth<-list(
+	title="Subset a ROI based on the width of its ranges",
+	text=list("ROIs can be subsetted according to the width of their genomic ranges. Only genomic ranges above/below certain width thresholds
+				will be considered."
 
-#Rename enrichments
-msg_renameEnrichments_renameOrderEnrichments<-list(
-	title="Change the name or reorder associated enrichments",
-	text=list(
-		Field("Select ROI","Select the ROI in which enrichments must be renamed or reordered"),
-		tags$br(),
-		
-		tags$h3("Rename enrichments"),
-		"Rename enrichments associated to ROIs",
-		tags$br(),
-		tags$br(),
-		Field("Select enrichment to rename","Choose the enrichment associated to the selected ROI to be renamed"),
-		Field("New enrichment name","Choose the new name for the enrichment selected"),
-		tags$br(),
-		Warning("The name of the enrichment will change in all the other ROIs to which it had been associated"),
-		tags$br(),
-		tags$br(),
-		tags$br(),
+	)
+)
+
+help_roimanual_filterwidth_min<-list(
+	title="Min width threshold",
+	text="Genomic ranges below this width will be discarded"
+)
+
+help_roimanual_filterwidth_max<-list(
+	title="Max width threshold",
+	text="Genomic ranges above this width will be discarded"
+)
 
 
-		tags$h3("Reorder enrichments"),
-		"Change the order in which the enrichments appear in the ROI. For each of the enrichments associated to the selected ROI, 
-			set the number corresponding to the new position in the ranking, and finally press 'Reorder!' button",
+#filter for enrichment
+help_roimanual_filterenrich<-list(
+	title="Subset a ROI based on a specific enrichment",
+	text=list("ROIs can be subsetted by their signal enrichment.
+		Only genomic ranges above/below certain enrichment thresholds
+				will be considered.",
+		tags$br(),
+		tags$br(),		
+		Warning("At least one enrichment must be associated to the ROI")
 
+	)
+)
+
+help_roimanual_filterenrich_min<-list(
+	title="Min enrichment threshold",
+	text="Genomic ranges below this enrichment value will be discarded"
+)
+
+help_roimanual_filterenrich_max<-list(
+	title="Max enrichment threshold",
+	text="Genomic ranges above this enrichment value will be discarded"
+)
+
+
+help_roimanual_renameroi<-list(
+	title="Rename a ROI",
+	text=list("Change the name of a ROI. The new name will appear in all the menus and plots."
+
+	)
+)
+
+help_roimanual_editnotes<-list(
+	title="Edit ROI notes",
+	text=list("View or edit a short report for a specific ROI"
+
+	)
+)
+
+help_roimanual_renameenrich<-list(
+	title="Rename associated enrichments",
+	text=list("Rename enrichments associated to a ROI",
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>. The name of the enrichment will change in all the other ROIs to which it had been associated<br>
+			<b>2</b>. At least one enrichment must be associated to the ROI",plural=T)
+
+	)
+)
+
+help_roimanual_reorderroi<-list(
+	title="Reorder ROi list",
+	text=list("Change the order in which ROIs appear in menus and plots.",
+		tags$br(),
+		tags$br(),
+		Comment("This is useful when you want to change the order of the ROIs in which they appear in plots",)		
+
+	)
+)
+
+help_roimanual_reorderroi_index<-list(
+	title="Change the order in which ROI appear",
+	text="For each ROI, set the number corresponding to the new position in the ranking."
+)
+
+help_roimanual_reorderenrich<-list(
+	title="Reorder associated enrichments",
+	text=list("Change the order in which the enrichments appear in a ROI.",
 		tags$br(),
 		tags$br(),
 		Comment("1. This is useful when you want to change the order of the enrichments in which they appear in plots. <br>
-				2. The order of the enrichments will be changed only in the selected ROI",plural=T)
+				2. The order of the enrichments will be changed only in the selected ROI",plural=T),
+		tags$br(),
+		tags$br(),		
+		Warning("At least one enrichment must be associated to the ROI")
 
 	)
 )
 
-
-#### GO analyses
-
-#parameters
-msg_goAnalysis_parameters<-list(
-	title="Parameters for gene ontology",
-	text=list(
-		"Allows to set the parameters used for the hypergeometric test on genes provided by the user",
-		tags$br(),
-		tags$br(),
-		Comment("The gene signatures are lists of genes in gmt format present in the directory appContent/signatures/ of the program. 
-				Gene signatures can be loaded from the Molecular Signature Database (MSigDB) or similar resources"),
-		tags$br(),
-		tags$br(),
-		Warning("Gene symbols in signatures must be in uppercase"),
-		tags$br(),
-		tags$br(),		
-
-		tags$h3("Variables"),
-		tags$br(),
-		Field("Select the source","Allows you to choose whether genes are 
-				provided as a gene list (loaded by the user) or as genes associated to ROIs.
-				The menu is context-dependent:"),
-		HTML("<li>From ROI: this option will let you select the ROIs from which annotated 
-			genes will be extracted. If multiple ROIs are selected, the result will be displayed 
-			as a heatmap: ROIs selected in rows and the significant signatures in columns (the colour 
-			will represent the statistical significance). If a single ROI is selected, the result 
-			will be displayed as a barplot of the p adjusted for each significant signature 
-			
-			</li>"),
-		tags$br(),
-		
-		Warning("A genome assembly must be loaded. To load a genome assembly, use 'Assembly' section"),
-		tags$br(),
-		tags$br(),
-		HTML("<li>From gene list: this option will let you input a list of gene symbols (one per line)
-			. If genes are lowercase (murine), they will be converted in uppercase (Human) to be consistent 
-			with signature lists available in the program. The Output is a barplot representing the p adjusted</li>"),
-		tags$br(),
-		
-		Warning("The symbols given as input will be converted in uppercase (“humanized”) to match 	those within 
-				the gmt signatures"),
-		tags$br(),
-		tags$br(),
-		Field("Select signature(s)","Select the gene signatures(s) to use for the gene ontology analysis. The 
-			background for the hypergeometric test (the 'universe')  will be the union of all the genes of 
-			the signatures selected"),
-		Field("How to order results","Choose the order of the results of GO analysis. If a single ROI has 
-			been selected, or a custom gene list has been used as input, the results will be ranked based on 
-			-log10 p adjusted by default. If multiple ROIs have been selected, the user can choose whether 
-			to rank the heatmap based on the best p adjusted 
-			or whether to rank based on clustering"),
-		Field("Cluster type","Choose the clustering method for the heatmap. This is based on the p-adjusted of the signatures"),
-		Field("Min/Max signature size","Set the minimum and maximum size of the gene signatures used for the ontology analysis. 
-			All signatures with a size below the minimum or above the maximum will not be considered"),
-		tags$br(),
-		tags$br(),		
-		tags$br(),
-		tags$h3("Filtering"),
-		tags$br(),
-		Field("Quantile threshold for padj color scale","Quantile to use to set the maximum for the color scale of the p adjusted"),
-		tags$br(),
-		Tip("The lower the value, the more saturated the colors will be"),
-		tags$br(),		
-		tags$br(),
-		Field("Gene ratio threshold","Filter the results using a threshold on the gene ratio (genes associated to the 
-			ROI or in the custom gene list / all the genes in the signature)"),
-		Field("-log10 padj threshold","Filter the results keeping the hits with a significance (-log10 p adjusted) above a certain threshold"),
-		Field("Top significant hits","Filter the results only for the top n significant hits (n=number of hit, this value is user-defined)"),
-		Field("Choose a color scale","Choose the color scale for the heatmap")		
-
-	)
-)
-
-#GO plot
-msg_goAnalysis_goPlot<-list(
-	title="Gene ontology plot",
-	text=list(
-		"It displays the plot of the GO analysis (heatmap or barplot). 
-		For each signature, genes annotated to a specific ROI can be displayed by clicking the corresponding cell",
-		tags$br(),		
-		tags$br(),
-		Tip("To optimize the visualization of the results, change parameters such as the color scale")		
-	)
-)
-
-#GO table
-msg_goAnalysis_goTable<-list(
-	title="Gene ontology table",
-	text="GO results are displayed in a tabular format and can be explored interactively.
-		You can download the tab-delimited text file for downstream processing"
+help_roimanual_reorderenrich_index <-list(
+	title="Change the order in which the enrichments appear in the ROI",
+	text="For each of the enrichments associated to the selected ROI, 
+			set the number corresponding to the new position in the ranking."
 )
 
 
 
-#### Predefined ROI preparation for heatmaps
-msg_PredefPipeline_parameters<-list(
-	title="Prepare a ROI for heatmap",
-	text=list(
-		"This pipeline is dedicated to the processing of ROIs in a format optimal for heatmaps
-		generated in the section 'Genomics'",
-		tags$br(),
-		tags$br(),
-		Field("Select ROI for preparation","Select the ROI to be modified for heatmap visualization"),
-		Field("% genomic ranges to keep","Select a random subset of genomic ranges"),
-		tags$br(),
-		Tip("Subsetting is suggested when dealing with large ROIs (i.e. >30/40 000 genomic ranges)"),
-		tags$br(),
-		tags$br(),
-		Field("Do you want to center on summit?","Choose “Yes” if you want to center each genomic 
-					range of the ROI to the summit of a specific enrichment"),
-		tags$br(),
-		Tip("If “Yes” is chosen, a menu will appear, allowing to select the enrichment to use for summit detection"),
-		tags$br(),
-		tags$br(),
-		Field("Upstream/Downstream","Define the size of each genomic range by indicating the number of upstream/downstream 
-				base pairs from its the center. The center is user-defined (midpoint or summit)"),
-		Field("Select enrichment to associate to the new ROI","Select the enrichments to associate to the ROI"),
-		Field("Number of cores","Choose the number of cores to use for enrichment association"),
-		tags$br(),
-		Comment("The more cores you use, the faster the operation will be, and more memory will be required"),
-		tags$br(),
-		tags$br(),
-		Tip("If you are running ChroKit in a powerful machine, increase the number of cores to speed up this operation"),
-		tags$br(),
-		tags$br(),
-		Field("New ROI name","Type the name of the new ROI here")										
-	)
-)
+
+
+
 
 
 ############################################################
@@ -923,26 +1020,10 @@ msg_PredefPipeline_parameters<-list(
 msg_singleEvaluation_parameters<-list(
 	title="Parameters for single ROI evaluation",
 	text=list(
-		"Parameters for the genomic analysis of a single ROI",
+		"View the genomic distribution of the genomic ranges of a ROI (and its enrichments)",
 		tags$br(),
 		tags$br(),
-		Warning("A genome assembly must be loaded. To load a genome assembly, go to the 'Assembly' section"),
-		tags$br(),
-		tags$br(),
-		Field("Select ROI","Choose the ROI"),
-		Field("Select enrichment","If the selected ROI has enrichments 
-				associated, choose here the enrichment you want to use for the analysis"),
-		tags$br(),
-		Comment("If present, the enrichment in each annotated genomic element (promoters, 
-				genebodies and intergenic regions) will be shown for all the genomic ranges of the ROI"),
-		tags$br(),
-		tags$br(),
-		Field("Choose normalization","Select what kind of signal to show in the plots:<br>
-				<li><b>Total reads (rpm)</b>: The number of library-normalized reads</li>
-				<li><b>Read density (rpm/bp)</b>: The number of library-normalized reads, 
-					normalized also by the length of the genomic ranges</li>")	,
-		Field("Choose color palette","Choose the color palette to show in the plots")	
-
+		Warning("A genome assembly must be loaded. To load a genome assembly, go to the 'Assembly' section")
 	)
 )
 #Distribution
@@ -966,7 +1047,7 @@ msg_singleEvaluation_widthDistribution<-list(
 msg_singleEvaluation_enrichmentBoxplot<-list(
 	title="Enrichment in annotated genomic elements",
 	text=list(
-		"If an enrichment associated to the selected ROI has been selected, it displays a boxplot 
+		"Displays a boxplot 
 		of the reads (or the read density) stratified by the annotated regions (promoters, genebodies, intergenic regions)",
 		tags$br(),
 		tags$br(),
@@ -987,49 +1068,67 @@ msg_singleEvaluation_peakProfile<-list(
 	)
 )
 
+
+
+help_singleEvaluation_normalizationtotalread<-list(
+	title="Show total reads",
+	text="Show the number of reads. (Depending on the enrichment association, these can be normalized for library size or not)"
+)
+help_singleEvaluation_normalizationreaddensity<-list(
+	title="Show read density",
+	text="Show the number of reads, 
+		 			normalized by the width of the genomic ranges."
+)
+
+
+
+
+
+
+
 #### Pairwise overlaps
 
 #Parameters
 msg_pairwiseOverlaps_parameters<-list(
 	title="Parameters for pairwise overlaps",
-	text=list(
-		Field("Select ROI-1","Choose the first ROI for the overlap"),
-		Field("Select ROI-2","Choose the second ROI for the overlap"),
-		tags$br(),
-		Warning("This analysis can be performed only if two ROIs are selected"),
+	text=list("Analyze the pairwise overlap between two ROIs (and their associated enrichments)",
 		tags$br(),
 		tags$br(),
-		Field("Minimum number of bp for overlap","Set the minimum number of bases 
-					used to define the overlap between genomic ranges of the two ROIs"),
-		Field("Choose enrichment-1","Choose one of the enrichments associated to ROI-1 to 
-				evaluate the signal of reads in the subset of genomic ranges of ROI-1 alone 
-				or those overlapping with ROI-2"),
-		Field("Choose enrichment-2","Choose one of the enrichments associated to ROI-2 to evaluate 
-				the signal of reads in the subset of genomic ranges of ROI-2 alone or those overlapping 
-				with ROI-1"),
-		tags$br(),
-		Warning("The possibility to select the enrichments will appear only if enrichments are associated 
+		Warning("<b>1</b>. This analysis can be performed only if two ROIs are selected<br>
+				<b>2</b>. Enrichments can be analyzed only if they are associated 
 				to ROI-1, ROI-2 or both. If enrichments are not associated to either ROI-1 or ROI-2, only 
-				the fraction of overlapping/not overlapping genomic ranges will be displayed."),
-		tags$br(),
-		tags$br(),
-		Field("log2","Used for log2 transformation of the signals of the enrichments"),
-		tags$br(),
-		Tip("Check 'log2' for a better visualization in the scatterplot"),
-		tags$br(),
-		tags$br(),
-		Field("Choose normalization","Choose what value is shown in the plots:<br>
-				<li><b>Total reads (rpm)</b>: The number of library-normalized reads</li>
-				<li><b>Read density (rpm/bp)</b>: The number of library-normalized reads, 
-					normalized also by the length of the genomic ranges</li>"),
-		Field("Choose color palette","Choose the color palette used in the plots"),
-		Field("In scatterplot, show:","This menu will appear only if the scatterplot is present. Choose which are the genomic ranges to show in the scatterplot: <br>
-				<li>exclusive ROI-1 ranges: genomic ranges present only in ROI-1</li>
-				<li>exclusive ROI-2 ranges: genomic ranges present only in ROI-2</li>
-				<li>common ranges: genomic ranges common to ROI-1 and ROI-2</li>")			
-					
+				the fraction of overlapping/not overlapping genomic ranges will be displayed.",plural=T)								
 	)
 )
+
+
+help_pairwiseOverlaps_parameters_minbpoverlap<-list(
+	title="Minimum number of bp for overlap",
+	text="Set the minimum number of bases 
+					used to define the overlap between genomic ranges of the two ROIs."
+)
+
+help_pairwiseOverlaps_parameters_enrich1<-list(
+	title="Choose enrichment of ROI-1",
+	text="Choose one of the enrichments associated to the first ROI to 
+				evaluate the signal of reads in the subset of genomic ranges of ROI-1 alone 
+				or those overlapping with ROI-2"
+)
+
+help_pairwiseOverlaps_parameters_enrich2<-list(
+	title="Choose enrichment of ROI-2",
+	text="Choose one of the enrichments associated to the second ROI to evaluate 
+				the signal of reads in the subset of genomic ranges of ROI-2 alone or those overlapping 
+				with ROI-1"
+)
+
+
+
+#use them for read density
+# help_singleEvaluation_normalizationtotalread
+# help_singleEvaluation_normalizationreaddensity
+
+
 
 #Overlap
 msg_pairwiseOverlaps_overlap<-list(
@@ -1057,43 +1156,57 @@ msg_pairwiseOverlaps_overlap<-list(
 
 	)
 )
-#box/scatter/Calibration
-msg_pairwiseOverlaps_overlapAndEnrichment<-list(
-	title="Enrichments in overlaps",
-	text=list(
-		"A series of analysis tool to evaluate the signal enrichments in genomic ranges shared by two ROIs (ROI-1 and ROI-2)",
-		tags$br(),
-		tags$br(),
-		Field("Boxplot","It shows the signal of the selected enrichment (i.e. enrichment-1) in the regions of ROI-1 which 
+
+
+
+
+
+msg_pairwiseOverlaps_box<-list(
+	title="Boxplot",
+	text=list("It shows the signal of the selected enrichment (i.e. enrichment-1) in the regions of ROI-1 which 
 				either overlap or not with ROI-2.
 				If the enrichment is associated also to ROI-2, it shows also enrichment-1 signals in the genomic ranges 
 				of ROI-2 that are not overlapping with ROI-1. 
-				The same is true for ROI-2 and enrichment-2."),
-		Field("Scatterplot","If enrichment-1 and enrichment-2 are associated to both ROI-1 and ROI-2, it shows the 
+				The same is true for ROI-2 and enrichment-2."
+	)
+
+)
+
+msg_pairwiseOverlaps_scatter<-list(
+	title="Scatterplot",
+	text=list("If enrichment-1 and enrichment-2 are associated to both ROI-1 and ROI-2, it shows the 
 				correlation between the two enrichments. Overlapping and exclusive (ROI-1 alone, ROI-2 alone) genomic 
-				ranges  are highlighted"),
-		tags$br(),
-		Warning("This works only if both enrichment-1 and enrichment-2 are associated with both ROI-1 and ROI-2"),
-		tags$br(),
-		tags$br(),
-		Tip("For a better representation of this plot, select 'log2' in the parameters"),
-		tags$br(),
-		tags$br(),				
-		Field("Calibration","It shows the fraction of the overlapping regions between ROI-1 and ROI-2 at increasing values 
-			of enrichments thresholds. The threshold is applied either to ROI-1 or ROI-2 or to both ROIs together (combined)"),
-		tags$br(),
-		Comment("This plot recalculates the overlap between ROI-1 and ROI-2 if we consider only those genomic ranges 
+				ranges are highlighted.",
+			tags$br(),
+			tags$br(),
+			Warning("This works only if both enrichment-1 and enrichment-2 are associated with both ROI-1 and ROI-2")
+	)
+
+)
+
+msg_pairwiseOverlaps_calibration<-list(
+	title="Calibration",
+	text=list("It shows the fraction of the overlapping regions between ROI-1 and ROI-2 at increasing values 
+			of enrichments thresholds. The threshold is applied either to ROI-1 or ROI-2 or to both ROIs together (combined).",
+			tags$br(),
+			tags$br(),
+			Comment("This plot recalculates the overlap between ROI-1 and ROI-2 if we consider only those genomic ranges 
 				with an enrichment above an increasing threshold. 'combined' means that the enrichment threshold 
 				is applied to both ROI-1 and ROI-2 simultaneously; otherwise, the threshold is applied only to 
-				one of the two ROIs, thus preserving all the genomic ranges of the other ROI for the analysis.<br><br>
+				one of the two ROIs, thus considering all the genomic ranges of the other ROI for the analysis.<br><br>
 				With this plot, it is possible to assess which is the % of overlap between A (ROI-1) and B (ROI-2) considering 
 				only the top 20% enriched genomic ranges in A, or considering the top 20% enriched regions in A and B. 
 				If, in a ChIP-seq experiment, the fraction of overlap increases when considering only 
 				the top enriched ranges, it may suggest that common genomic ranges are high affinity sites for 
-				both ChIP-seq A and ChIP-seq B.")
-
+				both ChIP-seq A and ChIP-seq B.")					
 	)
+
 )
+
+
+
+
+
 
 
 #### Digital heatmap
@@ -1102,91 +1215,137 @@ msg_pairwiseOverlaps_overlapAndEnrichment<-list(
 msg_digitalHeatmap_parameters<-list(
 	title="Parameters for position-based heatmap",
 	text=list(
-		"Set the parameters for a heatmap showing overlaps between multiple ROIs",
-		tags$br(),
-		tags$br(),		
-		tags$h3("Variables"),
-		tags$br(),
-		Field("Master ROI(s)","One or more ROIs can be selected to create the master ROI"),
-		tags$br(),
-		Warning("1. If more than one master ROI is selected, it won't be possible to extract a 
-				new ROI from the single clusters of the heatmap.<br> 
-				2. The jaccard index matrix won't 
-				be shown, as well.",plural=T),
+		"Set the parameters for a heatmap showing overlaps between multiple ROIs"
+	)
+)
+
+
+help_digitalHeatmap_parameters_masterROI<-list(
+title="Select the master ROI",
+text=list("The reference ROI in which to see overlapping regions. The overlaps will be calculated against the genomic ranges of the master ROI",
 		tags$br(),
 		tags$br(),
-		Field("ROIs to view","Select one or more ROIs for which you want to test the overlaps within the master ROI(s)"),
-		Field("ROIs ordering","You can set the order by which ROIs are displayed in the heatmap"),
-		Field("ROIs for cluster","Select which is/are the ROI(s) that will drive the clustering of the rows 
-			(genomic ranges) of the heatmap. The cluster will be based on the information of the overlap (0 or 1) 
-			in all the bins of each genomic range"),
-		Field("Clustering type","The clustering type menu will appear if at least one ROI has been selected for the clustering. 
-				You can select two kind of clustering algorithms:<br>
-				<li><b>K-means</b>: performs a K-means clustering on the rows of the heatmap, using the information of 
-					the overlap of all ROIs selected. This allows the identification of specific patterns of overlap 
-					of the different ROIs. User-defined K-means parameters are: number of clusters, 
-					number of starting points and number of iterations</li>
-				<li><b>Hierarchical</b>: performs a hierarchical clustering on the rows of the heatmap, using the 
-					information of the overlap of all ROIs selected. User-defined parameters for hierarchical clustering 
-					are: number of clusters, distance method and clustering method</li>"),
+		Warning("<b>1</b>. If more than one is selected, it won't be possible to extract a 
+				new ROI from heatmap clusters.<br> 
+				<b>2</b>. The jaccard index matrix won't 
+				be shown.",plural=T)	
+
+	)
+
+)
+help_digitalHeatmap_parameters_ROItoview<-list(
+title="The ROIs to investigate for overlapping regions",
+text=list("Select one or more ROIs for which you want to test the overlaps within the master ROI(s) genomic ranges.
+		Each genomic range of the master ROI(s) will be overlapped with all these ROIs"
+
+)
+
+)
+help_digitalHeatmap_parameters_ROIordering<-list(
+title="ROI ordering",
+text=list("You can set the order by which ROIs are displayed in the heatmap."
+
+)
+
+)
+help_digitalHeatmap_parameters_ROIforcluster<-list(
+title="ROIs for cluster",
+text=list("Select which is/are the ROI(s) that will drive the clustering of the rows 
+			(genomic ranges) of the heatmap. The clustering will be based on the overlap (0 or 1) 
+			in all the bins of each genomic range"
+
+)
+
+)
+help_digitalHeatmap_parameters_clusterKmeans<-list(
+title="K-means clustering",
+text=list("Performs a K-means clustering on the rows of the heatmap. This allows the identification of specific patterns of overlap 
+					between the different ROIs. User-defined K-means parameters are: number of clusters, 
+					number of starting points and number of iterations"
+
+)
+
+)
+help_digitalHeatmap_parameters_clusterHierarchical<-list(
+title="Hierarchical clustering",
+text=list("Performs a hierarchical clustering on the rows of the heatmap. User-defined parameters for hierarchical clustering 
+					are: number of clusters, distance method and clustering method"
+
+)
+
+)
+help_digitalHeatmap_parameters_clusternumber<-list(
+title="Set number of clusters",
+text=list("The number of clusters represents how many different overlapping patterns will be found by the clustering.
+		Increase this number to detect lowly-represented overlapping patterns.",
 		tags$br(),
-		Comment("The fields for advanced parameters of different clustering algorithms will appear depending on the clustering type selected"),
 		tags$br(),
-		tags$br(),
-		Field("Number of bins","Set the number of bins each genomic range will be divided into. More bins means more resolution in determining 
-			the positions of overlaps in each genomic range of the master ROIs"),
-		tags$br(),
-		Warning("The plot 'Overlap frequency bias' will be shown only if the number of bins set is > 2"),
-		tags$br(),
-		tags$br(),
-		Tip("When you want to extract the most common patterns of overlap between a large number of ROIs, 
+		Warning("Maximum number allowed: 433")
+)
+
+)#identifies more subsets with a common overlap pattern
+help_digitalHeatmap_parameters_nbins<-list(
+title="Set the number of bins",
+text=list("The number of bins represents
+	the number of intervals each genomic range of the master ROI is divided into for calculating overlaps.", 
+	tags$br(),
+	tags$br(),
+	Tip("Increase this number to improve resolution."),
+	tags$br(),
+	tags$br(),
+	Tip("When you want to extract the most common patterns of overlap between a large number of ROIs, 
 			set the number of bins =1, a k-mean clustering driven by all the shown ROIs and a number of clusters 
 			k=2^n, where n=number of ROIs. In this way, all the possible combinations of overlaps between ROIs can 
 			be displayed at once"),
-		tags$br(),
-		tags$br(),	
-		Field("Strand-specific overlaps","If the master ROI has strand information and this option is set, only the 
-			overlaps in the same strand of each genomic range of the master ROI will be considered"),
-		tags$br(),
-		tags$br(),
-		tags$br(),		
+	tags$br(),
+	tags$br(),
+	Warning("The plot 'Positional distribution of overlaps' will be shown only if the number of bins is > 2")
 
-		tags$h3("Advanced"),
+	)
+
+)
+help_digitalHeatmap_parameters_strandspecific<-list(
+title="Strand specific overlaps",
+text=list("Only the 
+			overlaps in the same strand between master ROI and all other ROIs will be considered.
+			If master ROI does not have strand information, this option will be ignored."
+
+	)
+
+)
+help_digitalHeatmap_parameters_randomsample<-list(
+	title="Random sample of genomic ranges to show",
+	text=list("The number of genomic ranges of the master ROI to show in the heatmap (default: 2000 ranges). The smaller the subset, the faster the heatmap will be shown.",
 		tags$br(),
-		Field("Random sample of genomic ranges to show","Reduce the number of genomic ranges of selected 
-				ROI(s) to a user-defined number (default: 2000 ranges)"),
 		tags$br(),
 		Tip("1. Usually, a random sample of 2000 genomic ranges is sufficient to have a good representation of 
 			overlaps in the heatmap.<br>
-			2. If the aim of the  analysis is to identify all the regions of the genome that share a defined combination 
-			of overlaps, it is important to include all the genomic ranges of the master ROI and not a random subset",plural=T),
-		tags$br(),
-		tags$br(),
-		Warning("Increasing this number will result in a slower calculation of the heatmap"),
-		tags$br(),
-		tags$br(),
-		Field("Select colors","Choose the colors for showing the overlapping bins:<br>
-				<li><b>global color</b>: set a unique color for all ROIs selected</li>
-				<li><b>custom colors</b>: set a custom color for each ROI selected</li>"),
-		Field("positional overlap %","If checked, the plot of positional distribution of 
-				overlaps will show the fraction of overlapping events, instead of the absolute number")				
-
+			2. If the aim of the analysis is to extract new ROIs from heatmap clusters for downstream analyses, 
+			include all the genomic ranges of the master ROI (set a value >= the sum of ranges of the master ROIs selected)",plural=T)
 	)
+
 )
+
+
+help_digitalHeatmap_parameters_positionaloverlap<-list(
+	title="positional overlap %",
+	text="If checked, the plot shows the fraction of overlapping events instead of the absolute number"
+)
+
 
 #Heatmap
 msg_digitalHeatmap_heatmap<-list(
 	title="Position-based heatmap",
 	text=list(
-		"This plots an interactive heatmap that shows, for each genomic range of the master ROI selected (each row) 
-		the overlap of the other ROI(s). Note that overlaps are calculated for each bin of the genomic ranges. Overlapping regions are displayed as colored. 
+		"An interactive heatmap that shows, for each genomic range of the master ROI selected (each row) 
+		the overlap of the other ROI(s) selected. Note that overlaps are calculated for each bin of the genomic ranges. Overlapping regions are displayed as colored. 
 		The fraction of the overlapping genomic range for each ROI compared to the total ranges of the master 
-		ROI is displayed on the x axis. Clusters are shown on the left side of the heatmap, as colored bars.",
+		ROI is displayed on the names in the x axis. Clusters are shown on the left side of the heatmap, as colored bars.",
 		tags$br(),
 		tags$br(),		
 		"If a cluster bar is clicked, the number of genomic ranges belonging to the selected clusters are displayed, 
 		along, with the cluster number. The field “New ROI from selection” will also appear, giving you the possibility 
-		to create a new ROI.",
+		to create a new ROI from the genomic ranges of the cluster selected.",
 		tags$br(),
 		tags$br(),
 		Comment("The new ROI will keep the enrichments associated to the old ROI"),
@@ -1254,83 +1413,132 @@ msg_digitalHeatmap_overlapBias<-list(
 msg_analogicHeatmap_parameters<-list(
 	title="Parameters for enrichment-based heatmap",
 	text=list(
-		"Set the parameters for the heatmap",
-		tags$br(),
-		tags$br(),
-		tags$h3("Variables"),
-		tags$br(),
-		Field("Select ROI(s)","Select one or more ROIs: the corresponding genomic ranges will be the 'rows' of the heatmap"),
-		tags$br(),
-		Warning("To plot the heatmap, enrichments must be associated to the ROI(s) selected"),
-		tags$br(),
-		tags$br(),
-		Field("Select enrichments to show","Select one or more enrichments to show in the heatmap"),
-		tags$br(),
-		Warning("An enrichment appears as available option if only the enrichment is associated to ALL the ROIs selected"),
-		tags$br(),
-		tags$br(),
-		Tip("To associate enrichments to ROIs, go to 'Associate enrichments' tab in 'ROI management’ section"),
-		tags$br(),	
-		tags$br(),
-		Field("Enrichment order","If multiple enrichments have been selected, you can set their order of appearance in the heatmap"),
-		Field("Clustering/ranking","Select how to organize the heatmap rows. You can rank the rows by one of the selected enrichments, 
-				or you can cluster the rows. You can select two kind of clustering algorithms:<br>
-				<li><b>K-means</b>: performs a K-means clustering on the rows of the heatmap, using the values of the enrichments 
-					selected for clustering. This allows the identification of specific patterns of enrichments in the different ROIs. 
-					User-defined K-means parameters are: number of clusters, number of starting points and number of iterations</li>
-				<li><b>Hierarchical</b>: performs a hierarchical clustering on the rows of the heatmap, using the information of 
-					the enrichments selected for clustering. User-defined parameters for hierarchical clustering are: number of 
-					clusters, distance method and clustering method</li>"),
-		tags$br(),
-		Comment("The fields for advanced parameters of different clustering algorithms will appear depending on the clustering type selected"),
-		tags$br(),
-		tags$br(),
-		Field("Number of bins","Set the number of bins each enrichment will be divided into. Increasing the number of bins will 
-				increase the resolution of the heatmap"),
-		tags$br(),
-		tags$br(),
-		tags$br(),
-		
-		tags$h3("Advanced"),
-		tags$br(),
-		Field("Random sample of genomic ranges to show","It reduces the number of genomic ranges of selected ROI(s) to a 
-					user-defined number (default: 2000 ranges)"),
-		tags$br(),
-		Warning("Increasing this number will result in a slower calculation of the heatmap"),
-		tags$br(),
-		tags$br(),		
-		Tip("Usually, a random sample of 2000 genomic ranges is sufficient to have a good representation of 
-			overlaps in the heatmap.<br><br>
-			If the aim is to extract new ROI(s) from a selected area or cluster, it is important to include all 
-			genomic ranges of the master ROI and not a random subset"),
-		tags$br(),
-		tags$br(),
-		Field("log2","If selected, the signals shown as profiles and boxplots will be log2 transformed"),
-		Field("Quantile threshold","Used to set the maximum quantile value for the color scale of the 
-				signals. Two different kind of color scales can be set:<br>
-				<li><b>Uniform</b>: the threshold for the color scale saturation will be a quantile of all 
-					enrichments considered together</li>
-				<li><b>Individual</b>: used to set a different threshold of the color scale 
-					saturation for each of the signal enrichments displayed</li>"),
-		tags$br(),
-		Comment("Use 'Uniform' option if you have to compare signals of different enrichments. 
-				Use 'Individual' if you include different enrichments in the same heatmap with values 
-				that have different order of magnitudes)"),
-		tags$br(),
-		tags$br(),
-		Tip("The lower the value of the threshold, the more saturated the colors will be"),	
-		tags$br(),
-		tags$br(),
-		Field("Select colors","Choose the colors of the enrichments shown:<br>
-				<li><b>default color</b>: set a unique color scale for all enrichment</li>
-				<li><b>custom colors</b>: set a custom color scale for each enrichment selected</li>"),
-		Field("Group colors (boxes)","If checked, group the colors in the boxplots of the selected area 
-				of the heatmap according to the stratification (ROIs, clusters or enrichments)")	
-
-
+		"Set the parameters for a heatmap showing reads enrichments inside ROIs"
 	)
 
 )
+
+
+
+help_analogicHeatmap_parameters_ROI<-list(
+	title="Select one or more ROIs",
+	text=list("The ROIs in which investigate enrichments. The corresponding genomic ranges will be the 'rows' of the heatmap.",
+		tags$br(),
+		tags$br(),
+		Warning("To plot the heatmap, enrichments must be associated to the ROI(s) selected")
+	)
+)
+
+
+help_analogicHeatmap_parameters_enrichments<-list(
+	title="Select enrichments to show",
+	text=list("Select one or more enrichments to show in the heatmap.",
+		tags$br(),
+		tags$br(),
+		Tip("To associate enrichments to ROIs, go to 'ROI preparation' section"),
+		tags$br(),
+		tags$br(),
+		Warning("An enrichment appears only if associated to ALL the ROIs selected")
+	)
+)
+
+
+
+help_analogicHeatmap_parameters_enrichmentorder<-list(
+	title="Enrichment order",
+	text=list("You can set the order by which enrichments are displayed in the heatmap."
+	)
+)
+
+
+help_analogicHeatmap_parameters_ranking<-list(
+	title="Rank enrichments",
+	text=list("Genomic ranges (rows of the heatmap) will be put in descending order based on a selected enrichment."
+	)
+)
+
+help_analogicHeatmap_parameters_clustering<-list(
+	title="Cluster enrichments",
+	text=list("The order of heatmap rows (genomic ranges) will be calculated with a clustering algorithm. The enrichment
+			that will drive the clustering have to be chosen."
+	)
+)
+
+
+
+help_analogicHeatmap_parameters_clusterKmeans<-list(
+	title="K-means clustering",
+	text=list("Performs a K-means clustering on the rows of the heatmap. This allows the identification of specific patterns of enrichment. 
+		User-defined K-means parameters are: number of clusters, 
+					number of starting points and number of iterations"
+	)
+)
+help_analogicHeatmap_parameters_clusterHierarchical<-list(
+	title="Hierarchical clustering",
+	text=list("Performs a hierarchical clustering on the rows of the heatmap. User-defined parameters for hierarchical clustering 
+					are: number of clusters, distance method and clustering method"
+	)
+)
+
+
+help_analogicHeatmap_parameters_clusternumber<-list(
+	title="Set number of clusters",
+	text=list("The number of clusters represents how many different patterns of enrichment will be detected by the clustering.
+		Increase this number to detect lowly-represented patterns.",
+		tags$br(),
+		tags$br(),
+		Warning("Maximum number allowed: 433")
+	)
+)
+
+
+
+help_analogicHeatmap_parameters_nbins<-list(
+	title="Set the number of bins",
+	text=list("The number of bins represents
+		the number of intervals each genomic range of the ROI(s) is divided into for calculating enrichments.", 
+		tags$br(),
+		tags$br(),
+		Tip("Increase this number to improve resolution.")
+
+	)
+	
+)
+
+help_analogicHeatmap_parameters_subsample<-list(
+	title="Random sample of genomic ranges to show",
+	text=list("The number of genomic ranges of the ROI(s) to show in the heatmap (default: 2000 ranges). The smaller the subset, the faster the heatmap will be shown.",
+		tags$br(),
+		tags$br(),
+		Tip("1. Usually, a random sample of 2000 genomic ranges is sufficient to have a good representation of 
+			enrichments in the ROI(s).<br>
+			2. If the aim of the analysis is to extract new ROIs from heatmap clusters for downstream analyses, 
+			include all the genomic ranges of the ROI (set a value >= the sum of ranges of all the ROIs selected)",plural=T)
+	)
+)
+
+
+help_analogicHeatmap_parameters_uniform<-list(
+	title="Global color scale",
+	text=list("The threshold for the color scale saturation will be a quantile the 
+					enrichments considered together.",
+			tags$br(),
+			tags$br(),
+			Comment("Use this option if you have to compare signals of different enrichments.")
+	)
+)
+help_analogicHeatmap_parameters_individual<-list(
+	title="Individual color scale",
+	text=list("Set a different threshold of the color scale 
+					saturation for each of the signal enrichments displayed.",
+			tags$br(),
+			tags$br(),
+			Comment("Use this option if you include different enrichments in the same heatmap with values 
+				that have different order of magnitudes and do not have to be compared.")
+	)
+)
+
+
 #Heatmap
 msg_analogicHeatmap_heatmap<-list(
 	title="Enrichment-based heatmap",
@@ -1350,14 +1558,13 @@ msg_analogicHeatmap_heatmap<-list(
 				4. The new ROI will keep the enrichments associated to the old ROI.",plural=T),
 		tags$br(),
 		tags$br(),
-		Warning("A single ROI must be selected in order to extract a new ROI from the selected area of the Heatmap 
-				or to have the barplot of the clusters"),
+		Warning("A single ROI must be selected in order to extract a new ROI from the Heatmap 
+				and to have the barplot of the clusters"),
 		tags$br(),
 		tags$br(),
 
 		Tip("To extract new ROIs from clusters or selected areas of the heatmap, make sure to use all the genomic 
-			ranges of the ROI, and not a random sample (this is done in '<b>Random sample of genomic ranges to show</b>' 
-			(change in GUI) by inputing a value equal to or greater than the number of genomic ranges in the ROI selected)")
+			ranges of the ROI, and not a random sample (Set 'Random sample of:' option with a value equal to or greater the number of genomic ranges in the ROI(s) selected)")
 		
 
 	)
@@ -1376,31 +1583,19 @@ msg_analogicHeatmap_profiles<-list(
 msg_analogicHeatmap_enrichments<-list(
 	title="Enrichment plots",
 	text=list(
-		"Plots the enrichment of the selected area of the heatmap, or the selected cluster.<br> 
-			Plotting options are:",
+		HTML("Plots the enrichment of the selected area of the heatmap, or the selected cluster.<br> 
+			Plotting options are:"),
 		tags$br(),
 		tags$br(),
 		Field("Boxplot by ROI/cluster","The enrichments are shown as boxplot stratified by the ROIs 
 			provided. In the case of a clustered heatmap from a single ROI, the boxplot will be stratified by clustering"),
-		Field("Boxplot by enrichment","The enrichments are shown in different ROIs as boxplot stratified by enrichment"),
-		tags$br(),
-		Tip("To highlight the stratification made be the boxplots (ROIs/clusters or enrichments), 
-				check the '<b>Group colors (boxes)</b>' field in parameters"),
-		tags$br(),
-		tags$br(),
-		Field("cor","Heatmap showing the pairwise Pearson correlation between the enrichments in a given ROI"),
-		Field("pcor","Heatmap showing the Pearson pairwise partial correlation between the enrichments in a given ROI"),
-		tags$br(),
-		Comment("The partial correlation between enrichment A and B will be computed using, as covariates, 
-				all the other enrichments selected"),
-		tags$br(),
-		tags$br(),
-		Warning("1. The correlation and partial correlation heatmaps are available only if a single ROI is selected. <br>
-				2. The correlation heatmap is available only if at least 2 enrichments are selected. <br>
-				3. The partial correlation heatmap is available only if at least 3 enrichments are selected.",plural=T)		
+		Field("Boxplot by enrichment","The enrichments are shown in different ROIs as boxplot stratified by enrichment")	
 
 	)
 )
+
+
+
 
 #### Enrichment in ROIs
 
@@ -1408,36 +1603,55 @@ msg_analogicHeatmap_enrichments<-list(
 msg_enrichmentInRois_parameters<-list(
 	title="Parameters for visualizing enrichments in ROIs",
 	text=list(
-		"This section is dedicated to the analysis of the enrichments in 
-		the ROIs: signal distribution (profiles), box-plots, signal correlations matrix and scatterplot",
+		"Define parameters for the analysis of the enrichments in 
+		the ROIs: signal distribution (profiles), box-plots, signal correlations matrix and scatterplot"
+	)
+)
+
+
+help_enrichmentInRois_parameters_ROIs<-list(
+	title="Select ROI(s)",
+	text=list("Choose one or more ROI(s) for the enrichment analysis.",
 		tags$br(),
 		tags$br(),
-		Field("Select ROI(s)","Choose one or more ROI(s) for the analysis"),
-		Field("Select enrichments to show","Choose the enrichments to be shown associated to the selected ROI(s)"),
-		tags$br(),
-		Warning("An enrichment will appear as available option only if the enrichment is associated to ALL the ROIs selected"),
-		tags$br(),
-		tags$br(),
-		Tip("To associate enrichments to ROIs, go to 'Associate enrichments' tab in 'ROI management' section")	,
-		tags$br(),
-		tags$br(),			
-		Field("Number of bins","Set the number of bins each enrichment will be divided into, 
-				in order to generate the enrichment profile plot"),
-		tags$br(),
-		Tip("Increase this number to improve the resolution of the profiles"),
-		tags$br(),
-		tags$br(),		
-		Field("Normalization method for the enrichments","Select how to normalize the signals of the enrichments:<br>
-				<li><b>Total reads (rpm)</b>: The number of library-normalized reads</li>
-				<li><b>Read density (rpm/bp)</b>: The number of library-normalized reads, 
-					normalized also by the length of the genomic ranges</li>"),
-		Field("log2","If checked, the signals of enrichments will be log2 transformed"),
-		Field("Type of correlation","Select which correlation will be shown in 
-				correlation/partial correlation heatmaps (Spearman or Pearson)"),
-		Field("Group colors (boxes)","Select the colors of boxplots according to the ROI or the enrichment")
+		Warning("For the analysis, enrichments must be associated to the ROI(s) selected.")
 
 	)
 )
+
+help_enrichmentInRois_parameters_enrichments<-list(
+	title="Select enrichments to show",
+	text=list("Choose the enrichments to be shown associated to the selected ROI(s).",
+		tags$br(),
+		tags$br(),
+		Tip("To associate enrichments to ROIs, go to 'ROI preparation' section."),
+		tags$br(),
+		tags$br(),
+		Warning("An enrichment appears only if associated to ALL the ROIs selected.")
+	)
+)
+
+
+help_enrichmentInRois_parameters_bins<-list(
+	title="Set the number of bins",
+	text=list("The number of bins represents
+		the number of intervals each genomic range of the ROI(s) is divided into for calculating enrichments.", 
+		tags$br(),
+		tags$br(),
+		Tip("Increase this number to improve resolution."),
+		tags$br(),
+		tags$br(),
+		Comment("This parameter only affects the profile plot.")		
+
+	)
+)
+
+
+#total reads and read density are the same messages:
+# help_singleEvaluation_normalizationtotalread
+# help_singleEvaluation_normalizationreaddensity
+
+
 
 #Profiles
 msg_enrichmentInRois_profiles<-list(
@@ -1462,21 +1676,16 @@ msg_enrichmentInRois_boxplots<-list(
 		Field("Boxplot by enrichment","The boxplot is grouped by the enrichments"),
 		tags$br(),
 		Comment("The raw data of the enrichments in ROIs can be downloaded in tabular format 
-				by clicking 'download data'"),
-		tags$br(),
-		tags$br(),		
-		Tip("To color according to the grouping of the boxplots (ROIs or enrichments), tick the 
-			'Group colors (boxes)' field in 'parameters' to color according to the grouping of the 
-			boxplots (ROIs or enrichments), tick the 'Group colors (boxes)' field in the parameters")	
+				by clicking 'download data'")
 	)
 )
 #Correlations
 msg_enrichmentInRois_correlations<-list(
 	title="Correlation heatmaps",
 	text=list(
-		"Shows the correlation or the partial correlation between enrichments in the selected ROI.<br>
+		HTML("Shows the correlation or the partial correlation between enrichments in the selected ROI.<br>
 		Clicking a square in the matrix will show the corresponding scatterplot of the pairwise 
-		(partial)correlation in the scatterplot on the right",
+		(partial)correlation in the box on the right"),
 		tags$br(),
 		tags$br(),
 		Field("Cor-Heatmap","Correlation Heatmap of the enrichments in a given ROI"),
@@ -1486,17 +1695,15 @@ msg_enrichmentInRois_correlations<-list(
 					as covariates, all the other enrichments selected"),
 		tags$br(),
 		tags$br(),
-		Warning("1. The correlation and partial correlation heatmaps will appear only when a single ROI 
+		Warning("<b>1</b>. The correlation and partial correlation heatmaps will appear only when a single ROI 
 				has been selected.<br> 
-				2. The correlation heatmap will appear only when at least 2 enrichment 
+				<b>2</b>. The correlation heatmap will appear only when at least 2 enrichment 
 				were selected.<br> 
-				3. Partial correlation heatmap only when at least 3 enrichments were selected",plural=T),
-		tags$br(),
-		tags$br(),				
-		Tip("To change the correlation type (Spearman or Pearson) use the option in the parameters")
-
+				<b>3</b>. Partial correlation heatmap only when at least 3 enrichments were selected",plural=T)
 	)
 )
+
+
 #Scatterplot
 msg_enrichmentInRois_scatterplot<-list(
 	title="Scatterplot of pairwise correlation",
@@ -1517,139 +1724,248 @@ msg_enrichmentInRois_scatterplot<-list(
 msg_dynamicsOnGenes_parameters<-list(
 	title="Parameters for meta-gene representation",
 	text=list(
-		"Here you can define the parameters for the metagene plot",
-		tags$br(),
-		tags$br(),
-		Field("Select the gene list","Choose the gene lists in which you want to perform the analysis"),
-		tags$br(),
-		Tip("To import a gene list, go to 'ROI' section"),
-		tags$br(),
-		tags$br(),
-		Field("ROIs associated to selected gene lists","This panel shows all the ROIs that constitute 
-			the selected gene list(s) (promoters, transcript, TES of the genelist(s) selected)"),
-		Field("Select enrichments to show","Choose the enrichments you want to analyze. These 
-			enrichments must be associated both with promoters, transcripts and TES ROIs of the gene list"),
-		tags$br(),
-		Tip("To associate enrichments to a gene list, use the 'Associate enrichments' tab in 'ROI management' section"),
-		tags$br(),
-		tags$br(),
-		Field("Number of bins","Set the number of bins for the gene body portion of the metagene plot"),
-		tags$br(),
-		Tip("To improve the resolution of the metagene profile, increase the number of bins"),
-		tags$br(),
-		tags$br(),
-		Field("Mean or median?","Choose whether to show the mean or the median of the signal in the metagene profile"),
-		Field("log2","Choose whether to transform the signals of the enrichments using log2"),
-		Field("Choose normalization","Choose the normalization method for the enrichments:<br>
-		 		<li><b>Total reads (rpm)</b>: The number of library-normalized reads</li>
-				<li><b>Read density (rpm/bp)</b>: The number of library-normalized reads, normalized also by the length of the genomic ranges</li>"),
-		Field("Fraction of outliers to exclude in cumulative plots:","The fraction of outliers (both lower and higher values) to exclude in cumulative plots"),
-		tags$br(),
-		Tip("Increase this value to emphasize the differences between the curves in the cumulative plots")			
-
+		"Here you can define the parameters for the analyses of metagenes"
 	)
 
 )
+
+
+
+
+help_dynamicsOnGenes_parameters_genelist<-list(
+	title="Select genelist(s)",
+	text=list("Choose the gene lists in which you want to perform the analysis",
+		tags$br(),
+		tags$br(),
+		Tip("To import genelists, go to 'ROIs' -> 'Get promoters, transcripts, TES coordinates of a list of genes'"),
+		tags$br(),
+		tags$br(),
+		Warning("Enrichment files must be associated to the selected genelist(s). To associate enrichments,
+					go to 'ROI preparation' -> 'Prepare genelists for metagene profile'")
+	)
+)
+
+help_dynamicsOnGenes_parameters_ROIassociated<-list(
+	title="ROIs constituting the genelist(s)",
+	text="This panel shows all the ROIs that constitute 
+			the selected gene list(s). A genelist is composed by 3 ROIs: promoters, transcripts, TES of the genelist."
+)
+
+help_dynamicsOnGenes_parameters_ernichments<-list(
+	title="Select enrichments to show",
+	text=list("Choose the enrichments to be shown associated to the selected genelist(s).",
+		tags$br(),
+		tags$br(),
+		Tip("To associate enrichments to genelists, go to 'ROI preparation' -> 'Prepare genelists for metagene profile', or 
+				do it manually in 'ROI preparation' -> 'Manual ROI management' (for advanced users)"),
+		tags$br(),
+		tags$br(),
+		Warning("<b>1</b>. An enrichment appears only if associated to ALL the genelists selected<br>
+				<b>2</b>. An enrichment is considered associated to a genelist when it was associated to both promoters, transcripts and TES of that genelist",plural=T)
+	)
+)
+
+help_dynamicsOnGenes_parameters_nbins<-list(
+	title="Set the number of bins",
+	text=list("The number of bins represents
+		the number of intervals each gene of the list is divided into for calculating enrichments.", 
+		tags$br(),
+		tags$br(),
+		Tip("Increase this number to improve resolution."),
+		tags$br(),
+		tags$br(),
+		Comment("This parameter only affects the profile plot.")
+	)	
+)
+
+# help_singleEvaluation_normalizationtotalread
+# help_singleEvaluation_normalizationreaddensity
+
+help_dynamicsOnGenes_parameters_fractionexclude<-list(
+	title="Fraction of outlayers to exclude",
+	text=list("Fraction of outliers to exclude in cumulative plots",
+		tags$br(),
+		tags$br(),
+		Tip("Increase this value to emphasize the differences between the curves in the cumulative plots")
+	)
+)
+
+
+
+
+
 	
 #Profiles
 msg_dynamicsOnGenes_profiles<-list(
-	title="Metagene profile",
+	title="Metagene analysis",
 	text=list(
-		"Shows the metagene profile of enrichments in the selected gene list(s).
-		This plot is particularly useful to evaluate RNApol2 distribution along genes",
+		"This analysis generates different plots on groups of genes",
 		tags$br(),
 		tags$br(),
-		Comment("The metagene plot starts at –30% of transcripts length from TSS and ends at +30% from TES")		
-	)
-)
-#TSS enrichment
-msg_dynamicsOnGenes_TSSenrichment<-list(
-	title="Enrichments at promoters",
-	text=list(
-		"Shows a boxplot of the enrichments at the promoters of the selected gene list(s).",
+		Field("Metagene profile","Shows the metagene profile of enrichments in the selected gene list(s).
+		This plot is particularly useful to evaluate RNApol2 distribution along genes"),
+		Comment("The metagene plot starts at –30% of transcripts length from TSS and ends at +30% from TES"),
 		tags$br(),
 		tags$br(),
-		Comment("The upstream and downstream limits from TSS to define promoters are set the 
+		Field("Enrichment boxplots","Shows the the enrichments as boxplots at the promoters, transcripts and TES of the selected gene list(s)."),				
+		Comment("The upstream and downstream limits to define TSS and TES regions are set the 
 				first time the genome assembly is loaded"),
-		tags$br(),
 		tags$br(),	
-		Tip("To change the size of intervals around TSS  or TES , go to the 'Assembly' section and  
-			change the default up/downstream values for the definition of TSS and TES intervals, 
-			then reload the gene list in 'ROI' section")		
-	)
-)
-#genebodies enrichment
-msg_dynamicsOnGenes_genebodiesEnrichment<-list(
-	title="Enrichments at genebodies",
-	text=list(
-		"Shows a boxplot of the enrichments at genebodies of the selected gene list(s)",
-		tags$br(),
-		tags$br(),
-		Comment("A genebody is defined as the annotated gene, minus the TSS and the TES intervals"),
-		tags$br(),
-		tags$br(),
-		Tip("To change the size of intervals around TSS  or TES , go to the 'Assembly' section and  
-			change the default up/downstream values for the definition of TSS and TES intervals, 
-			then reload the gene list in 'ROI' section")				
-	)
-)
-#TES enrichment
-msg_dynamicsOnGenes_TESenrichment<-list(
-	title="Enrichments at TES",
-	text=list(
-		"Shows a boxplot of the enrichments at the TES of the selected gene list(s)",
-		tags$br(),
-		tags$br(),
-		Comment("The upstream and downstream limits from TES are defined the first time the genome assembly is loaded"),
-		tags$br(),
-		tags$br(),
-		Tip("To change the size of intervals around TSS  or TES , go to the 'Assembly' section and  
-			change the default up/downstream values for the definition of TSS and TES intervals, 
-			then reload the gene list in 'ROI' section")		
+		tags$br(),	
+		Field("Ranked enrichments","For each gene in the gene list(s) selected, it shows the ranked enrichments at promoters, at genebodies or their ranked stalling index."),
+		Comment("The stalling index is defined as number of reads at TSS / number of reads at genebodies.
+				This is typically used when calculating the Pol2 stalling index"),
+		tags$br(),	
+		tags$br(),	
+		Tip("To change the size of intervals around TSS or TES , go to the 'Assembly' section and  
+			change the default up/downstream values for the definition of TSS and TES regions, 
+			then import the gene list again ('ROIs' section -> 'Get promoters, transcripts, TES coordinates of a list of genes')")
 
 	)
 )
-#TSS ranked enrichments
-msg_dynamicsOnGenes_TSSranked<-list(
-	title="Promoters ranked enrichments",
+
+
+
+
+
+
+
+
+#### GO analyses
+
+#parameters
+msg_goAnalysis_parameters<-list(
+	title="Parameters for gene ontology",
 	text=list(
-		"For each gene in the gene list(s) selected, it shows the ranked enrichments at promoters",
+		"Set the parameters used for the gene ontology analysis",
 		tags$br(),
 		tags$br(),
-		Comment("The upstream and downstream limits from TSS were defined the first time the genome assembly was loaded"),
+		Comment("'<b>Variables</b>' tab: basic parameters for the analysis; '<b>Filtering</b>' tab: parameters for filtering the results")
+	)
+)
+
+help_goAnalysis_parameters_fromROI<-list(
+	title="Analyze genes annotated to ROIs",
+	text=list("Perform the gene ontology analysis on the genes annotated to select ROI(s).",
 		tags$br(),
+		tags$br(),
+		Comment("If a single ROI is selected, the results will be displayed as a barplot, otherwise as a heatmap (rows=ROIs; columns=significant signatures in at least one ROI)"),
+		tags$br(),	
+		tags$br(),	
+		Warning("A genome assembly must be loaded for the annotation to ROIs. To load a genome assembly, use 'Assembly' section")
+	)
+)
+
+
+
+help_goAnalysis_parameters_fromgenelist<-list(
+	title="Analyze genes from a pasted genelist",
+	text=list("Perform the gene ontology analysis on a list of genes given on the fly, one per line.",
+		tags$br(),tags$br(),
+		Comment("If genes are lowercase (for example murine), they will be converted in uppercase (Human) to be consistent 
+			with signature lists available in the program. The Output is a barplot showing the p adjusted of the hypergeometric test")
+	)
+)
+
+help_goAnalysis_parameters_kindofID<-list(
+	title="Kind of gene IDs",
+	text=list("Which kind of identifiers are the input genes provided? Symbols, ENTREZ IDs, ...")
+)
+
+help_goAnalysis_parameters_nearestgenes<-list(
+	title="Take the nearest gene",
+	text="For each genomic range of selected ROI(s), the program takes the nearest gene from the midpoint.
+		Therefore, the number of input genes of a ROI will be = number of genomic ranges"
+)
+
+help_goAnalysis_parameters_genewindow<-list(
+	title="Take the genes inside genomic window",
+	text="For each genomic range of selected ROI(s), the program takes all the genes within a certain genomic window 
+		from the midpoint of the range. The amplitude of the window is set by the user"
+)
+
+help_goAnalysis_parameters_signatures<-list(
+	title="Select signatures (database)",
+	text=list("Select the gene signatures(s) to use for the gene ontology analysis. The 
+			background for the hypergeometric test (the 'universe')  will be the union of all the genes of 
+			the signatures selected",
+			tags$br(),tags$br(),
+			Comment("The gene signatures are lists of genes in gmt format present in the directory appContent/signatures/ of the program. 
+				Gene signatures can be loaded from the Molecular Signature Database (MSigDB) or similar resources")
+
+	)
+)
+
+help_goAnalysis_parameters_orderresults<-list(
+	title="How to order results",
+	text="Choose the order of the significant hits resulting from GO analysis. If a single ROI has 
+			been selected, or a custom gene list has been used as input, the results will be ranked based on 
+			-log10 p adjusted by default. If multiple ROIs have been selected, the user can choose whether 
+			to rank the heatmap based on the best p adjusted 
+			or whether to order based on clustering (K-means or hierarchical)"
+)
+
+help_goAnalysis_parameters_minsize<-list(
+	title="Minimum signature size",
+	text="Set the minimum size of the gene signatures used for the ontology analysis. 
+			All signatures with a size below this value will not be considered"
+)
+
+help_goAnalysis_parameters_maxsize<-list(
+	title="Maximum signature size",
+	text="Set the maximum size of the gene signatures used for the ontology analysis. 
+			All signatures with a size above this value will not be considered"
+)
+
+
+
+
+help_goAnalysis_parameters_generatio<-list(
+	title="gene ratio threshold",
+	text="All the hits below this gene ratio threshold are hiddenon from the plot. Gene ratio is defined as: genes associated to the 
+			ROI or in the custom gene list / all the genes in the signature"
+)
+
+help_goAnalysis_parameters_padjthresh<-list(
+	title="-log10 padj threshold",
+	text="All the hits below this significance (-log10 p adjusted) threshold are hidden from the plot"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#GO plot
+msg_goAnalysis_goPlot<-list(
+	title="Gene ontology plot",
+	text=list(
+		"It displays the plot of the GO analysis (heatmap or barplot). 
+		For each signature, genes annotated to a specific ROI can be displayed by clicking the corresponding cell or bar",
 		tags$br(),		
-		Tip("To change the size of intervals around TSS  or TES , go to the 'Assembly' section and  
-			change the default up/downstream values for the definition of TSS and TES intervals, 
-			then reload the gene list in 'ROI' section")			
+		tags$br(),
+		Comment("The p adjusted dispayed is the level of significance of the hypergeometric test.")	
 	)
 )
 
-#Genebodies ranked enrichments
-msg_dynamicsOnGenes_genebodiesRanked<-list(
-	title="Genebodies ranked enrichments",
-	text=list(
-		"For each gene in the gene list(s) selected, it shows the ranked enrichments at genebodies",
-		tags$br(),
-		tags$br(),
-		Comment("A genebody is defined as the annotated gene, minus the TSS and the TES intervals"),
-		tags$br(),
-		tags$br(),
-		Tip("To change the size of intervals around TSS  or TES , go to the 'Assembly' section and  
-			change the default up/downstream values for the definition of TSS and TES intervals, 
-			then reload the gene list in 'ROI' section")				
-	)
+#GO table
+msg_goAnalysis_goTable<-list(
+	title="Gene ontology table",
+	text="GO results are displayed in a tabular format and can be explored interactively.
+		You can download the tab-delimited text file for downstream processing"
 )
-#Stalling Index
-msg_dynamicsOnGenes_stallingIndexRanked<-list(
-	title="Stalling index (ranked)",
-	text=list(
-		"It calculates the stalling index (= number of reads at TSS / number of reads at genebodies) and plot each gene in ascending order",
-		tags$br(),
-		tags$br(),
-		Comment("This is typically used to calculate the Pol2 stalling index")		
-	)
-)
+
+
+
 
 ############################################################
 ############################################################
@@ -1669,39 +1985,6 @@ msg_saveLoad_load<-list(
 	title="Load the session",
 	text="Load a session from an *rds file. Rds file should have been created with ChroKit."
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

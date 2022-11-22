@@ -12,22 +12,22 @@ observe({
 
 
 ##update absolute values of upstream/downstream of TSS/TES if slidebar changed:
-observe({
-  input$upstreamTSS
-  updateNumericInput(session,inputId = 'absoluteFilterUpstreamTSS',label=NULL,min = 0, max = 0, step = 50,value=input$upstreamTSS)
-})
-observe({
-  input$downstreamTSS
-  updateNumericInput(session,inputId = 'absoluteFilterDownstreamTSS',label=NULL,min = 0, max = 0, step = 50,value=input$downstreamTSS)
-})
-observe({
-  input$upstreamTES
-  updateNumericInput(session,inputId = 'absoluteFilterUpstreamTES',label=NULL,min = 0, max = 0, step = 50,value=input$upstreamTES)
-})
-observe({
-  input$downstreamTES
-  updateNumericInput(session,inputId = 'absoluteFilterDownstreamTES',label=NULL,min = 0, max = 0, step = 50,value=input$downstreamTES)
-})
+# observe({
+#   input$upstreamTSS
+#   updateNumericInput(session,inputId = 'absoluteFilterUpstreamTSS',label=NULL,min = 0, max = 0, step = 50,value=input$upstreamTSS)
+# })
+# observe({
+#   input$downstreamTSS
+#   updateNumericInput(session,inputId = 'absoluteFilterDownstreamTSS',label=NULL,min = 0, max = 0, step = 50,value=input$downstreamTSS)
+# })
+# observe({
+#   input$upstreamTES
+#   updateNumericInput(session,inputId = 'absoluteFilterUpstreamTES',label=NULL,min = 0, max = 0, step = 50,value=input$upstreamTES)
+# })
+# observe({
+#   input$downstreamTES
+#   updateNumericInput(session,inputId = 'absoluteFilterDownstreamTES',label=NULL,min = 0, max = 0, step = 50,value=input$downstreamTES)
+# })
 
 
 

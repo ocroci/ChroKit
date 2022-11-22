@@ -58,16 +58,24 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,
 sidebar<- dashboardSidebar(
   sidebarMenu(style = "position: fixed; overflow: visible;",
     HTML("&nbsp© Ottavio Croci<br><br>"),
-    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>Import data</b>"),
+    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
+    actionButton("loadExampleData", "Load example data"),
     menuItem("ROIs", tabName = "BEDblock", icon = icon("file-excel-o")),
+
     menuItem("Enrichment files", tabName = "BAMblock", icon = icon("file-o")),
     menuItem("Assembly", tabName = "TXDBblock", icon = icon("database")),
+    shinyFilesButton('loadenv', label='Load session file', 'Select rds session file to load', icon=icon("fas fa-file-export"),FALSE),
     #menuItem("Gene lists", tabName = "GENELISTSblock", icon = icon("list")),
-    HTML("<br><br>&nbsp;&nbsp;&nbsp;&nbsp<b>Work with data</b>"),
-    menuItem("ROI management", tabName = "ROIblock", icon = icon("sort-amount-desc")),
-    menuItem("Genomics", tabName = "GENOMICSblock", icon = icon("area-chart")),
-    HTML("<br><br>&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
-    menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
+    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>2) Data management</b>"),
+    menuItem("ROI preparation",tabName="MANIPULATEROIblock",icon=icon("fas fa-hammer")),
+    #menuItem("Associate enrichments", tabName = "ASSOCIATEblock", icon = icon("fas fa-paperclip")),
+    #menuItem("ROI management", tabName = "ROIblock", icon = icon("sort-amount-down-alt")),
+    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>3) Data visualization</b>"),
+    menuItem("Genomics", tabName = "GENOMICSblock", icon = icon("chart-area")),
+    HTML("<br>"),
+    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
+    shinySaveButton("saveWork",label="Save session","Save working environment in rds file...",icon=icon("fas fa-file-import"),filetype=list(rds="rds")),
+    #menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
     HTML("<br><br>"),
     htmlOutput("showRAMusageGC"),
      HTML("<br>"),
@@ -103,15 +111,21 @@ source(file.path("uis","uiBAM.R"),local=TRUE)$value
 source(file.path("uis","uiTXDB.R"),local=TRUE)$value
 
 ####################################################################################
-# #TAb of managing GENELISTS 
+# #TAb of manipulating ROIs
 ####################################################################################
-#source(file.path("uis","uiGENELISTS.R"),local=TRUE)$value
+source(file.path("uis","uiMANIPULATEROI.R"),local=TRUE)$value
+
+
+####################################################################################
+# #TAb of enrichments association
+####################################################################################
+#source(file.path("uis","uiASSOCIATE.R"),local=TRUE)$value
 
 
 ####################################################################################
 # #TAb of managing ROIs
 ####################################################################################
-source(file.path("uis","uiROI.R"),local=TRUE)$value
+#source(file.path("uis","uiROI.R"),local=TRUE)$value
 
 ####################################################################################
 # #TAb of genomics
@@ -121,7 +135,7 @@ source(file.path("uis","uiGENOMICS.R"),local=TRUE)$value
 ####################################################################################
 # #TAb of save/load
 ####################################################################################
-source(file.path("uis","uiSAVELOAD.R"),local=TRUE)$value
+#source(file.path("uis","uiSAVELOAD.R"),local=TRUE)$value
 
 
 
@@ -129,8 +143,13 @@ source(file.path("uis","uiSAVELOAD.R"),local=TRUE)$value
 # put all tab together in the body. 1:1 correspondence with sidebar!
 ####################################################################################
 
-body<-dashboardBody(tabItems(tabBED,tabBAM,tabTXDB,tabROI,tabGENOMICS,tabSAVELOAD), 
-#everything in common, to show in all the tabs (example: log strings) 
+body<-dashboardBody(
+
+  tags$head(
+    tags$style(HTML("hr {border-top: 1px solid #000000;}"))
+  ),
+  tabItems(tabBED,tabBAM,tabTXDB,tabMANIPULATEROI,tabGENOMICS), 
+  #everything in common, to show in all the tabs (example: log strings) 
   HTML("<b><h3>Logs: </h3></b>"),
   wellPanel(id = "logPanel",style = "overflow-y:scroll; max-height: 250px",
       htmlOutput("showlogs")

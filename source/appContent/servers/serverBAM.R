@@ -19,75 +19,94 @@ observeEvent(input$msg_enrichmentFiles_renameEnrichment, {
 #open BAM file paths
 observeEvent(input$fileBAM, {
   bamchoice=shinyFilePath(input$fileBAM)
+  bamchoice=gsub("//","_//",bamchoice)
   #if the file is not NULL 
   if (!is.null(bamchoice)& is.na(suppressWarnings(as.integer(bamchoice)))){
-    toopen=basename(bamchoice)
+    toopens=sapply(strsplit(bamchoice,split="_/")[[1]],basename) 
     if (length(BAMvariables$listBAM)>0){
       alreadyopened=sapply(BAMvariables$listBAM,basename)     
     }else{
       alreadyopened=NULL
     }
-    #file must end with ".bam"
-    #if file is not in the history of the BAM files already opened
-    if (!toopen %in% alreadyopened){
 
-      #if is a BAM file (extension ends with .bam)
-      if ( substring(toopen,nchar(toopen)-3,nchar(toopen))==".bam"){
-        #find if bam file has its own index (.bam.bai)
-        baifile=paste(bamchoice,".bai",sep="")
-        if (file.exists(baifile)){ 
-          #add bam file path to the list!
-          BAMvariables$listBAM[length(BAMvariables$listBAM)+1]<-bamchoice
-          names(BAMvariables$listBAM)[length(BAMvariables$listBAM)]<-toopen
-          logvariables$msg[[length(logvariables$msg)+1]]= paste("Added ",toopen," BAM file <br>",sep="")
-          print(paste("Added",toopen,"BAM file"))
+    #here the loop for multiple selection
+    
+
+    for (currentselectionindex in 1:length(toopens)){
+      toopen=toopens[currentselectionindex]
+      #file must end with ".bam"
+      #if file is not in the history of the BAM files already opened
+      if (!toopen %in% alreadyopened){
+        #if is a BAM file (extension ends with .bam)
+        if ( substring(toopen,nchar(toopen)-3,nchar(toopen))==".bam"){
+
+          #find if bam file has its own index (.bam.bai)
+          baifile=paste(names(toopen),".bai",sep="")
+          if (file.exists(baifile)){ 
+            #add bam file path to the list!
+            BAMvariables$listBAM[length(BAMvariables$listBAM)+1]<-names(toopen)
+            names(BAMvariables$listBAM)[length(BAMvariables$listBAM)]<-toopen
+            logvariables$msg[[length(logvariables$msg)+1]]= paste("Added ",toopen," BAM file <br>",sep="")
+            print(paste("Added",toopen,"BAM file"))
+          }else{
+            #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">BAM doesn\'t have its own index (.bai). You can create it with samtools index <bam file>...<br></font>'
+            sendSweetAlert(
+              session = session,
+              title = "bam index (.bai) not found",
+              text = "BAM doesn\'t have its own index (.bai) in the same directory. You can create it with samtools index <bam file>",
+              type = "error"
+            )         
+          }
+        }
+
+        #if is a bigWig file (extension ends with .bw/.bigWig)
+        else if (substring(toopen,nchar(toopen)-2,nchar(toopen))==".bw" | tolower(substring(toopen,nchar(toopen)-6,nchar(toopen)))==".bigwig"){
+          if (.Platform$OS.type=="unix"){
+            BAMvariables$listBAM[length(BAMvariables$listBAM)+1]<-names(toopen)
+            names(BAMvariables$listBAM)[length(BAMvariables$listBAM)]<-toopen
+            logvariables$msg[[length(logvariables$msg)+1]]= paste("Added ",toopen," WIG file <br>",sep="")
+            print(paste("Added",toopen,"WIG file"))          
+          }else{
+            #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">Cannot use bigWig on Windows OS...<br></font>'
+            sendSweetAlert(
+              session = session,
+              title = "Windows OS detected",
+              text = "Cannot use bigWig enrichments on Windows OS, use bam files instead",
+              type = "error"
+            )  
+          }
+        #else, not bam neither bigWig
         }else{
-          #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">BAM doesn\'t have its own index (.bai). You can create it with samtools index <bam file>...<br></font>'
+          #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">File selected doesn\'t end with \'.bam\' or \'.bw/.bigWig\' extension...<br></font>'
           sendSweetAlert(
             session = session,
-            title = "bam index (.bai) not found",
-            text = "BAM doesn\'t have its own index (.bai) in the same directory. You can create it with samtools index <bam file>",
+            title = "Bad file format",
+            text = "Selected file name doesn\'t end with \'.bam\' or \'.bw/.bigWig\' extension",
             type = "error"
-          )         
+          )       
         }
-      }
-
-      #if is a bigWig file (extension ends with .bw/.bigWig)
-      else if (substring(toopen,nchar(toopen)-2,nchar(toopen))==".bw" | tolower(substring(toopen,nchar(toopen)-6,nchar(toopen)))==".bigwig"){
-        if (.Platform$OS.type=="unix"){
-          BAMvariables$listBAM[length(BAMvariables$listBAM)+1]<-bamchoice
-          names(BAMvariables$listBAM)[length(BAMvariables$listBAM)]<-toopen
-          logvariables$msg[[length(logvariables$msg)+1]]= paste("Added ",toopen," WIG file <br>",sep="")
-          print(paste("Added",toopen,"WIG file"))          
-        }else{
-          #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">Cannot use bigWig on Windows OS...<br></font>'
-          sendSweetAlert(
-            session = session,
-            title = "Windows OS detected",
-            text = "Cannot use bigWig enrichments on Windows OS, use bam files instead",
-            type = "error"
-          )  
-        }
-      #else, not bam neither bigWig
       }else{
-        #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">File selected doesn\'t end with \'.bam\' or \'.bw/.bigWig\' extension...<br></font>'
+        #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">File selected \'',toopen,'\' already opened...<br></font>',sep="")
         sendSweetAlert(
           session = session,
-          title = "Bad file format",
-          text = "Selected file name doesn\'t end with \'.bam\' or \'.bw/.bigWig\' extension",
+          title = "File already opened",
+          text = paste('One or more selected files were already opened',sep=""),
           type = "error"
-        )       
-      }
-    }else{
-      #logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="red">File selected \'',toopen,'\' already opened...<br></font>',sep="")
-      sendSweetAlert(
-        session = session,
-        title = "File already opened",
-        text = paste('File selected \'',toopen,'\' already opened',sep=""),
-        type = "error"
-      )     
+        )     
+      }      
     }
+
+    
+
+
+
+
+
   }
+
+
+
+
 })
 
 

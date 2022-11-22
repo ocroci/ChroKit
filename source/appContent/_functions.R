@@ -107,6 +107,37 @@ isvalid<-function(inputfield) {
 }
 
 
+
+availRAM<-function(){
+  #predict real amount of usable RAM
+  memused=gc()
+  used=unname(memused[,2][2])
+  #divided by 2 is very stringent. RAM_system is a global parameter, defined in "shinyapp.r"
+  realmax=RAM_system/2
+  avail=realmax*1000-used
+  margin=avail/100*30
+  final_avail=avail-margin
+  return(final_avail)
+}
+
+
+
+#this function calculates the real amount of available ram on the system
+#and the chunks needed for a specific ROI to be associated
+#to be used inside GRbaseCoverage2 function for a specific range
+#slow the gc(), but inside the coverage function is negligible
+chunksforassociate<-function(range) {
+  final_avail=availRAM()
+  #here predict how many chunks needed for the association
+  totalRAMforthisROI=sum(width(range))*6 / 1000000
+  chunks= floor(totalRAMforthisROI/final_avail)+1
+  return(chunks)
+}
+
+
+
+
+
 ##reads BED or GTF/GFF and automatically recognise the file format
 readBEDGTFF<-function(bedpath,Header=TRUE,Skip=0){
   #bedpath= path to the file to be opened
@@ -603,6 +634,10 @@ findPositionFromGene<-function(genelist,annotatedrange,kindofID="entrez",thresh=
   }
 
   ids=genelist
+
+  #NA to "NA" otherwise is a mess
+  ids[is.na(ids)]="NA"
+
   ids=toupper(ids)
   #extract element metadata from annotatedrange range: 
   #columns are gene_id symbol ensembl_id refSeq_id
@@ -869,12 +904,328 @@ checkMaxBins<-function(roiobject){
 }
 
 
+
+
+
+#now implement the fusion function, with the indexes based on >255 or <255 ranges, array TRUE/FALSE to be kept
+#for the decryption
+#implementing nibble compression
+# encryptcov<-function(cov_int,chunk=length(cov_int)) {
+#   #this function takes, as input, the coverage in integer and transforms into double or single bytes 
+#   #(depending on if the ranges can go over 255 reads per position or not)
+#   #this compression should save from 50 to 75 % of the RAM
+
+#   #cov_int: the list of integer array representing the raw coverage for each position in each range (output of GRbasecoverage)
+#   #chunk: the lenght of the block to process at time (both for single and double- byte ranges). Decreasing this
+#   #   number will increase the computational cost (maybe negligible) but decrease the RAM peaks. This number
+#   #   must be < than the length of the cov_int
+
+#   if (chunk>length(cov_int)){
+#     chunk=length(cov_int)
+#   }
+#   #get number of elements (fast):
+#   #nelement=sum(sapply(cov_int,length))
+
+#   #check if any number > 255 and transform to raw (little bit slow)
+#   lengths=sapply(cov_int,length)
+#   vect255=sapply(1:length(cov_int),function(x){
+#         max=sum(cov_int[[x]]>255)
+#         if (max>0){
+#           #2-byte compression
+#           return(1)
+#         }else if(max==0){
+#           mid=sum(cov_int[[x]]>15)
+#           if(mid>0){
+#             #1-byte compression
+#             return(2)
+#           }else{
+#             #1/2 byte (nibble) compression
+#             if (lengths[x]%%2==0){
+#               return(3)
+#             }else{
+#               return(4)
+#             }
+
+#           }
+#         }
+#       })
+#   vect255=as.integer(vect255)
+
+
+
+#   #here, split TRUE (>255 for at least one bp) and FALSE (otherwise)
+#   part_2bytes=cov_int[vect255==1]
+#   part_1byte=cov_int[vect255==2]
+#   part_nibble_even=cov_int[vect255==3]
+#   part_nibble_odd=cov_int[vect255==4]
+#   rm(cov_int)
+#   #now treat each block separately, and divide each in chunks
+
+
+
+#   if (length(part_1byte)>0){
+#     #1-byte encoding
+#     if(chunk>length(part_1byte)){
+#       chunksize=length(part_1byte)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_1byte)%%chunksize
+#     nzones=length(part_1byte)%/%chunksize
+#     finalhex_1byte=as.list(rep(NA,length(part_1byte)))
+#     for (i in 1:nzones){
+#       finalhex_1byte[(chunksize*(i-1)+1):(i*chunksize)]=lapply(part_1byte[1:chunksize],function(x){as.raw(x)})  
+#       part_1byte[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       finalhex_1byte[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(part_1byte[1:rest_zones],function(x){as.raw(x)})  
+#       part_1byte[1:rest_zones]=NULL
+#     }
+#     rm(part_1byte)
+
+#   }else{
+#     finalhex_1byte=NULL
+#   }
+
+  
+
+#   if(length(part_2bytes)>0){
+
+#     #here correct any value>65535
+#     part_2bytes=lapply(1:length(part_2bytes),function(x){
+#       replace(part_2bytes[[x]], part_2bytes[[x]]>65535, 65535)
+#     })
+    
+#     #2-bytes encoding. Eats a lot of memory
+#     if(chunk>length(part_2bytes)){
+#       chunksize=length(part_2bytes)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_2bytes)%%chunksize
+#     nzones=length(part_2bytes)%/%chunksize
+#     finalhex_2bytes=as.list(rep(NA,length(part_2bytes)))
+#     for (i in 1:nzones){
+#       finalhex_2bytes[(chunksize*(i-1)+1):(i*chunksize)]=lapply(1:length(part_2bytes[1:chunksize]),function(x){
+#         as.raw(c(rbind(as.integer(part_2bytes[[x]]%/%256),as.integer(part_2bytes[[x]]%%256))))
+#       })  
+#       part_2bytes[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       finalhex_2bytes[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(1:length(part_2bytes[1:rest_zones]),function(x){
+#         as.raw(c(rbind(as.integer(part_2bytes[[x]]%/%256),as.integer(part_2bytes[[x]]%%256))))
+#       })  
+#       part_2bytes[1:rest_zones]=NULL
+#     }
+#     rm(part_2bytes)
+#   }else{
+#     finalhex_2bytes=NULL
+#   }
+
+
+
+#   #nibble compression
+#   if(length(part_nibble_even)>0){
+#     if(chunk>length(part_nibble_even)){
+#       chunksize=length(part_nibble_even)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_nibble_even)%%chunksize
+#     nzones=length(part_nibble_even)%/%chunksize
+#     finalhex_nibble_even=as.list(rep(NA,length(part_nibble_even)))
+
+#     for (i in 1:nzones){
+#       finalhex_nibble_even[(chunksize*(i-1)+1):(i*chunksize)]=lapply(1:length(part_nibble_even[1:chunksize]),function(x){
+#         #as.raw(c(rbind(as.integer(part_nibble_even[[x]]%/%256),as.integer(part_nibble_even[[x]]%%256))))
+#         first_nibbles=seq(1,length(part_nibble_even[[x]]),2)
+#         second_nibbles=seq(2,length(part_nibble_even[[x]]),2)
+#         finalsum=part_nibble_even[[x]][first_nibbles]*16+part_nibble_even[[x]][second_nibbles]
+#         return(as.raw(finalsum  ))
+#       })  
+#       part_nibble_even[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       finalhex_nibble_even[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(1:length(part_nibble_even[1:rest_zones]),function(x){
+#         #as.raw(c(rbind(as.integer(part_nibble_even[[x]]%/%256),as.integer(part_nibble_even[[x]]%%256))))       #as.raw(c(rbind(as.integer(part_nibble_even[[x]]%/%256),as.integer(part_nibble_even[[x]]%%256))))
+#         first_nibbles=seq(1,length(part_nibble_even[[x]]),2)
+#         second_nibbles=seq(2,length(part_nibble_even[[x]]),2)
+#         finalsum=part_nibble_even[[x]][first_nibbles]*16+part_nibble_even[[x]][second_nibbles]
+#         return(as.raw(finalsum  ))
+#       })  
+#       part_nibble_even[1:rest_zones]=NULL
+#     }
+#     rm(part_nibble_even)
+
+#   }else{
+#     finalhex_nibble_even=NULL
+#   }
+
+
+
+
+
+#   #nibble compression
+#   if(length(part_nibble_odd)>0){
+#     if(chunk>length(part_nibble_odd)){
+#       chunksize=length(part_nibble_odd)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_nibble_odd)%%chunksize
+#     nzones=length(part_nibble_odd)%/%chunksize
+#     finalhex_nibble_odd=as.list(rep(NA,length(part_nibble_odd)))
+
+#     for (i in 1:nzones){
+#       finalhex_nibble_odd[(chunksize*(i-1)+1):(i*chunksize)]=lapply(1:length(part_nibble_odd[1:chunksize]),function(x){
+#         #as.raw(c(rbind(as.integer(part_nibble_odd[[x]]%/%256),as.integer(part_nibble_odd[[x]]%%256))))
+#         last_element=length(part_nibble_odd[[x]])
+#         first_nibbles=seq(1,length(part_nibble_odd[[x]][-last_element]),2)
+#         second_nibbles=seq(2,length(part_nibble_odd[[x]][-last_element]),2)
+#         finalsum=part_nibble_odd[[x]][first_nibbles]*16+part_nibble_odd[[x]][second_nibbles]
+#         finalsum=c(finalsum,as.raw(part_nibble_odd[[x]][last_element]))
+#         return(as.raw(finalsum  ))
+#       })  
+#       part_nibble_odd[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       finalhex_nibble_odd[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(1:length(part_nibble_odd[1:rest_zones]),function(x){
+#         #as.raw(c(rbind(as.integer(part_nibble_odd[[x]]%/%256),as.integer(part_nibble_odd[[x]]%%256))))       #as.raw(c(rbind(as.integer(part_nibble_odd[[x]]%/%256),as.integer(part_nibble_odd[[x]]%%256))))
+#         last_element=length(part_nibble_odd[[x]])
+#         first_nibbles=seq(1,length(part_nibble_odd[[x]][-last_element]),2)
+#         second_nibbles=seq(2,length(part_nibble_odd[[x]][-last_element]),2)
+#         finalsum=part_nibble_odd[[x]][first_nibbles]*16+part_nibble_odd[[x]][second_nibbles]
+#         finalsum=c(finalsum,as.raw(part_nibble_odd[[x]][last_element]))
+#         return(as.raw(finalsum  ))
+#       })  
+#       part_nibble_odd[1:rest_zones]=NULL
+#     }
+#     rm(part_nibble_odd)
+
+
+#   }else{
+#     finalhex_nibble_odd=NULL
+#   }
+
+
+#   finalhex=as.list(rep(NA,length(vect255)))
+#   finalhex[vect255==1]=finalhex_2bytes
+#   rm(finalhex_2bytes)
+#   finalhex[vect255==2]=finalhex_1byte
+#   rm(finalhex_1byte)
+#   finalhex[vect255==3]=finalhex_nibble_even
+#   rm(finalhex_nibble_even)
+#   finalhex[vect255==4]=finalhex_nibble_odd
+#   rm(finalhex_nibble_odd)
+
+#   return(list(finalhex,vect255))
+
+# }
+
+
+
+
+
+
+# decryptcov<-function(hexarray,chunk=length(hexarray[[2]])) {
+#   #this function takes, as input, the result of "encryptcov" function. This is a list of 2 elements. The first is the 1-byte 
+#   #or 2-bytes encoding of the raw coverage for each base pair of each range (list), while the second is an array of TRUE/FALSE
+#   #representing the positions in which there is a 2-byte encoding (TRUE) or 1-byte encoding (FALSE)
+
+#   #hexarray: coverage encoded in hex (1- or 2- bytes) plus TRUE/FALSE array on which ranges go over 255. The result
+#   #     of the function encryptcov
+#   #chunk: the chunk size for processing ranges (1- or 2- bytes). Try this to reduce memory peaks
+#   if(chunk>length(hexarray[[2]])){
+#     chunk=length(hexarray[[2]])
+#   } 
+
+#   #split ranges (1- or 2- bytes encoding)
+#   part_less255=hexarray[[1]][!hexarray[[2]]]
+#   part_high255=hexarray[[1]][hexarray[[2]]]
+
+
+
+#   if(length(part_less255)>0){
+#     #1-byte decoding
+#     if(chunk>length(part_less255)){
+#       chunksize=length(part_less255)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_less255)%%chunksize
+#     nzones=length(part_less255)%/%chunksize
+#     blocks_int_less255=as.list(rep(NA,length(part_less255)))
+#     for (i in 1:nzones){
+#       blocks_int_less255[(chunksize*(i-1)+1):(i*chunksize)]=lapply(part_less255[1:chunksize],function(x){as.integer(x)})
+#       part_less255[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       blocks_int_less255[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(part_less255[1:rest_zones],function(x){as.integer(x)})
+#       part_less255[1:rest_zones]=NULL
+#     }
+#     rm(part_less255)
+
+#   }else{
+#     blocks_int_less255=NULL
+#   }
+
+
+#   if(length(part_high255)>0){
+#     #2-bytes decoding
+#     if(chunk>length(part_high255)){
+#       chunksize=length(part_high255)
+#     }else{
+#       chunksize=chunk
+#     }
+#     rest_zones=length(part_high255)%%chunksize
+#     nzones=length(part_high255)%/%chunksize
+#     blocks_int_high255=as.list(rep(NA,length(part_high255)))
+#     #IMPORTANT: use big endian, because is from left to right
+#     for (i in 1:nzones){
+#       blocks_int_high255[(chunksize*(i-1)+1):(i*chunksize)]=lapply(part_high255[1:chunksize],function(x){readBin(x,"integer",signed=FALSE,size=2,n=length(x)/2,endian="big")})
+#       part_high255[1:chunksize]=NULL
+#     }
+#     #if remaining, last chunk
+#     if(rest_zones>0){
+#       i=i+1
+#       blocks_int_high255[(chunksize*(i-1)+1):(chunksize*(i-1)+rest_zones)]=lapply(part_high255[1:rest_zones],function(x){readBin(x,"integer",signed=FALSE,size=2,n=length(x)/2,endian="big")})
+#       part_high255[1:rest_zones]=NULL
+#     }
+#     rm(part_high255)
+#   }else{
+#     blocks_int_high255=NULL
+#   }
+
+#   finalint=as.list(rep(NA,length(hexarray[[2]])))
+#   finalint[!hexarray[[2]]]=blocks_int_less255
+#   rm(blocks_int_less255)
+#   finalint[hexarray[[2]]]=blocks_int_high255
+#   rm(blocks_int_high255)
+#   return(finalint)
+
+# }
+
+
+
+
 #this function calculate the pileup for each base pair for each range of the ROI
 #is a little improvement of the GRbaseCoverage function from compEpiTools (lapply intead of for)
-#a better strategy to save RAM could be to keep the norm. factor associated to each BAM, and use it when needed.
-#in that case it is possible to store everything as integer, more than 2 billions values 
+#triple strategy to save RAM:
+#1- separate norm. factor from raw values, so that raw values can be stored as integers instead of numeric (4 bytes instead of 8)
 #https://stackoverflow.com/questions/23660094/whats-the-difference-between-integer-class-and-numeric-class-in-r
-GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06)
+#2- double byte, byte, nibble encryption, if max value of a range is lower than 65536, 256, 16 respectively
+#3- LZ4 compression
+GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=NULL,signalControlSpike=NULL,multiplFactor=1e+06,nchunks=1)
 {
     #Object: genomic range in which calculate the base coverage
     # signalfile= path to the signal file file (the associated signal file index must be present in the same directory if bam file)
@@ -886,6 +1237,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
     #signalControlSpike=path to the signal file (BAM) of the spike-in in the input (ChIP-Seq). If this option is
     #         provided, also signalControl must be provided
     #multiplFactor= constant factor to multiply the final normalization coefficient, usually 1 million
+    #nchunks= number of chunks to divide the computation, if RAM is not enough for 1 sinlge chunk
     if (!is.character(signalfile)) {
       stop("signalfile has to be a file path of class character...")
     }
@@ -938,24 +1290,49 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       if (length(matchingSeqs) == 0) 
           return(sapply(width(Object), function(x) rep(0, x)))
       #use ss parameter for splitting strands
-      #already integer!
-      covList=as.list(bamCoverage(bampath=signalfile, gr=Object[matchingSeqs], verbose=FALSE))
-      # param <- ApplyPileupsParam(which = Object[matchingSeqs],what = "seq")
-      # pileupFiles=PileupFiles(signalfile)
-      # coverage <- applyPileups(pileupFiles, FUN = function(x) x,param = param)
-      # rm(pileupFiles)
-      # widths <- width(Object[matchingSeqs])
-      # covList <- list()
-      # starts <- start(Object[matchingSeqs])
-      # covList=lapply(1:length(Object[matchingSeqs]), function(i) {
-      #     covx <- coverage[[i]]
-      #     cvec <- rep(0, widths[i])
-      #     inds <- covx$pos - starts[i] + 1
-      #     #sometims max(inds) is > than length of cvec. => NAs in some positions. Why?
-      #     cvec[inds] <- colSums(covx$seq)
-      #     return(cvec)
-      # })
-      # covList<-lapply(covList,function(i)as.integer(i))
+      
+
+
+      #if BAM, split in chunks defined as parameter
+      print (paste("Calculating coverage in",nchunks,"chunks"))
+
+
+
+      matched_object=Object[matchingSeqs]
+      chunksize=length(matched_object)%/%nchunks
+      remain=length(matched_object)%%nchunks
+
+      covList=as.list(rep(NA,length(Object)))
+      keys=rep(NA,length(Object))
+      for (i in 1:nchunks){
+
+        from=chunksize*(i-1)+1
+        if (i <nchunks){
+          to=i*chunksize
+        }else{
+          #the last chunk, add all remaining part
+          to=i*chunksize+remain
+        }
+        #already integer!
+        temp=as.list(bamCoverage(bampath=signalfile, gr=matched_object[from:to], verbose=FALSE)) 
+        enc_cov=encryptcov(temp) 
+        rm(temp)  
+        keys[from:to]=enc_cov[[2]]
+        enc_mc=lapply(enc_cov[[1]],lz4_compress_raw,compress_level=1)   
+        rm(enc_cov)  
+        covList[from:to]=enc_mc     
+      }
+    
+
+
+
+      #very important if some mismatch
+
+      # if (length(matchingSeqs) < length(Object)) {
+      #     coverageTot <- sapply(width(Object), function(x) list(rep(0, x)))
+      #     coverageTot[matchingSeqs] <- covList
+      # }
+      # else coverageTot <- covList
 
 
 
@@ -974,22 +1351,16 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
             norm_factor=norm_factor* nreadCtrSpike/  nreadCtr         
           }
           print (paste("Norm. factor=",norm_factor))  
-          #covList <- lapply(covList, function(x) (x*norm_factor) )
       }else{
       	norm_factor=1
       }
-
+      ####################################################################
       
 
-      if (length(matchingSeqs) < length(Object)) {
-          coverageTot <- sapply(width(Object), function(x) list(rep(0, 
-              x)))
-          coverageTot[matchingSeqs] <- covList
-      }
-      else coverageTot <- covList
 
-      rm(covList)
-      return(list(coverageTot,norm_factor))
+
+
+      return(list(covList,keys,norm_factor))     
 
 
     #select if wig:
@@ -1001,20 +1372,39 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       chromosomes=seqlevelsInUse(Object)
       #just open the wig file, without opening all chromosome content. This serves just to know 
       #how long is each chromosome
+
+
       grfake=GRanges(Rle(chromosomes[1]),IRanges(1,1))
-      wig=import(signalfile,which=grfake,as = 'Rle')
+      #suppress warning if chr in Object not present in wig
+      #Warning in .local(con, format, text, ...) :
+      #       'which' contains seqnames not known to BigWig file: chr1
+      wig=suppressWarnings(import(signalfile,which=grfake,as = 'Rle'))
       chrswig=lengths(wig)
       rm(wig)
       common_chromosomes=intersect(chromosomes,names(chrswig))
       #initialize 0s for all ranges (if wig do not have a chr, the remaining are 0s)
       widths=width(Object)
-      coverageTot=lapply(1:length(Object),function(i){integer(widths[i])})
+
+
+      
+
+
+      #all positions that have a match with chr names. Others will be 0s (at the end)
+      pos_total=as.character(seqnames(Object))%in%common_chromosomes
+      coverageTot=as.list(rep(NA,length(widths)))
+      keylist=rep(NA,length(widths))
       for (i in 1:length(common_chromosomes)){
+
         #length(as.character(seqnames(Object))) should be equal to length(Object) =>
         #find positions of Object that have that chromosome
         #opening chromosome by chromosome
         pos=as.character(seqnames(Object))==common_chromosomes[i]
-        wigtempchr=import(signalfile,which=Object[pos],as = 'Rle')
+        #here can raise this error:
+        # Warning in .normarg_seqnames2(seqnames, seqinfo) :
+        #   levels in 'seqnames' with no entries in 'seqinfo' were dropped
+        #I think could be ignored: maybe just a chromosome not found in enrichment wig file
+        wigtempchr=suppressWarnings(import(signalfile,which=Object[pos],as = 'Rle'))
+        pos_neg=as.logical(strand(Object[pos])=="-")
         #count coverage for that chromosome in wig in the Object ranges in the same chromosome
         counts=Views(unlist(wigtempchr[[common_chromosomes[i]]]),ranges(Object[pos]))
         rm(wigtempchr)
@@ -1029,6 +1419,7 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
           ##check whether the order is correct
           tmp=lapply(seq_len(ncol(tmp)), function(i) as.integer(tmp[,i]))
         }
+
         rm(counts)
         ##IMPORTANT##
         #############
@@ -1036,14 +1427,33 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
         #############
         #tmp<-lapply(tmp,function(i)as.integer(i))
         ########################################################
-        coverageTot[pos] <- tmp
 
+
+        #invert negative strands, as in bamsignals package when bam files 
+        tmp[pos_neg] <- lapply(tmp[pos_neg],rev)
+
+        enctemp=encryptcov(tmp)
+        rm(tmp)
+        coverageTot[pos] <- lapply(enctemp[[1]],lz4_compress_raw,compress_level=1)
+        keylist[pos]<-enctemp[[2]]
 
       }
+      
+      #if something wrong with those positions (i.e. chromosomes not found in enrichment file),
+      #fill with zeroes and keys=2 (single-byte compression)
+      if(sum(!pos_total)>0){
+      	coverageTot[!pos_total]=lapply(which(!pos_total),function(i){	lz4_compress_raw(as.raw(rep(0,widths[i])),compress_level=1)   })
+        keylist[!pos_total]=2
+      }
+      
       #return coverage and norm factor (in case of WIG, simply 1) to keep the same result structure 
       #for the function
+      #enc_cov=encryptcov(coverageTot)
 
-      return(list(coverageTot,1))      
+      #quite efficient, the encryptcov function in R must be reimplemented in c++
+      #enc_mc=lapply(coverageTot,lz4_compress_raw,compress_level=1)
+
+      return(list(coverageTot,keylist,1))      
     }else{
       stop("Error in retrieving file/extension...")
     }
@@ -1067,10 +1477,48 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
 #from a range and one of its associated BAM (tipically the BAM from which this range
 #derives), the range containing the summit (width=1) is returned by this function
 #this function was taken and adapted from "GRcoverageSummit" function of compEpiTools package
-summitFromBaseCoverage<-function(Object,baseCoverageOutput) {
+# summitFromBaseCoverage<-function(Object,baseCoverageOutput) {
+
+#   #Object: GRanges from which derive the summits
+#   #baseCoverageOutput: list of output of GRbaseCoverage2 function
+
+#   if( !inherits(Object,"GRanges")  ){
+#     stop("'Object' must be a GRange...")
+#   }
+#   if(!inherits(baseCoverageOutput,"list") ){
+#     stop("'baseCoverageOutput' must be a list")
+#   }
+
+#   blcov=baseCoverageOutput
+
+#   #if many maxPos in very different indexes, maybe the peak is not sharp
+#   #and doesn't have a good shape...
+#   maxPos <- lapply(blcov, function(x) which(x == max(x)))
+#   starts <- start(Object)
+#   maxPos2=lapply(1:length(maxPos),function(i) {maxPos[[i]]+starts[i] - 1})
+#   maxPos=maxPos2
+
+#   maxPosL <- sapply(maxPos, length)
+#   if (max(maxPosL) > 1) {
+#       maxPos[maxPosL > 1] <- sapply(maxPos[maxPosL > 1], function(x) sample(x, 
+#           1))
+#       maxPos <- unlist(maxPos)
+#   }
+#   else maxPos <- unlist(maxPos)
+#   start(Object) <- maxPos
+#   end(Object) <- maxPos
+#   return(Object)
+# }
+
+
+
+#new find summits, powered by CPP, returns for each range the FIRST position of highest coverage and not 
+#a random one
+summitFromBaseCoverage<-function(Object,baseCoverageOutput,keys) {
 
   #Object: GRanges from which derive the summits
   #baseCoverageOutput: list of output of GRbaseCoverage2 function
+  #keys: keys to decrypt the 1 or 2 byte compression. A vector representing the kind of decompression for each range
 
   if( !inherits(Object,"GRanges")  ){
     stop("'Object' must be a GRange...")
@@ -1078,27 +1526,20 @@ summitFromBaseCoverage<-function(Object,baseCoverageOutput) {
   if(!inherits(baseCoverageOutput,"list") ){
     stop("'baseCoverageOutput' must be a list")
   }
-
-  blcov=baseCoverageOutput
-
-  #if many maxPos in very different indexes, maybe the peak is not sharp
-  #and doesn't have a good shape...
-  maxPos <- lapply(blcov, function(x) which(x == max(x)))
-  starts <- start(Object)
-  maxPos2=lapply(1:length(maxPos),function(i) {maxPos[[i]]+starts[i] - 1})
-  maxPos=maxPos2
-
-  maxPosL <- sapply(maxPos, length)
-  if (max(maxPosL) > 1) {
-      maxPos[maxPosL > 1] <- sapply(maxPos[maxPosL > 1], function(x) sample(x, 
-          1))
-      maxPos <- unlist(maxPos)
+  if(length(keys)!=length(Object)){
+    stop("'keys' vector must be the same length as 'Object'")
   }
-  else maxPos <- unlist(maxPos)
-  start(Object) <- maxPos
-  end(Object) <- maxPos
+
+  maxPos=findPosSummitCPP(GRbaseCoverageOutput=baseCoverageOutput,keys=keys)
+  starts=start(Object)
+  start(Object) <- maxPos+(starts-1)
+  end(Object) <- maxPos+(starts-1)
   return(Object)
 }
+
+
+
+
 
 
 #given a range and TSSs (width=1), find distance. This function was taken from
@@ -1148,58 +1589,11 @@ distanceFromTSS2<-function (Object, Tss,criterion="midpoint")
 
 
 
-#functions that takes GRbaseCoverage and output GRcoverageInbins output
-#taken from GRcoverageInbins function from compEpiTools
-# and re-implemented in Rcpp
-makeMatrixFrombaseCoverageCPP <- cxxfunction(signature(GRbaseCoverageOutput='List',Nbins='integer',Snorm="integer"), plugin='Rcpp', body = '  
-     Rcpp::List xlist(GRbaseCoverageOutput); 
-     int nbins = Rcpp::as<int>(Nbins);
-     int snormbool=Rcpp::as<int>(Snorm);
-     int n = xlist.size(); 
-     //std::vector<double> res(n);  
-     double res;
-     //define final matrix output: ncol=nbin, nrow=n
-     //double mat[n][nbins];
-     Rcpp::NumericMatrix mat( n , nbins );
-
-     std::vector<int> lengths(n);
-
-     for(int i=0; i<n; i++) {     
-         SEXP ll = xlist[i]; 
-         Rcpp::NumericVector y(ll);  
-         int m=y.size();   
-         //divide m (size) by the number of bins: how many elements to be summed for each bin?
-         int goodpart=m/nbins;
-         //printf("size of a bin: %d\\n",goodpart);
-
-         // for each bin, sum elements in each bin
-         for(int k=0; k<nbins; k++){
-          res=0;
-          for(int j=k*goodpart; j<(k+1)*goodpart; j++){     
-              res=res+y[j]; 
-          }   
-          mat(i,k)=res;
-         }
-
-         //populate the array of lengths if Snorm=TRUE
-         lengths[i]=m;
-     }
-     //if Snorm=TRUE (Snorm>0), divide each matrix value for m
-     if(snormbool>0){
-      for(int i=0; i<n; i++){
-        for(int k=0; k<nbins; k++){
-          mat(i,k) = mat(i,k)/lengths[i];
-        }
-      }
-     }
-       
-   return mat;  
-') 
 
 #wrapper for makeMatrixFrombaseCoverageCPP function
-makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE,norm_factor=1) {
+makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE,key,norm_factor=1) {
     # GRbaseCoverageOutput: output from GRbaseCoverage2 function
-    # Nbins: the number of bins to ivide the coverage for each range into
+    # Nbins: the number of bins to divide the coverage for each range into
     # Snorm: whether to normalize the coverage for each bin for the length of the range (TRUE/FALSE)
     if(Snorm==TRUE){
       norm=1
@@ -1208,7 +1602,8 @@ makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE,nor
     }
     #here introduce normalization step. We could have done easyly in the CPP function,
     #but it's fast anyway
-    result=makeMatrixFrombaseCoverageCPP(GRbaseCoverageOutput,Nbins,Snorm=norm)
+    result=makeMatrixFrombaseCoverageCPP(GRbaseCoverageOutput,Nbins,Snorm=norm,key)
+
     if(norm_factor!=1){
       #here the result should still be a matrix
     	result <- result*norm_factor
@@ -1216,44 +1611,18 @@ makeMatrixFrombaseCoverage <-function(GRbaseCoverageOutput,Nbins,Snorm=FALSE,nor
     return(result)
 }
 
-#cut the transcripts ranges in specific indexes and sum the coverage inside the internal part (remaining range),
-#the input is always a list of kind "GRbaseCoverageOutput", from GRbaseCoverage2 function
-#StartingPositions and EndingPositions are the array of positions for each element of the GRbaseCoverageOutput list
-#it returns an integer vector, that is the sums of the elements of the list within the cut part (be careful to the 0-index of C!)
-cutAndSumTranscriptsCPP <-cxxfunction(signature(GRbaseCoverageOutput='List',StartingPositions="vector",EndingPositions="vector"), plugin='Rcpp', body = '  
-     Rcpp::List xlist(GRbaseCoverageOutput); 
-     Rcpp::IntegerVector starts(StartingPositions);
-     Rcpp::IntegerVector ends(EndingPositions);
-
-     int n = xlist.size(); 
-     double res;
-     //define final result
-     //std::vector<double> results(n);
-     Rcpp::NumericVector results(n);
-     for(int i=0; i<n; i++) {     
-         SEXP ll = xlist[i]; 
-         Rcpp::NumericVector y(ll);  
-         //int m=y.size();   
-         res=0;
-         // for each bin, sum elements in each bin
-         for(int k=starts[i]; k<= ends[i]; k++){
-          //printf("cumulative: %f\\n",res);
-          //sum the cut element
-          res=res+y[k-1]; 
-         }
-
-         //populate the final array with the cut sum
-         results[i]=res;
-     }
-     //return the numeric array as result
-     return (results); 
-') 
+ 
 #wrapper for cutAndSumTranscriptsCPP function
-cutAndSumTranscripts <-function(GRbaseCoverageOutput,StartingPositions,EndingPositions,norm_factor=1) {
+cutAndSumTranscripts <-function(GRbaseCoverageOutput,StartingPositions,EndingPositions,key,norm_factor=1) {
     # GRbaseCoverageOutput: output from GRbaseCoverage2 function
     #here introduce normalization step. We could have done easyly in the CPP function,
     #but it's fast anyway
-    result=cutAndSumTranscriptsCPP(GRbaseCoverageOutput,StartingPositions,EndingPositions)
+    # if(Snorm==TRUE){
+    #   norm=1
+    # }else{
+    #   norm=0
+    # }
+    result=cutAndSumTranscriptsCPP(GRbaseCoverageOutput,StartingPositions,EndingPositions,key)
     if(norm_factor!=1){
       #here the result should still be a matrix
       result <- result*norm_factor
@@ -1573,7 +1942,7 @@ clusterMatrixKmeans<-function(matlist,clustinds,numberclusters,startingpoints,it
 
 # function for generating new ROIs starting from existing ROIs and 
 # using exclusion/inclusion criteria with other ROIs
-generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,method,criterion1,criterion2,bamlist,minbp=1,strandSpecific=FALSE){
+generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,method,criterion1,criterion2,bamlist,decryptkeylist,minbp=1,strandSpecific=FALSE){
   #selectedlist: list of GR to start from (primary ROI or custom ROI)
   #selectedfix: the fix for the ROI selected. If selectedlist is composed by only one ROI, preserve the 
   # fix of the old ROI (maybe fix not simmetric to the center and strand specific!!), otherwise, if
@@ -1651,6 +2020,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
   if (length(selectedlist)>1){
     #will be union or intersection of multiple ROIs... so BAMlist is cleared
     finalbam=list()
+    finaldecryptkey=list()
     if (method=="intersection"){
       startingpoint=selectedlist[[1]]
       for (k in 2:length(selectedlist)){
@@ -1673,6 +2043,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
     startingpoint=selectedlist[[1]]
     #...and BAM file list is not altered
     finalbam=bamlist
+    finaldecryptkey=decryptkeylist
   }
 
   #starting point strand: consider or not for the overlap? (strandSpecific?)
@@ -1696,6 +2067,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
       if (length(finalbam)>0){
         #keep elements of bam list, according to the calculated overlap
         finalbam=lapply(finalbam,function(k) {k[positiveov>0]})
+        finaldecryptkey=lapply(finaldecryptkey,function(k) {k[positiveov>0]})
       }
       selectedfix=selectedfix[positiveov>0]
       tokeep_strand=tokeep_strand[positiveov>0]
@@ -1708,6 +2080,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
         selectedfix=selectedfix[ov>0]
         tokeep_strand=tokeep_strand[ov>0]
         finalbam=lapply(finalbam,function(k) {k[ov>0]})
+        finaldecryptkey=lapply(finaldecryptkey,function(k) {k[ov>0]})
       }
     }
 
@@ -1718,6 +2091,7 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
       selectedfix=selectedfix[positiveov>0]
       tokeep_strand=tokeep_strand[positiveov>0]
       finalbam=lapply(finalbam,function(k) {k[positiveov>0]})
+      finaldecryptkey=lapply(finaldecryptkey,function(k) {k[positiveov>0]})
     }
 
   }
@@ -1742,20 +2116,22 @@ generateROI<-function(selectedlist,selectedfix=NULL,overlaplist,notoverlaplist,m
       startingpoint=startingpoint[negativeov==0]
       selectedfix=selectedfix[negativeov==0]
       tokeep_strand=tokeep_strand[negativeov==0]
-      finalbam=lapply(finalbam,function(k) {k[negativeov==0]})    
+      finalbam=lapply(finalbam,function(k) {k[negativeov==0]})
+      finaldecryptkey=lapply(finaldecryptkey,function(k) {k[negativeov==0]})    
     }else{
       notoverlapwith=Reduce(intersect,notoverlaplist)   
       negativeov= countOverlaps(startingpoint,notoverlapwith,minoverlap=minbp)
       startingpoint=startingpoint[negativeov==0]  
       selectedfix=selectedfix[negativeov==0]
       tokeep_strand=tokeep_strand[negativeov==0]
-      finalbam=lapply(finalbam,function(k) {k[negativeov==0]})          
+      finalbam=lapply(finalbam,function(k) {k[negativeov==0]})
+      finaldecryptkey=lapply(finaldecryptkey,function(k) {k[negativeov==0]})           
     }
  
   }
   strand(startingpoint)=tokeep_strand
 
-  return(list(startingpoint,finalbam,selectedfix))
+  return(list(startingpoint,finalbam,finaldecryptkey,selectedfix))
 }
 
 
@@ -1873,35 +2249,6 @@ convertNomenclatureGR <-function(range, to="UCSC") {
 # }
 
 
-#extremely efficient implementation of zero check of coverages in CPP. No more RAM peaks
-#much faster
-verifyzerocov<-cxxfunction(signature(covresult='List'), plugin='Rcpp', body = '  
-     Rcpp::List xlist(covresult); 
-
-     int n = xlist.size(); 
-     //bool allzeros=true;
-     //loop through all ranges in list
-     int tempsum=0;
-     Rcpp::LogicalVector ALLzeros(1,true);
-     for(int i=0; i<n; i++) {  
-       //printf("LOOP %i NEW ",i);   
-         Rcpp::NumericVector y(xlist[i]); 
-         int rangelen=y.size();
-         // start from 1-based position (maybe Rcpp is 1-based)
-         for(int k=1; k<= rangelen; k++){
-          tempsum+=y[k];
-         }
-
-         if(tempsum>0){
-          ALLzeros(0)=false;
-          break;
-         }
-     }
-     
-     //ALLzeros(0)=allzeros;
-     //return boolean. "true" if 
-     return (ALLzeros); 
-')
 
 
 
@@ -2325,9 +2672,6 @@ setGeneric(name="getSource",def=function(object) {standardGeneric("getSource")} 
 setMethod(f="getSource",signature="RegionOfInterest",definition=function(object){return(object@source)})
 
 
-
-
-
 #set functions must be used, to change the object in: object=set...(object,...)
 #setname
 setGeneric(name="setName",def=function(object,name) {standardGeneric("setName")} )
@@ -2362,21 +2706,21 @@ setMethod(f="setBAMlist",signature="RegionOfInterest",def=function(object,bamlis
 
 ##obsolete, we use the function directly 
 #add new list (using GRbasecoverage2 function) in the BAMlist of the range
-setGeneric(name="cover",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike) {standardGeneric("cover")} )
-setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike){
-  #name is the basename(signalfile). signalfile is the complete path of the enrichment file
-  if (!file.exists(signalfile)){
-    stop("signalfile file doesn't exist...")
-  }
+# setGeneric(name="cover",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike) {standardGeneric("cover")} )
+# setMethod(f="cover",signature="RegionOfInterest",def=function(Object,signalfile,signalfileNorm,signalControl,signalControlSpike){
+#   #name is the basename(signalfile). signalfile is the complete path of the enrichment file
+#   if (!file.exists(signalfile)){
+#     stop("signalfile file doesn't exist...")
+#   }
 
-  if (!inherits(Object,"RegionOfInterest")  ){
-    stop("'Object' must be of class 'RegionOfInterest'...")
-  }
-  rang=getRange(Object)
-  cov=GRbaseCoverage2(Object=rang, signalfile=signalfile,signalfileNorm=signalfileNorm,signalControl=signalControl,signalControlSpike=signalControlSpike, multiplFactor=1e+06)
-  return(list(cov[[1]],cov[[2]]))
+#   if (!inherits(Object,"RegionOfInterest")  ){
+#     stop("'Object' must be of class 'RegionOfInterest'...")
+#   }
+#   rang=getRange(Object)
+#   cov=GRbaseCoverage2(Object=rang, signalfile=signalfile,signalfileNorm=signalfileNorm,signalControl=signalControl,signalControlSpike=signalControlSpike, multiplFactor=1e+06)
+#   return(list(cov[[1]],cov[[2]],cov[[3]]))
 
-})
+# })
 
 
 #if strand info is present, invert negative strand (for profiles and heatmaps)

@@ -14,7 +14,10 @@ observeEvent(input$msg_databases_downloadDatabases, {
 })
 
 
-
+#upstream/downstream bp value option
+observeEvent(input$help_txdb_windowupdownstream, {
+  boxHelpServer(help_txdb_windowupdownstream)
+})
 
 
 
@@ -143,6 +146,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
         ####newenrichimplementation####
         #new ROI imported has no list of enrichments at the beginning! => initialization
         Enrichlist$rawcoverage[["promoters"]]=list()
+        Enrichlist$decryptkey[["promoters"]]=list()
         Enrichlist$normfactlist[["promoters"]]=list()
         ################################  
 		newROIpromoter=new("RegionOfInterest",
@@ -154,6 +158,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
         ####newenrichimplementation####
         #new ROI imported has no list of enrichments at the beginning! => initialization
         Enrichlist$rawcoverage[["transcripts"]]=list()
+        Enrichlist$decryptkey[["transcripts"]]=list()
         Enrichlist$normfactlist[["transcripts"]]=list()
         ################################		
 		newROItranscripts=new("RegionOfInterest",
@@ -165,6 +170,7 @@ observeEvent(input$confirmASSEMBLYforuse,{
         ####newenrichimplementation####
         #new ROI imported has no list of enrichments at the beginning! => initialization
         Enrichlist$rawcoverage[["TES"]]=list()
+        Enrichlist$decryptkey[["TES"]]=list()
         Enrichlist$normfactlist[["TES"]]=list()
         ################################
 		newROItes=new("RegionOfInterest",

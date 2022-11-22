@@ -3,18 +3,11 @@
 shinyServer(function(input, output,session) {
   #############################################################################
   #############################################################################
-  ### this block of code is executed only when USER variable (argv [2]) is set
-  ### when the session is closed.
-  ### in the architecture in which multiple user can use the program has been implemented
-  ### for example, a PBS cluster. If the application is run normally (without USER)
-  ### argument, this piece of code is not executed
-  # #exit function when session is closed (execute the script closingSession.sh)
-  session$onSessionEnded(function() {
-    if (!is.null(USER)){
-      #print(paste("bash /hpcnfs/data/BA/public_html/ocroci/closingSession.sh",USER))
-      system(paste("bash /hpcnfs/data/BA/public_html/ocroci/closingSession.sh",USER))
-    }
-  })
+  ### this block of code is executed only when session is closed. Useful if ChroKit is put inside a cluster
+
+  # session$onSessionEnded(function() {
+
+  # })
   #############################################################################
   #############################################################################
 
@@ -23,9 +16,10 @@ shinyServer(function(input, output,session) {
   #set directory in which take the files. If files taken, input$file will be set to filename
   shinyFileChoose(input, id='file', roots=c(wd=rootdir), session=session, restrictions=system.file(package='base'))
   #for searching the filesystem for BAM files
-  shinyFileChoose(input, id='fileBAM', roots=c(wd=rootdir), session=session, restrictions=system.file(package='base'))
+  shinyFileChoose(input, id='fileBAM', roots=c(wd=rootdir), session=session, restrictions=system.file(package='base'),
+            ,filetypes=c('bw','BW','bigWig','bigwig','bam','BAM'))
   #for loading the session rds file
-  shinyFileChoose(input, id='loadenv',  roots=c(wd=rootdir),session=session, restrictions=system.file(package='base'))
+  shinyFileChoose(input, id='loadenv',  roots=c(wd=rootdir),session=session, restrictions=system.file(package='base'),filetypes=c('rds'))
   #for loading Genelist file
   shinyFileChoose(input, id='fileGENELISTS', roots=c(wd=rootdir), session=session, restrictions=system.file(package='base'))
   #save button for rda
@@ -71,7 +65,7 @@ shinyServer(function(input, output,session) {
   corvariables<-reactiveValues(portionlist_boxes=NULL,is.density=FALSE)
 
   #variables regarding log of all actions (what the user did since the beginning)
-  logvariables<-reactiveValues(msg=list(),temporary_GMTstorage=temporary_GMTstorage)
+  logvariables<-reactiveValues(msg=list(),temporary_GMTstorage=temporary_GMTstorage,temporary=list())
 
   #temporary variables for plotting
   toplot<-reactiveValues(viewDistributionPieSingleEval=list(),cmp=list(),digital=list(),analogic=list(),
@@ -80,7 +74,7 @@ shinyServer(function(input, output,session) {
   #temporary variables for saving
   tosave<-reactiveValues(datatableROI=NULL,genelistROI=NULL,genelistROIwindow=NULL)
   #variables to store raw read counts of base coverage (to be stored as int 4 bytes) and corresponding normalization factors
-  Enrichlist<-reactiveValues(rawcoverage=NULL,normfactlist=NULL)
+  Enrichlist<-reactiveValues(rawcoverage=NULL,decryptkey=NULL,normfactlist=NULL)
 
   ################################################################################
   ################################################################################
@@ -190,11 +184,11 @@ shinyServer(function(input, output,session) {
   ################################################################################
   ################################################################################
   ################################################################################
-  # UPDATE GENELISTS UI graphics
+  # UPDATE MANIPULATEROI UI graphics
   ################################################################################
   ################################################################################
   ################################################################################
-  #source(file.path("servers","updateGENELISTSui.R"),local=TRUE)$value
+  source(file.path("servers","updateMANIPULATEROIui.R"),local=TRUE)$value
 
 
 

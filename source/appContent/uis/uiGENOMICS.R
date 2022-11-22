@@ -13,19 +13,9 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
         column(width=3,
           box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
             title=boxHelp(ID="msg_singleEvaluation_parameters",title="Parameters"),
-
-            selectInput("ROIchooseSingleEval", "Select ROI:",NULL),
-            selectInput("BAMchooseSingleEval", "Select enrichment:",NULL),
-            HTML("<br><br>"),
-            radioButtons("chooseNormalizationSingleEval","Choose normalization:",choices=c(
-                                                "Total reads (rpm)"="totread",
-                                                "Read density (rpm/bp)"="readdensity"
-                                                      )),
-            selectInput("chooseColorPaletteSingleEval","Choose color palette:",choices=c(
-                                                  "black/red/blue/grey"="black_red_blue_gray",
-                                                  "black/red/orange/green"="black_red_orange_green"
-
-                                                )),
+            selectInput("ROIchooseSingleEval", "1) Select ROI:",NULL),
+            #selectInput("BAMchooseSingleEval", "2) Select enrichment (optional):",NULL),
+            uiOutput("BAMmenuchoose_singleeval"),
             HTML("<br>"),
             actionButton("plotSingleEval","Update plot")
           )
@@ -38,17 +28,22 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
               box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
                 title=boxHelp(ID="msg_singleEvaluation_distribution",title="Distribution"),
+                column(width=8,
+                  tabBox(width=12,id="Peaks location",
+                    tabPanel("Piechart",id="piechartSingleEval", 
+                      plotOutput('viewDistributionPieSingleEval'),
+                      htmlOutput("saveviewDistributionPieSingleEval"),
+                    ),
+                    tabPanel("Barplot",id="barplotSingleEval",
+                      plotOutput("viewDistributionBarSingleEval"),
+                      htmlOutput("saveviewDistributionBarSingleEval")
+                    )
+                  )
 
-                tabBox(width=12,id="Peaks location",
-                  tabPanel("Piechart",id="piechartSingleEval",
-                    plotOutput('viewDistributionPieSingleEval'),
-                    htmlOutput("saveviewDistributionPieSingleEval")
-                  ),
-                  tabPanel("Barplot",id="barplotSingleEval",
-                    plotOutput("viewDistributionBarSingleEval"),
-                    htmlOutput("saveviewDistributionBarSingleEval")
-                  ) 
-                )
+                ),column(width=4,
+                  uiOutput("piechartSingleEval_options")
+                ) 
+
               ),
 
 
@@ -58,6 +53,7 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 title=boxHelp(ID="msg_singleEvaluation_widthDistribution",title="Width distribution"),
 
                 plotOutput("widthDistributionSingleEval"),
+                uiOutput("densitySingleEval_options"),
                 htmlOutput("savewidthDistributionSingleEval")
               )
             ),
@@ -65,18 +61,23 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             fluidRow(
               box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
                 title=boxHelp(ID="msg_singleEvaluation_enrichmentBoxplot",title="Enrichment boxplot"),
-
-                plotOutput("enrichmentBoxSingleEval"),
-                htmlOutput("saveenrichmentBoxSingleEval"),
-                htmlOutput("saveboxdataSingleEval")
-                #downloadButton('saveenrichmentBoxSingleEvaldata', 'Save data')
-
+                column(width=8,
+                  plotOutput("enrichmentBoxSingleEval"),
+                  htmlOutput("saveenrichmentBoxSingleEval"),
+                  htmlOutput("saveboxdataSingleEval")
+                ),column(width=4,
+                  uiOutput("boxSingleEval_options")
+                )
               ),
               box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
                 title=boxHelp(ID="msg_singleEvaluation_peakProfile",title="Peak average profile"),
+                column(width=8,
+                  plotOutput("TSSprofileSingleEval"),
+                  htmlOutput("saveenrichmentProfileSingleEval")
+                ),column(width=4,
+                  uiOutput("profileSingleEval_options")
+                )
 
-                plotOutput("TSSprofileSingleEval"),
-                htmlOutput("saveenrichmentProfileSingleEval")
               )
             )
 
@@ -104,28 +105,12 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             selectInput("ROI1chooseCmp", "Choose ROI-1:",NULL),
             selectInput("ROI2chooseCmp", "Choose ROI-2:",NULL),
             HTML("<br>"),
-            HTML("<b>Minimum number of bp for overlap:</b>"),
+            list(HTML("<b>Minimum number of bp for overlap:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_minbpoverlap")),
             numericInput(inputId = 'minOverlapCmp',label=NULL,min = 1, step = 5,value=1),
 
             uiOutput("BAMmenuchooseCmp1"),
             uiOutput("BAMmenuchooseCmp2"),
 
-            # HTML("<b>Choose enrichment1:</b>"),
-            # selectInput(inputId="BAM1chooseCmp", label=NULL,choices=character(0)),
-            # HTML("<b>Choose enrichment2:</b>"),
-            # selectInput(inputId="BAM2chooseCmp", label=NULL,choices=character(0)),
-
-            HTML("<br>"),
-            checkboxInput("islogCmp", label="log2",value = FALSE, width = NULL),
-            radioButtons("chooseNormalizationCmp","Choose normalization:",choices=c(
-                                                "Total reads (rpm)"="totread",
-                                                "Read density (rpm/bp)"="readdensity"
-                                                      )),
-            selectInput("chooseColorPaletteCmp","Choose color palette:",choices=c(
-                                                  "red/grey"="red_gray_red4_grey20",
-                                                  "blue/green"="blue_green_blue4_green4"
-                                                )),
-            uiOutput("showScatterChoice"),
             HTML("<br>"),
             actionButton("plotCmp","Update plot")
           )
@@ -134,46 +119,74 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
         column(width=9,
 
-          box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-            title=boxHelp(ID="msg_pairwiseOverlaps_overlap",title="Overlap"),
+          fluidRow(
 
-            tabBox(width=12,id="Overlap",
-              tabPanel("Barplot",id="barplotCmp",
-                plotOutput("viewBarplotCmp"),
-                htmlOutput("saveviewBarplotCmp")
+            fluidRow(
+              box(width=7,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+                title=boxHelp(ID="msg_pairwiseOverlaps_overlap",title="Overlap"),
+                column(width=8,
+                  tabBox(width=12,id="Overlap",
+                    tabPanel("Barplot",id="barplotCmp",
+                      plotOutput("viewBarplotCmp"),
+                      htmlOutput("saveviewBarplotCmp")
+                    ),
+                    tabPanel("Venn",id="vennCmp",
+                      plotOutput('viewVennCmp'),
+                      htmlOutput("saveviewVennCmp")
+                    )
+                  )
+                ),column(width=4,
+                  uiOutput("pairwiseoverlaps_overlap_options")
+                )
+
               ),
-              tabPanel("Venn",id="vennCmp",
-                plotOutput('viewVennCmp'),
-                htmlOutput("saveviewVennCmp")
+
+
+              box(width=5,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+                title=boxHelp(ID="msg_singleEvaluation_enrichmentBoxplot",title="Enrichment boxplot"),
+                column(width=8,
+                  title=boxHelp(ID="msg_pairwiseOverlaps_box",title="Overlap and enrichment"),
+                  plotOutput('viewBoxplotCmp'),
+                  htmlOutput("saveviewBoxplotCmp"),
+                  htmlOutput("saveboxdataCmp")
+                ),column(width=4,
+                  uiOutput("pairwiseoverlaps_box_options")
+                )
               )
+            ),
 
-            )
-          ),
-
-
-          box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-            title=boxHelp(ID="msg_pairwiseOverlaps_overlapAndEnrichment",title="Overlap and enrichment"),
-
-            tabBox(width=12,id="Enrichments",
-              tabPanel("Boxplot",id="boxplotCmp",
-                plotOutput('viewBoxplotCmp'),
-                htmlOutput("saveviewBoxplotCmp"),
-                htmlOutput("saveboxdataCmp")
+            fluidRow(
+              box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+                      title=boxHelp(ID="msg_pairwiseOverlaps_scatter",title="Enrichment scatterplot"),
+                column(width=8,
+                  plotOutput("viewScatterplotCmp"),
+                  htmlOutput("saveviewScatterplotCmp"),
+                  htmlOutput("saveScatterdataCmp")
+                ),column(width=4,
+                  uiOutput("pairwiseoverlaps_scatter_options")
+                )
               ),
-              tabPanel("Scatterplot",id="scatterplotCmp",
-                plotOutput("viewScatterplotCmp"),
-                htmlOutput("saveviewScatterplotCmp"),
-                htmlOutput("saveScatterdataCmp")
-              ),
-              tabPanel("Calibration",id="CalibrationCmp",
-                plotOutput("viewCalibrationCmp"),
-                htmlOutput("saveviewCalibrationCmp")
-              ) 
+
+              box(width=6,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+                      title=boxHelp(ID="msg_pairwiseOverlaps_calibration",title="Enrichment calibration"),
+                column(width=8,
+                  plotOutput("viewCalibrationCmp"),
+                  htmlOutput("saveviewCalibrationCmp")
+                ),column(width=4,
+                  uiOutput("pairwiseoverlaps_calibration_options")
+                )
+              )
             )
+
           )
+
         )
-      )
+      ),
+
+
     ),
+
+
 
 
     #Digital heatmap
@@ -186,69 +199,32 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
           box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
             title=boxHelp(ID="msg_digitalHeatmap_parameters",title="Parameters"),
 
-            tabBox(width=12,
-              tabPanel("Variables",
-                HTML("<br>"),
-                actionButton("confirmUpdateDigitalHeat1", "Update plot"),
-                HTML("<br><br>"),
-                #ROI to select that guide the heatmap (master ROI)
-                HTML("<b>Master ROI(s):</b>"),
-                wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-                  checkboxGroupInput("ROImaster",NULL,NULL)
-                ),
-                #ROIs available to be viewed
-                HTML("<b>ROIs to view:</b>"),
-                wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-                  checkboxGroupInput("ROIsForDigitalHeat",NULL,NULL)
-                ),
-                
-                #reorder ROI in digital heatmap
-                uiOutput("reorderROImenuDigitalHeat"),
+            #ROI to select that guide the heatmap (master ROI)
+            list(HTML("<b>Master ROI(s):</b>"),htmlhelp("","help_digitalHeatmap_parameters_masterROI")),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput("ROImaster",NULL,NULL)
+            ),
 
-                HTML("<b>ROIs for cluster:</b>"),
-                wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
-                  checkboxGroupInput("ROIforClusteringDigitalHeat",NULL,choices=NULL)
-                ),
 
-                uiOutput("clustertypeDigitalHeat"),
-                uiOutput("clusternumbershowDigitalHeat"),
-                uiOutput("clusterHDistMethodDigitalHeat"),
-                uiOutput("clusterHClustMethodDigitalHeat"),
-                uiOutput("clusterKstartsDigitalHeat"),
-                uiOutput("clusterKiterationsDigitalHeat"),
-
-                HTML("<b>Number of bins:</b>"),
-                numericInput(inputId = 'binsDigitalHeat',label=NULL,min = 1, max = 50, step = 1,value=10),
-                #check box for strand-specific overlap:
-                checkboxInput("StrandSpecOverlap", label="Strand-specific overlaps",value = FALSE, width = NULL)
-                
-
-                
-              ),
-              tabPanel("Advanced",
-                HTML("<br>"),
-                actionButton("confirmUpdateDigitalHeat2", "Update plot"),
-                HTML("<br><br>"),
-                HTML("<b>Random sample of genomic ranges to show:</b>"),
-                numericInput(inputId = 'sampleRandomDigitalHeat',label=NULL,min = 0, max = 0, step = 1000,value=0),
-
-                radioButtons("optioncolorsforDigitalHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global"),
-                uiOutput("showcolorsDigitalheat"),
-
-                checkboxInput("FracToPercDigitalHeat", label="positional overlap %",value = TRUE, width = NULL)
-                #HTML("<b>Universe for overlaps:</b>"),
-                #radioButtons("chooseOrderingDigitalHeat",label=NULL,choices=c("All acessible sites"="global","Sites of this ROI"="local")),
-                # selectInput("distmethodDigitalHeat",label="Distance method:",c("Euclidean"="euclidean",
-                #                                                                 "Manhattan"="manhattan",
-                #                                                                 #"Canberra"="canberra",
-                #                                                                 "Minkowski"="minkowski")),
-                # selectInput("clustmethodDigitalHeat",label="Clustering method:",c("Average"="average",
-                #                                                                  "Complete"="complete",
-                #                                                                  "Median"="median",
-                #                                                                  "Centroid"="centroid")),
-                
-              )        
-            )
+            #ROIs available to be viewed. SHould appear after selecting the master ROI
+            uiOutput("ROIsForDigitalHeat_menu"),
+            #reorder ROI in digital heatmap. 
+            uiOutput("reorderROImenuDigitalHeat"),
+            #show ROI for clustering. SHould appear after selecting the ROIs available to be viewed
+            uiOutput("ROIsForClusterDigital_menu"),
+            uiOutput("clustertypeDigitalHeat"),
+            uiOutput("clusternumbershowDigitalHeat"),
+            uiOutput("clusterHDistMethodDigitalHeat"),
+            uiOutput("clusterHClustMethodDigitalHeat"),
+            uiOutput("clusterKstartsDigitalHeat"),
+            uiOutput("clusterKiterationsDigitalHeat"),
+            uiOutput("showbinsDigitalHeat"),
+            #check box for strand-specific overlap:
+            uiOutput("showStrandSpecOverlap"),
+            #checkboxInput("StrandSpecOverlap", label="Strand-specific overlaps",value = FALSE, width = NULL),
+            uiOutput("sampleRandomROIDigital"),
+            HTML("<br>"),
+            uiOutput("show_confirmUpdateDigitalHeat1")   
 
           )
 
@@ -259,10 +235,7 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
         column(width=9,
           fluidRow(
-            # box(width=1,height=600,title=" ",
-            #   plotOutput("clustersImageLeft",height=350,click="rowdendrogram_click_....."),
-            #   plotOutput("emptyplot",height=250)
-            # ),
+
             box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_digitalHeatmap_heatmap",title="Heatmap"),
               #mini-fluid page which puts together heatmap, color scale....
@@ -288,13 +261,13 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                   )
                 ),
                 column(width=3,#style='padding:0px;',
+                  #here put specific graphical options for heat (colors(global/custom) and menu)
                   htmlOutput("textfractionelementsDigitalHeat"),
+                  uiOutput("showoptioncolorsforDigitalHeat"),
+                  uiOutput("showcolorsDigitalheat"),
                   htmlOutput("textselectedelementsDigitalHeat"),
                   uiOutput("newROIfromDigitalHeat_out")
-                  # htmlOutput("textfractionelementsDigitalHeat"),
-                  # htmlOutput("textselectedelementsDigitalHeat"),
-                  # plotOutput("colorScaleDigitalHeat",height=90),
-                  # uiOutput("newROIfromDigitalHeat_out")
+
                 )  
               )
             )
@@ -309,8 +282,13 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             ),
             box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_digitalHeatmap_overlapBias",title="Positional distribution of overlaps"),
-              plotOutput("frequencyOvDigitalHeat"),
-              htmlOutput("savefrequencyOvDigitalHeat")
+              column(width=8,
+                plotOutput("frequencyOvDigitalHeat"),
+                htmlOutput("savefrequencyOvDigitalHeat")
+              ),column(width=4,
+                uiOutput("frequencyDigitalHeat_options")
+              )
+               
             )  
           )
         )
@@ -338,24 +316,14 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
           box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
             title=boxHelp(ID="msg_analogicHeatmap_parameters",title="Parameters"),
 
-            tabBox(width=12,
-              tabPanel("Variables",
-                HTML("<br>"),
-                actionButton("confirmUpdateAnalogHeat", "Update plot"),
-                HTML("<br><br>"),
-                HTML("<b>Select ROI(s):</b>"),
+                list(HTML("<b>Select ROI(s):</b>"),htmlhelp("","help_analogicHeatmap_parameters_ROI")),
                 wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
                   checkboxGroupInput("ROIsForAnalogHeat",NULL,NULL)
                 ),
-
-                HTML("<b>Select enrichments to show:</b>"),
-                wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-                  checkboxGroupInput("BAMsForAnalogHeat",NULL,NULL)
-                ),
-                #menu for order the selected enrichments
+                #dynamic menu for parameters for analog heatmap
+                uiOutput("showBAMsForAnalogHeat"),
                 uiOutput("reorderBAMmenuAnalogHeat"),
-                HTML("<b>Clustering/ranking</b>"),
-                radioButtons("chooseOrderingAnalogHeat",label=NULL,choices=c("Ranking"="ranking","Clustering"="clustering")),
+                uiOutput("showrankingmethod"),
                 uiOutput("orderingAnalogHeat"),
                 uiOutput("clustertypeAnalogHeat"),
                 uiOutput("clusternumbershowAnalogHeat"),
@@ -363,61 +331,19 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 uiOutput("clusterHClustMethodAnalogHeat"),
                 uiOutput("clusterKstartsAnalogHeat"),
                 uiOutput("clusterKiterationsAnalogHeat"),
-
-                numericInput(inputId = 'binsAnalogHeat',label="Number of bins:",min = 1, max = 200, step = 1,value=50)
-
-            
-                # HTML("<b>New ROI from heatmap:</b>"),
-
-                #,
-                #uiOutput("confirmImportROIfromAnalogHeat_out")
-                # textInput("newROIfromAnalogHeat",NULL,value="",placeholder = "my_ROI"),
-                # actionButton("confirmImportROIfromAnalogHeat", "Import ROI")
-
-              ),
-
-              tabPanel("Advanced",
+                uiOutput("showbinsAnalogHeat"),
+                uiOutput("showsampleRandomAnalogHeat"),
                 HTML("<br>"),
-                actionButton("confirmUpdateAnalogHeat2", "Update plot"),
-                HTML("<br><br>"),    
-                numericInput(inputId = 'sampleRandomAnalogHeat',label="Random sample of genomic ranges to show:",min = 0, max = 0, step = 1000,value=0),
-
-
-                checkboxInput("Log2BoxAnalogHeat", label="log2",value = FALSE, width = NULL),
-
-
-                HTML("<b>Quantile threshold</b>"),
-                radioButtons("chooseQuantileMethodAnalogHeat",label=NULL,choices=c("Uniform"="allBAM","Individual"="eachBAM")),
-                sliderInput('quantileThreshAnalogHeat',label=NULL,min = 0.1, max = 1, value = 0.9,step=0.002),
-          
-                radioButtons("optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("default color","custom colors"),choiceValues=c("global","custom"),selected="global"),
-                
-                uiOutput("showcolorsheat"),
-
-                HTML("<b></b>"),
-                checkboxInput("GroupColorsAnalogHeat", label="Group colors (boxes)",value = FALSE, width = NULL)
-
-              )
-              
-            )
+                uiOutput("show_confirmUpdateAnalogHeat")
           )
         ),
         
         column(width=9,
+
           fluidRow(
-            # box(width=1,height=600,title=" ",
-            #   plotOutput("clustersImageLeft",height=350,click="rowdendrogram_click_Analog"),
-            #   plotOutput("emptyplot",height=250)
-            # ),
             box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_analogicHeatmap_heatmap",title="Heatmap"),
 
-              # div(
-              #   dropdownButton(        
-              #       .......      
-              #       circle = TRUE, status = "danger", icon = icon("gear"),right=TRUE
-              #     ),class = "pull-right",id = "moveme"
-              # ),
               #mini-fluid page which puts together heatmap, color scale....
               fluidRow(
                 column(width=9,#style='padding:0px;',
@@ -442,44 +368,87 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 ),
                 column(width=3,#style='padding:0px;',
                   htmlOutput("textfractionelementsAnalogHeat"),
-                  htmlOutput("textselectedelementsAnalogHeat"),
                   plotOutput("colorScaleAnalogHeat",height=90),
+                  uiOutput("showoptioncolorsforAnalogHeat"),                
+                  uiOutput("showcolorsheat"),
+                  uiOutput("showchooseQuantileMethodAnalogHeat"),
+                  uiOutput("showquantileThreshAnalogHeat"),
+
+                  htmlOutput("textselectedelementsAnalogHeat"),
                   uiOutput("newROIfromAnalogHeat_out")
                 )  
               )
             )
           ),
 
-
+          #profile analog heat box
           fluidRow(
             box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_analogicHeatmap_profiles",title="Profiles"),
-              plotOutput("profileAnalogHeat"),
-              htmlOutput("saveprofileAnalogHeat")
+
+
+
+              
+              fluidRow(
+                column(width=12,
+                  plotOutput("profileAnalogHeat"),
+                  htmlOutput("saveprofileAnalogHeat")
+                )
+              ),
+              #now fluidRow with options
+              fluidRow(
+                column(width=4,
+                  uiOutput("showprofileAnalogHeat_logOptions"),
+                  uiOutput("showprofileAnalogHeat_colorschemeOptions")
+                ),
+                column(width=8,
+                  uiOutput("showprofileAnalogHeat_colorlistOptions")
+                )
+              )
+                
+     
+              
             ),
 
             box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_analogicHeatmap_enrichments",title="Enrichments"),
 
-              tabBox(width=12,
+              fluidRow(
+                column(width=12,
+                  tabBox(width=12,
+                    tabPanel("Boxplot by ROI/cluster",
+                      plotOutput("boxplotByROIAnalogHeat"),
+                      htmlOutput("saveboxplotByROIAnalogHeat")
+                    ),
+                    tabPanel("Boxplot by enrichment",
+                      plotOutput("boxplotByBAMAnalogHeat"),
+                      htmlOutput("saveboxplotByBAMAnalogHeat")
+                    )
+                    # tabPanel("cor",
+                    #   plotOutput("corAnalogHeat"),
+                    #   htmlOutput("savecorAnalogHeat")
+                    # ),
+                    # tabPanel("pcor",
+                    #   plotOutput("pcorAnalogHeat"),
+                    #   htmlOutput("savepcorAnalogHeat")
+                    # )          
+                  )
+                )
+              ),
+              fluidRow(
+                column(width=4,
+                  uiOutput("showboxAnalogHeat_logOptions"),
+                  uiOutput("showboxAnalogHeat_colorschemeOptions")
+                ),
+                column(width=8,
+                  uiOutput("showboxAnalogHeat_groupcolOptions"),
+                  uiOutput("showboxAnalogHeat_colorlistOptions")
+                )
+              )
 
-                tabPanel("Boxplot by ROI/cluster",
-                  plotOutput("boxplotByROIAnalogHeat"),
-                  htmlOutput("saveboxplotByROIAnalogHeat")
-                ),
-                tabPanel("Boxplot by enrichment",
-                  plotOutput("boxplotByBAMAnalogHeat"),
-                  htmlOutput("saveboxplotByBAMAnalogHeat")
-                ),
-                tabPanel("cor",
-                  plotOutput("corAnalogHeat"),
-                  htmlOutput("savecorAnalogHeat")
-                ),
-                tabPanel("pcor",
-                  plotOutput("pcorAnalogHeat"),
-                  htmlOutput("savepcorAnalogHeat")
-                )          
-              ) 
+
+
+
             )
           )
         )
@@ -497,35 +466,14 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
           box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
             title=boxHelp(ID="msg_enrichmentInRois_parameters",title="Parameters"),
 
-            HTML("<b>Select ROI(s):</b>"),
+            list(HTML("<b>Select ROI(s):</b>"),htmlhelp("","help_enrichmentInRois_parameters_ROIs")),
             wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
               checkboxGroupInput("ROIsForProfilesAndBox",NULL,NULL)
             ),
-
-            HTML("<b>Select enrichments to show:</b>"),
-            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
-              checkboxGroupInput("BAMsForProfilesAndBox",NULL,NULL)
-            ),
-
-            HTML("<b>Number of bins:</b>"),
-            numericInput(inputId = 'binsProfilesAndBox',label=NULL,min = 1, max = 500, step = 1,value=50),
+            uiOutput("showBAMsforProfilesAndBox"),
+            uiOutput("showbinsforProfilesAndBox"),
             HTML("<br>"),
-            radioButtons("chooseNormalizationProfilesAndBox",label="Normalization method for enrichments:",choices=c(
-                                                  "Total reads (rpm)"="totread",
-                                                  "Read density (rpm/bp)"="readdensity"
-                                                        ),selected="readdensity"),
-            HTML("<b></b>"),
-            checkboxInput("Log2BoxProfilesAndBox", label="log2",value = FALSE, width = NULL),
-            HTML("<br>"),
-            
-            radioButtons("choosecorMethodProfilesAndBox",label="Type of correlation",choices=c(
-                                                  "Pearson"="pearson",
-                                                  "Spearman"="spearman"
-                                                        ),selected="pearson"),
-            HTML("<b></b>"),
-            checkboxInput("GroupColorsProfilesAndBox", label="Group colors (boxes)",value = FALSE, width = NULL),
-            HTML("<b></b>"),
-            actionButton("confirmUpdateProfilesAndBox", "Update plot")
+            uiOutput("show_confirmUpdateProfilesAndBox")
           )
 
         ),
@@ -536,50 +484,97 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
               box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
                 title=boxHelp(ID="msg_enrichmentInRois_profiles",title="Profiles"),
 
-                plotOutput("profileProfilesAndBox"),
-                htmlOutput("saveprofileProfilesAndBox")
+                fluidRow(
+                  column(width=12,
+                    plotOutput("profileProfilesAndBox"),
+                    htmlOutput("saveprofileProfilesAndBox")
+                  )
+                ),
+                #now fluidRow with options
+                fluidRow(
+                  column(width=4,
+                    uiOutput("showprofileProfileAndBox_logOptions"),
+                    uiOutput("showprofileProfileAndBox_colorschemeOptions"),
+                    uiOutput("showprofileProfileAndBox_isdensityOptions")
+                  ),
+                  column(width=8,
+                    uiOutput("showprofileProfileAndBox_colorlistOptions")
+                  )
+                )
+
+                
               ),
 
               box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
                 title=boxHelp(ID="msg_enrichmentInRois_boxplots",title="Boxplots"),
 
-                tabBox(width=12,height=500,
-                  tabPanel("Boxplot by ROI",
-                    plotOutput("boxByROIProfilesAndBox"),
-                    htmlOutput("saveboxByROIProfilesAndBox"),
-                    htmlOutput("saveboxdataProfANDbox")
-                  ),
 
-                  tabPanel("Boxplot by enrichment",
-                    plotOutput("boxByBAMProfilesAndBox"),
-                    htmlOutput("saveboxByBAMProfilesAndBox")
-                  )            
+              fluidRow(
+                column(width=12,
+
+                  tabBox(width=12,height=500,
+                    tabPanel("Boxplot by ROI",
+                      plotOutput("boxByROIProfilesAndBox"),
+                      htmlOutput("saveboxByROIProfilesAndBox"),
+                      htmlOutput("saveboxdataProfANDbox")
+                    ),
+
+                    tabPanel("Boxplot by enrichment",
+                      plotOutput("boxByBAMProfilesAndBox"),
+                      htmlOutput("saveboxByBAMProfilesAndBox")
+                    )            
+                  )
                 )
+              ),
+
+              fluidRow(
+                column(width=4,
+                  uiOutput("showBoxProfileAndBox_logOptions"),
+                  uiOutput("showBoxProfileAndBox_colorschemeOptions"),
+                  uiOutput("showBoxProfileAndBox_isdensityOptions")
+                ),
+                column(width=8,
+                  uiOutput("showBoxProfileAndBox_groupcolOptions"),
+                  uiOutput("showBoxProfileAndBox_colorlistOptions")
+                )
+              )              
+
+
+
               )
             ),
 
             fluidRow(
 
 
-              box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
+              box(width=7,solidHeader = TRUE,status = "primary",collapsible = TRUE,
                 title=boxHelp(ID="msg_enrichmentInRois_correlations",title="Correlations"),
 
-                tabBox(width=12,height=500,
-                  tabPanel("Cor-Heatmap",
-                    plotOutput("corProfilesAndBox",click="cor_click"),
-                    htmlOutput("savecorProfilesAndBox")
-                  ),
 
-                  tabPanel("Pcor-Heatmap",
-                    plotOutput("pcorProfilesAndBox",click="pcor_click"),
-                    htmlOutput("savepcorProfilesAndBox")
-                  )            
+                column(width=9,
+                  tabBox(width=12,#height=400,
+                    tabPanel("Cor-Heatmap",
+                      plotOutput("corProfilesAndBox",click="cor_click"),
+                      htmlOutput("savecorProfilesAndBox")
+                    ),
+                    tabPanel("Pcor-Heatmap",
+                      plotOutput("pcorProfilesAndBox",click="pcor_click"),
+                      htmlOutput("savepcorProfilesAndBox")
+                    )            
+                  )
+                ),
+                column(width=3,
+                  uiOutput("showCorProfileAndBox_isdensityOptions"),
+                  uiOutput("showCorProfileAndBox_corMethodOptions"),
+                  uiOutput("showCorProfileAndBox_logOptions")
                 )
+
+
               ),
 
 
 
-              box(width=6,solidHeader = TRUE,status = "primary",collapsible = TRUE,
+              box(width=5,solidHeader = TRUE,status = "primary",collapsible = TRUE,
                 title=boxHelp(ID="msg_enrichmentInRois_scatterplot",title="Scatterplot"),
 
                 plotOutput("scatterProfilesAndBox"),
@@ -602,116 +597,101 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
       #TSS/TES. If not satisfied with this values, the user shoult re-construct original promoters
       #and transcripts and TES from the database
       fluidRow(
-
-        column(width=3,
+        column(width=3,style='padding:0px;',
           box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
             title=boxHelp(ID="msg_dynamicsOnGenes_parameters",title="Parameters"),
 
-            HTML("<b>Select the gene list:</b>"),
-            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
-              checkboxGroupInput("genelistsforDynamics",NULL,NULL)
-            ),
+            uiOutput("show_genelistsforDynamics"),
+
             
             uiOutput("showROItriadGeneList"),
             HTML("<br>"),
-            HTML("<b>Select enrichments to show:</b>"),
-            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
-              checkboxGroupInput("BAMforDynamics",NULL,NULL)
-            ),
+            uiOutput("show_BAMforDynamics"),
+
             
             HTML("<br>"),
-            HTML("<b>Number of bins:</b>"),
-            numericInput(inputId = 'binsforDynamics',label=NULL,min = 1, max = 300, step = 1,value=100),
+            uiOutput("show_binsforDynamics"), 
+
             HTML("<br>"),
-            radioButtons("chooseMetricforDynamics",label="Mean or median?",choices=c(
-                                                "median"="median",
-                                                "mean"="mean"
-                                                      ),selected="mean"),
-            HTML("<br>"),
-            checkboxInput("islogforDynamics", label="log2",value = FALSE, width = NULL),
-            radioButtons("chooseNormalizationforDynamics","Choose normalization:",choices=c(
-                                                "Total reads (rpm)"="totread",
-                                                "Read density (rpm/bp)"="readdensity"
-                                                      ),selected="readdensity"),
-            HTML("<br>"),
-            HTML("<b>Fraction of outliers to exclude in cumulative plots:</b>"),
-            sliderInput('percentageOutlayerCumulPlots',label=NULL,min = 0, max = 0.3, value = 0.05,step=0.01),
-            HTML("<br>"),
-            actionButton("plotDynamics","Update plot")
+            uiOutput("show_plotDynamics")
           )
 
         ),
 
-        column(width=9,
+        column(width=9,style='padding:0px;',
+          box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
+                title=boxHelp(ID="msg_dynamicsOnGenes_profiles",title="Metagene profile"), 
+            column(width=9,
+              #profile
+              fluidRow(
+                column(width=12,
+                    plotOutput("plotProfileDynamics"),
+                    fluidRow(
+                      column(width=4,
+                        htmlOutput("saveprofileDynamics")
+                      ),
+                      column(width=4,
+                        uiOutput("show_chooseMetricforDynamics")
+                      )
+                    )
+                                   
+                )
+              ),
 
-          #profile
-          fluidRow(
-            column(width=12,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_profiles",title="Metagene profile"),
-
-                plotOutput("plotProfileDynamics"),
-                htmlOutput("saveprofileDynamics")
+              HTML('<hr size=3>'),
+              #boxplot
+              fluidRow(
+                column(width=4,
+                    plotOutput("plotboxTSSDynamics"),
+                    htmlOutput("saveboxTSSDynamics"),
+                    htmlOutput("saveboxdatadynamicsTSS")
+                ),
+                column(width=4,
+                    plotOutput("plotboxGBDynamics"),
+                    htmlOutput("saveboxGBDynamics"),
+                    htmlOutput("saveboxdatadynamicsGB")
+                ),
+                column(width=4,
+                    plotOutput("plotboxTESDynamics"),
+                    htmlOutput("saveboxTESDynamics"),
+                    htmlOutput("saveboxdatadynamicsTES")
+                )
+              ),
+              HTML('<hr size=3>'),
+              #stallingindex
+              fluidRow(
+                column(width=4,
+                    plotOutput("plotSITSSDynamics"),
+                    htmlOutput("saveSITSSDynamics")
+                ),
+                column(width=4,
+                    plotOutput("plotSIGBDynamics"),
+                    htmlOutput("saveSIGBDynamics")
+                ),
+                column(width=4,
+                    plotOutput("plotSISIDynamics"),
+                    htmlOutput("saveSISIDynamics")
+                )
+                
+              ),
+              fluidRow(
+                column(width=6,
+                  uiOutput("show_percentageOutlayerCumulPlots")
+                ),
+                column(width=6)
               )
-                           
-            )
-          ),
-          #boxplot
-          fluidRow(
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_TSSenrichment",title="TSS enrichment (boxplot)"),
 
-                plotOutput("plotboxTSSDynamics"),
-                htmlOutput("saveboxTSSDynamics"),
-                htmlOutput("saveboxdatadynamicsTSS")
-              )
             ),
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_genebodiesEnrichment",title="Genebodies enrichment (boxplot)"),
+            column(width=3,
+              uiOutput("show_islogforDynamics"),
+              uiOutput("show_chooseNormalizationforDynamics"),
+              uiOutput("show_colorschemeDynamics"),
+              uiOutput("show_colorsDynamics")
+            )   
 
-                plotOutput("plotboxGBDynamics"),
-                htmlOutput("saveboxGBDynamics"),
-                htmlOutput("saveboxdatadynamicsGB")
-              )
-            ),
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_TESenrichment",title="TES enrichment (boxplot)"),
 
-                plotOutput("plotboxTESDynamics"),
-                htmlOutput("saveboxTESDynamics"),
-                htmlOutput("saveboxdatadynamicsTES")
-              )
-            )
-          ),
-          #stallingindex
-          fluidRow(
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_TSSranked",title="TSS ranked enrichments"),
 
-                plotOutput("plotSITSSDynamics"),
-                htmlOutput("saveSITSSDynamics")
-              )
-            ),
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_genebodiesRanked",title="Genebodies ranked enrichments"),
 
-                plotOutput("plotSIGBDynamics"),
-                htmlOutput("saveSIGBDynamics")
-              )
-            ),
-            column(width=4,
-              box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
-                title=boxHelp(ID="msg_dynamicsOnGenes_stallingIndexRanked",title="Stalling Index"),
-
-                plotOutput("plotSISIDynamics"),
-                htmlOutput("saveSISIDynamics")
-              )
-            )
           )
 
         )
@@ -720,7 +700,127 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
 
       )
+    ),
+
+
+
+
+
+
+    tabPanel("GO analyses",
+      fluidRow (
+        
+        column(width=3,
+
+          box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+            title=boxHelp(ID="msg_goAnalysis_parameters",title="Parameters"),
+
+            tabBox(width=12,
+              tabPanel("Variables",
+                HTML("<b>Select the source</b></br>"),
+                radioButtons("chooseSourceGO",label=NULL,
+                                  choiceNames=list(
+                                    htmlhelp("From ROI","help_goAnalysis_parameters_fromROI"),
+                                    htmlhelp("From gene list","help_goAnalysis_parameters_fromgenelist")
+                                  ),choiceValues=list("fromROI","fromGeneList")
+                            ),
+                #here, the UI (checkboxGroup if from ROI, textInput if from custom list)
+                uiOutput("viewSelectGenesGO"),
+                #here, put choice of kind of ID of the genes (symbols, etrez, ensembl): only symbols if database (promoters) is not present
+                uiOutput("additionalparametersGO"),
+                uiOutput("chooseWindowROIGO"),
+                #here, we serve all possible genesets using GenesetsGMT global variable
+
+                uiOutput("show_selectedGenesetsGO"),
+
+                #radiobutton to choose if ranking or clustering the results
+                uiOutput("chooseOrderingGO_widget"),
+                
+                uiOutput("clustertypeGO_widget"),
+                uiOutput("clusternumbershowGO_widget"),
+                uiOutput("clusterHDistMethodGO_widget"),
+                uiOutput("clusterHClustMethodGO_widget"),
+                uiOutput("clusterKstartsGO_widget"),
+                uiOutput("clusterKiterationsGO_widget"),
+                uiOutput("show_minmaxSizeGO"),
+            
+                uiOutput("show_doTheGO")
+              ),
+
+              tabPanel("Filtering",
+                #geneRatio:
+                sliderInput('quantileGeneRatioGO',label=list("Gene ratio threshold:",htmlhelp("","help_goAnalysis_parameters_generatio")),min = 0, max = 1, value = 0,step=0.05),
+                #-log10Padj:
+                sliderInput('log10padjGO',label=list("-log10 padj threshold:",htmlhelp("","help_goAnalysis_parameters_padjthresh")),min = 1, max = 50, value = 2,step=1),
+                #top n statistically significant:
+                sliderInput('topNGO',label="Top significant hits:",min = 1, max = 100, value = 10,step=1)
+              )
+
+              
+            )
+
+          )
+
+
+
+        ),
+        
+
+
+        column(width=9,
+          fluidRow(
+            #put plot (barplot/heatmap)
+            box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+              title=boxHelp(ID="msg_goAnalysis_goPlot",title="GO plot"),
+
+              fluidRow(
+                column(width=9,#style='padding:0px;',
+                  fluidRow(
+                    column(width=3,
+                      plotOutput("plotMaterialLeft")
+                    ),
+                    column(width=9,
+                      plotOutput("plotOntology",click="GO_click",brush=brushOpts(id="GO_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),#,height=750,width=600),
+                      plotOutput("textNameGO"),
+                      htmlOutput("saveheatmapGO")
+                    #width=600),
+                    )
+                  )
+                ),
+                column(width=3,#style='padding:0px;',
+                  plotOutput("colorScaleGO",height=100),
+                  #here, sliderInputs of various thresholds for the analyses
+                  uiOutput("show_scaleQuantileGO"),
+                  #color scale
+                  uiOutput("show_colorScaleGO"),
+                  uiOutput("showTermClicked"),
+                  uiOutput("showGenesClicked")
+                ) 
+              )
+
+            )
+            
+          ),
+
+          fluidRow(
+            #put table to download
+            box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+              title=boxHelp(ID="msg_goAnalysis_goTable",title="GO table"),
+
+              wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; background-color: #ffffff;",
+                dataTableOutput("tableOntology")
+              ),
+              uiOutput("tableGOdownloadButton")
+            )
+          
+          )
+        )
+
+
+      )
     )
+
+
 
 
   )

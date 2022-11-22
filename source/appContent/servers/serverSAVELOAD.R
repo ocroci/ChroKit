@@ -35,6 +35,7 @@ observeEvent(input$saveWork,{
 		logvariables_msg=logvariables$msg
 
 		Enrichlistvariables_rawcoverage=Enrichlist$rawcoverage
+		Enrichlist_decryptkey=Enrichlist$decryptkey
 		Enrichlistvariables_normfactlist=Enrichlist$normfactlist
 
 
@@ -57,6 +58,7 @@ observeEvent(input$saveWork,{
 			BAMvariables_listBAM,
 			logvariables_msg,
 			Enrichlistvariables_rawcoverage,
+			Enrichlist_decryptkey,
 			Enrichlistvariables_normfactlist
 		)
 
@@ -81,6 +83,7 @@ observeEvent(input$saveWork,{
 			"BAMvariables_listBAM",
 			"logvariables_msg",
 			"Enrichlistvariables_rawcoverage",
+			"Enrichlistvariables_decryptkey",
 			"Enrichlistvariables_normfactlist")
       	#logvariables$msg[[length(logvariables$msg)+1]]= paste('<font color="blue">Wainting for the session to be saved...<br></font>',sep="")
       	
@@ -133,12 +136,9 @@ observeEvent(input$loadenv, {
     if (!is.null(sessiontoload) & length(sessiontoload)>0 & isvalid(sessiontoload) & !inherits(sessiontoload,"integer")  ){
         #try to open RDS file session
         tryCatch({
-
         	#purge the memory to import the new session
         	print("forcing gc for new session...")
     		print(gc())
-
-    	
             totalENV=readRDS(shinyFilePath(input$loadenv))
             #load the ROIvariables
            	#x=totalENV$ROIvariables
@@ -153,13 +153,10 @@ observeEvent(input$loadenv, {
 
             #load the BEDvariables
             #y=totalENV$BEDvariables
-
             BEDvariables$tempBED=totalENV$BEDvariables_tempBED
             BEDvariables$tempBEDname=totalENV$BEDvariables_tempBEDname
             BEDvariables$opened=totalENV$BEDvariables_opened
             BEDvariables$sfn=totalENV$BEDvariables_sfn
-
-
 			#load DB variables, 
 			DATABASEvariables$currentASSEMBLY=totalENV$DATABASEvariables_currentASSEMBLY
 			#DATABASEvariables$availASSEMBLIES=totalENV$DATABASEvariables_availASSEMBLIES
@@ -167,7 +164,6 @@ observeEvent(input$loadenv, {
 
 			#load the BAMvariables
 			#include only existent enrichment files
-			
 			existents=list()
 			tempenrichlist=totalENV$BAMvariables_listBAM
 			if (length(tempenrichlist)>0){
@@ -190,9 +186,8 @@ observeEvent(input$loadenv, {
 			#load the clustvariables
 
 			Enrichlist$rawcoverage=totalENV$Enrichlistvariables_rawcoverage
+			Enrichlist$decryptkey=totalENV$Enrichlistvariables_decryptkey
 			Enrichlist$normfactlist=totalENV$Enrichlistvariables_normfactlist
-
-
             logvariables$msg[[length(logvariables$msg)+1]]= paste('Session ',sessiontoload,' loaded<br>',sep="")
             print(paste('Session ',shinyFilePath(input$loadenv),' loaded',sep="" ))
             sendSweetAlert(
@@ -222,16 +217,79 @@ observeEvent(input$loadenv, {
 		      )              
           })
 
-    }else{
-	    #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">No file selected...<br></font>'
-	      # sendSweetAlert(
-	      #   session = session,
-	      #   title = "No files selected",
-	      #   text = "Select an rds file from a saved session to load",
-	      #   type = "error"
-	      # )      
+    }else{    
     }
    
 },ignoreInit=TRUE)
 
 
+
+
+
+
+#load example data
+observeEvent(input$loadExampleData, {
+	tryCatch({
+		relativedirsession="./tutorial_files/example_data.rds"
+		totalENV=readRDS(relativedirsession)
+		print("forcing gc for new session...")
+    	print(gc())
+
+		ROIvariables$listROI=totalENV$ROIvariables_listROI
+        ROIvariables$selected=totalENV$ROIvariables_selected
+        ROIvariables$selectedname=totalENV$ROIvariables_selectedname
+        ROIvariables$listfordensity=totalENV$ROIvariables_listfordensity
+        ROIvariables$colorsfordensity=totalENV$ROIvariables_colorsfordensity
+        ROIvariables$listselected=totalENV$ROIvariables_listselected
+        ROIvariables$listselectednames=totalENV$ROIvariables_listselectednames
+        ROIvariables$changed=totalENV$ROIvariables_changed
+
+        #load the BEDvariables
+        #y=totalENV$BEDvariables
+        BEDvariables$tempBED=totalENV$BEDvariables_tempBED
+        BEDvariables$tempBEDname=totalENV$BEDvariables_tempBEDname
+        BEDvariables$opened=totalENV$BEDvariables_opened
+        BEDvariables$sfn=totalENV$BEDvariables_sfn
+		#load DB variables, 
+		DATABASEvariables$currentASSEMBLY=totalENV$DATABASEvariables_currentASSEMBLY
+
+		#load the BAMvariables
+		#include only existent enrichment files
+		existents=list()
+		tempenrichlist=totalENV$BAMvariables_listBAM
+		tempenrichlist2=paste0("./tutorial_files/",names(tempenrichlist))
+		names(tempenrichlist2)=names(tempenrichlist)
+		
+
+		BAMvariables$listBAM=tempenrichlist2
+		logvariables$msg=totalENV$logvariables_msg
+
+		Enrichlist$rawcoverage=totalENV$Enrichlistvariables_rawcoverage
+		Enrichlist$decryptkey=totalENV$Enrichlistvariables_decryptkey
+		Enrichlist$normfactlist=totalENV$Enrichlistvariables_normfactlist
+        logvariables$msg[[length(logvariables$msg)+1]]= paste('Example data chr1 loaded<br>',sep="")
+        print(paste('Example data chr1 loaded',sep="" ))
+        sendSweetAlert(
+          session = session,
+          title = "Example data loaded!",
+          text = paste("The example data of ChIP-Seq in chr1 has been loaded",sep=""),
+          type = "success"
+        )
+	},warning = function( w ){
+		sendSweetAlert(
+		session = session,
+		title = "Cannot load example data",
+		text = "Error in opening example data: are all the files in 'tutorial_files' directory?",
+		type = "error"
+		)  		
+	},error = function( err ){	
+		sendSweetAlert(
+		session = session,
+		title = "Cannot load example data",
+		text = "Error in opening example data: are all the files in 'tutorial_files' directory?",
+		type = "error"
+		)  
+	})
+
+
+})

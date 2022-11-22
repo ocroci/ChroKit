@@ -51,14 +51,85 @@ observe({
         getbam=names(Enrichlist$rawcoverage[[pos]])
         #getbam=names(getBAMlist(roi))
         if (is.null(getbam)){
-          updateSelectInput(session,"BAMchooseSingleEval",NULL,choices=character(0))
+          output$BAMmenuchoose_singleeval<-renderUI({NULL})
         }else{
-          updateSelectInput(session,"BAMchooseSingleEval",NULL,choices=getbam)
+          output$BAMmenuchoose_singleeval<-renderUI({ 
+          list(HTML("<b>2) Select associated enrichment:</b>"),
+                selectInput(inputId="BAMchooseSingleEval", label=NULL,choices=getbam) ) })
+
         }
         
       }
     }
 
+})
+
+
+#observer for pie and bar single eval colors
+observe({
+  #respond to color change
+  input$chooseColorPaletteSingleEval
+  #set variables inside plot area for PDFs
+  if(isvalid(input$chooseColorPaletteSingleEval)){
+    toplot$viewDistributionPieSingleEval$Colors=strsplit(input$chooseColorPaletteSingleEval,split="_")[[1]]
+  }
+})
+
+#observer for density plot single eval colors
+observe({
+  input$chooseColorPaletteSingleEval_density
+  #set variables inside plot area for PDFs
+  if(isvalid(input$chooseColorPaletteSingleEval_density)) {
+    toplot$viewDistributionPieSingleEval$Colors_density=strsplit(input$chooseColorPaletteSingleEval_density,split="_")[[1]]
+  }
+})
+
+#observer for box input fields (normalization and color)
+observe({
+  input$chooseColorPaletteSingleEval_box
+  if(isvalid(input$chooseColorPaletteSingleEval_box)) {
+    toplot$viewDistributionPieSingleEval$Colors_box=strsplit(input$chooseColorPaletteSingleEval_box,split="_")[[1]]
+  }
+})  
+observe({
+  input$chooseNormalizationSingleEval_box
+  if(isvalid(input$chooseNormalizationSingleEval_box)) {
+    toplot$viewDistributionPieSingleEval$normalization_box=strsplit(input$chooseNormalizationSingleEval_box,split="_")[[1]]
+  }
+})
+
+
+#observer for profile input fields (profile to plot, color,ylab)
+observe({
+  input$chooseColorPaletteSingleEval_profile
+  if(isvalid(input$chooseColorPaletteSingleEval_profile)) {
+    toplot$viewDistributionPieSingleEval$Colors_profile=strsplit(input$chooseColorPaletteSingleEval_profile,split="_")[[1]]
+  }
+})
+
+observe({
+  input$chooseNormalizationSingleEval_profile
+  if(isvalid(input$chooseNormalizationSingleEval_profile) & length(toplot$viewDistributionPieSingleEval$matrixes)>0) {
+      normalization=input$chooseNormalizationSingleEval_profile
+      matrixes=toplot$viewDistributionPieSingleEval$matrixes
+      lengths_sampled=toplot$viewDistributionPieSingleEval$lengths_sampled
+      if(normalization=="totread"){
+        ylab="Total reads"
+      }else{
+        ylab="Read density (reads/bp)"
+        #divide for length of ranges
+        for (i in 1:length(matrixes)){
+          if (length(lengths_sampled[[i]])>0){
+            matrixes[[i]]=matrixes[[i]]/lengths_sampled[[i]]
+          }
+        }
+      }
+    profile_to_plot=lapply(matrixes,function(i) {apply(i,2,mean)})
+    names(profile_to_plot)=c("all","promoters","genebody","intergenic")
+    toplot$viewDistributionPieSingleEval$profile_to_plot=profile_to_plot
+    toplot$viewDistributionPieSingleEval$ylabprofile=ylab
+
+  }
 })
 
 
@@ -131,8 +202,9 @@ observe({
     pos2=match(input$ROI2chooseCmp,nomi)
     roi2=ROIvariables$listROI[[pos2]]
 
-    rawvals1=Enrichlist$rawcoverage[[pos1]]
-    rawvals2=Enrichlist$rawcoverage[[pos2]]
+    rawvals1=Enrichlist$decryptkey[[pos1]]
+    rawvals2=Enrichlist$decryptkey[[pos2]]
+
     if (!is.null(roi1)){
       getbam1=names(rawvals1)
       
@@ -141,7 +213,7 @@ observe({
         #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp1<-renderUI({ 
-          list(HTML("<b>Choose enrichment-1:</b>"),
+          list( list(HTML("<b>Choose enrichment-1:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich1")),
                 selectInput(inputId="BAM1chooseCmp", label=NULL,choices=getbam1) ) })
         #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=getbam1)
       }
@@ -160,7 +232,7 @@ observe({
         #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp2<-renderUI({ 
-          list(HTML("<b>Choose enrichment-2:</b>"),
+          list(list(HTML("<b>Choose enrichment-2:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich2")),
                 selectInput(inputId="BAM2chooseCmp", label=NULL,choices=getbam2) ) })
         #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=getbam2)
       }
@@ -182,10 +254,6 @@ observe({
 
 
 
-
-
-
-
 ######################################################################
 ######################################################################
 ######################################################################
@@ -201,7 +269,7 @@ observe({
 #update ROI available to view (even the master ROI itself)
 observe({
   input$ROImaster
-  
+
   if (length(ROIvariables$listROI)>0 & length(input$ROImaster)>0){
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     historylist=as.list(nomi)
@@ -215,21 +283,39 @@ observe({
     getwdth=lapply(ROIvariables$listROI,getWidth) 
     getwdth=unlist(lapply(getwdth, function(k) {table(!duplicated(k))["TRUE"]==1}))
     names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")    
-    updateCheckboxGroupInput(session,"ROIsForDigitalHeat",NULL,choices=historylist)
+    output$ROIsForDigitalHeat_menu<-renderUI({
+      list(
+        list(HTML("<b>ROIs to view:</b>"),htmlhelp("","help_digitalHeatmap_parameters_ROItoview")),
+        wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
+          checkboxGroupInput("ROIsForDigitalHeat",NULL,choices=historylist)
+        )
+      )
+    })
 
   }else{
-    updateCheckboxGroupInput(session,"ROIsForDigitalHeat",NULL,choices=character(0))
+    output$ROIsForDigitalHeat_menu<-renderUI({checkboxGroupInput("ROIsForDigitalHeat",NULL,choices=NULL)})
   }
+})
+
+
+#update for final button
+observe({
+  if (!isvalid(input$ROImaster)|!isvalid(input$ROIsForDigitalHeat)){
+    output$show_confirmUpdateDigitalHeat1<-renderUI({NULL})
+    return()
+  }
+  output$show_confirmUpdateDigitalHeat1<-renderUI({actionButton("confirmUpdateDigitalHeat1", "Update plot")})
 })
 
 
 
 #update list ROIs to reorder for digital heatmap
 #reorder ROI
-observeEvent(input$ROIsForDigitalHeat,{
-
+observe({
+  input$ROIsForDigitalHeat
   #check if ROI are present, valid
-  if(is.null(ROIvariables$listROI) | length(ROIvariables$listROI)<1 | length(input$ROIsForDigitalHeat)<1){
+  if(is.null(ROIvariables$listROI) | length(ROIvariables$listROI)<1 | length(input$ROIsForDigitalHeat)<1|
+          length(input$ROImaster)<1 | is.null(input$ROImaster)){
     output$reorderROImenuDigitalHeat<-renderUI({NULL})
     return()
   }
@@ -247,7 +333,7 @@ observeEvent(input$ROIsForDigitalHeat,{
      
   output$reorderROImenuDigitalHeat<-renderUI({   
     list(
-      HTML("<b>ROIs ordering</b>"),
+      list(HTML("<b>ROIs ordering</b>"),htmlhelp("","help_digitalHeatmap_parameters_ROIordering")),
       wellPanel(id = "logPanelBAM",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
         fluidPage(
           lista
@@ -257,7 +343,7 @@ observeEvent(input$ROIsForDigitalHeat,{
 
   })
 
-},ignoreNULL=FALSE)
+})
 
 
 
@@ -266,12 +352,20 @@ observeEvent(input$ROIsForDigitalHeat,{
 observe({
   input$ROIsForDigitalHeat
   
-  if(length(input$ROIsForDigitalHeat)>0){
-    wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 100px; max-width: 300px; background-color: #ffffff;",
-      updateCheckboxGroupInput(session,"ROIforClusteringDigitalHeat",NULL,choices=input$ROIsForDigitalHeat)
-    )
+  if(length(input$ROIsForDigitalHeat)>0 & !is.null(input$ROImaster) & length(input$ROImaster)>0){
+    output$ROIsForClusterDigital_menu<-renderUI ({
+      list(
+        list(HTML("<b>ROIs for cluster:</b>"),htmlhelp("","help_digitalHeatmap_parameters_ROIforcluster")),
+        wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 100px; max-width: 300px; background-color: #ffffff;",
+          checkboxGroupInput("ROIforClusteringDigitalHeat",NULL,choices=input$ROIsForDigitalHeat)
+        )
+      )
+
+    })
+
+  
   }else{
-    updateCheckboxGroupInput(session,"ROIforClusteringDigitalHeat",NULL,choices=character(0))
+    output$ROIsForClusterDigital_menu<-renderUI ({NULL})
   }
 
 })
@@ -280,8 +374,9 @@ observe({
 #update random sample to choose for digital heatmap:
 observe({
   input$ROImaster
-  
-  if(length(ROIvariables$listROI)>0){
+  input$ROIsForDigitalHeat
+  #to show random sample, must choose master ROI and at least one ROI to show
+  if(length(ROIvariables$listROI)>0 & isvalid(input$ROImaster) & isvalid(input$ROIsForDigitalHeat)){
     if (length(input$ROImaster)>0){
       nomi=unlist(lapply(ROIvariables$listROI,getName))
       pos=match(input$ROImaster,nomi)
@@ -307,13 +402,20 @@ observe({
       }else{
         valshown=lbr
       }
-      updateNumericInput(session,inputId = 'sampleRandomDigitalHeat',label=NULL,min = minim, max = lbr, step = 1000,value=valshown)
+
+      output$sampleRandomROIDigital<-renderUI({
+        list(
+          list(HTML("<b>Random sample of genomic ranges to show:</b>"),htmlhelp("","help_digitalHeatmap_parameters_randomsample")),
+          numericInput(inputId = 'sampleRandomDigitalHeat',label=NULL,min = minim, max = lbr, step = 1000,value=valshown)
+        )
+      })
+
     }else{
-      updateNumericInput(session,inputId = 'sampleRandomDigitalHeat',label=NULL,min = 0, max = 0, step = 1000,value=0)
+      output$sampleRandomROIDigital<-renderUI({NULL})
               
     }    
   }else{
-    updateNumericInput(session,inputId = 'sampleRandomDigitalHeat',label=NULL,min = 0, max = 0, step = 1000,value=0)
+    output$sampleRandomROIDigital<-renderUI({NULL})
   }
 
 })
@@ -326,13 +428,18 @@ observe({
   input$ROIforClusteringDigitalHeat
   #if something inside, show the choise between hclust and kmeans
   #otherwise, hide (change in no selection or not selected from beginning)
-  if(length(input$ROIforClusteringDigitalHeat)>0){
+  if(length(input$ROIforClusteringDigitalHeat)>0 & length(input$ROIsForDigitalHeat)>0 & length(input$ROImaster)>0){
     output$clustertypeDigitalHeat<-renderUI({
-      radioButtons("clusterTypeDigitalHeat",label="Clustering type",choiceNames=c("K-means","hierarchical"),choiceValues=c("kmean","hierarchical"))
+      radioButtons("clusterTypeDigitalHeat",label="Clustering type",
+                    choiceNames=list(
+                      htmlhelp("K-means","help_digitalHeatmap_parameters_clusterKmeans"),
+                      htmlhelp("hierarchical","help_digitalHeatmap_parameters_clusterHierarchical")),
+                    choiceValues=list("kmean","hierarchical")
+                  )
     }) 
     output$clusternumbershowDigitalHeat<-renderUI({
       #must implement a check in serverGENOMICS to correct if this number <=0 or > length roi shown
-      numericInput(inputId = 'clustnumDigitalHeat',label="Cluster number",min = 1, max = 433, step = 1,value=4)
+      numericInput(inputId = 'clustnumDigitalHeat',label=list("Cluster number",htmlhelp("","help_digitalHeatmap_parameters_clusternumber")),min = 1, max = 433, step = 1,value=4)
     }) 
   }else{
     output$clustertypeDigitalHeat<-renderUI({NULL})
@@ -348,7 +455,8 @@ observe({
   
   input$ROIforClusteringDigitalHeat
   input$clusterTypeDigitalHeat
-  if(length(input$ROIforClusteringDigitalHeat)>0 & !is.null(input$clusterTypeDigitalHeat)){
+  if(length(input$ROIforClusteringDigitalHeat)>0 & !is.null(input$clusterTypeDigitalHeat) 
+        & length(input$ROIsForDigitalHeat)>0 & length(input$ROImaster)>0){
     #if ==0, do not execute, because radiobutton dosn't exist!
     if(input$clusterTypeDigitalHeat=="hierarchical"){
       output$clusterHDistMethodDigitalHeat<-renderUI({
@@ -404,6 +512,7 @@ observeEvent(input$optioncolorsforDigitalHeat,{
                                                           "white/blue"="white_blue",
                                                           "white/green"= "white_green"))
       })
+      toplot$digital$colorpalettes="white_red4"
       
     }else if(optionDigital=="custom"){
       #if BAM files in heatvariables is >0, loop and show different color blocks,
@@ -463,7 +572,7 @@ observe({
 
       bams=isolate(toplot$digital$ROIsForDigitalHeat)
       tosearch=paste("colorCustomDigitalHeat",1:length(bams),sep="")
-      # #find all possible colors selected.
+      # #find all possible colors selected.
       # inputs=names(isolate(input))
       # stringval=grep("colorCustomDigitalHeat\\d+$",inputs,value=TRUE)
 
@@ -494,7 +603,18 @@ observe({
 })
 
 
-
+#observer for strand-specific overlap (appear only when have ROI to show selected)
+observe({
+  input$ROIsForDigitalHeat
+  input$ROImaster
+  if (!isvalid(input$ROIsForDigitalHeat)|!isvalid(input$ROImaster)){
+    output$showStrandSpecOverlap<-renderUI({NULL})
+    return()
+  }
+  output$showStrandSpecOverlap<-renderUI({
+    checkboxInput("StrandSpecOverlap", label=list("Strand-specific overlaps",htmlhelp("","help_digitalHeatmap_parameters_strandspecific")),value = FALSE, width = NULL)
+  })
+})
 
 
 
@@ -505,8 +625,8 @@ observe({
 observe({
   
   input$ROIsForDigitalHeat
-  if (length(ROIvariables$listROI)>0 & length(input$ROIsForDigitalHeat)>0){
-
+  input$ROImaster
+  if (length(ROIvariables$listROI)>0 & length(input$ROIsForDigitalHeat)>0 & isvalid(input$ROImaster)){
     #adapt numbr of bins. bins must be <= length of the smallest of range
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$ROIsForDigitalHeat,nomi)
@@ -519,12 +639,21 @@ observe({
       }else{
         valuetoshow=5
       }
-      updateNumericInput(session,"binsDigitalHeat",label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)      
+
+      output$showbinsDigitalHeat<-renderUI({
+        list(
+          list(HTML("<b>Number of bins:</b>"),htmlhelp("","help_digitalHeatmap_parameters_nbins")),
+          numericInput("binsDigitalHeat",label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)  
+        )
+
+      })
+          
+
     }else{
-      updateNumericInput(session,"binsDigitalHeat",label=NULL,min = 1, max = 500,value=5,step = 1)
+      output$showbinsDigitalHeat<-renderUI({NULL})
     }
   }else{
-    updateNumericInput(session,"binsDigitalHeat",label=NULL,min = 1, max = 500,value=5,step = 1)
+    output$showbinsDigitalHeat<-renderUI({NULL})
   }
 })
 
@@ -642,6 +771,7 @@ observe({
     #all rois selected
     roi=ROIvariables$listROI[pos]
     rawvals=Enrichlist$rawcoverage[pos]
+
     if (!is.null(roi)){
       #for loop, intersection of bam files
       getbam_current=list()
@@ -665,14 +795,50 @@ observe({
       }
       #if at least one BAM in common found, put the chioces
       if (length(finalBAMs)>0){
-        updateCheckboxGroupInput(session,"BAMsForAnalogHeat",NULL,choices=finalBAMs)
+        output$showBAMsForAnalogHeat<-renderUI({
+          list(
+            list(HTML("<b>Select enrichments to show:</b>"),htmlhelp("","help_analogicHeatmap_parameters_enrichments")),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput("BAMsForAnalogHeat",NULL,choices=finalBAMs)
+            )
+          )
+        })
       }else{
-        updateCheckboxGroupInput(session,"BAMsForAnalogHeat",NULL,choices=character(0))
+        output$showBAMsForAnalogHeat<-renderUI({
+          list(
+            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to ROIs</font>"),
+            checkboxGroupInput("BAMsForAnalogHeat",NULL,choices=NULL)
+          )
+        })
+        #output$showBAMsForAnalogHeat<-renderUI({NULL})
+        output$reorderBAMmenuAnalogHeat<-renderUI({NULL})
+        output$showrankingmethod<-renderUI({NULL})
+        output$clustertypeAnalogHeat<-renderUI({NULL})
+        output$orderingAnalogHeat<-renderUI({NULL})
+        output$clusternumbershowAnalogHeat<-renderUI({NULL})
+        output$clusterKstartsAnalogHeat<-renderUI({NULL})
+        output$clusterKiterationsAnalogHeat<-renderUI({NULL})
+        output$clusterHDistMethodAnalogHeat<-renderUI({NULL})
+        output$clusterHClustMethodAnalogHeat<-renderUI({NULL})
+        output$showbinsAnalogHeat<-renderUI({NULL})
+        output$showsampleRandomAnalogHeat<-renderUI({NULL})
       }
  
     }
   }else{
-    updateCheckboxGroupInput(session,"BAMsForAnalogHeat",NULL,choices=character(0))
+    output$showBAMsForAnalogHeat<-renderUI({checkboxGroupInput("BAMsForAnalogHeat",NULL,choices=NULL)})
+    #output$showBAMsForAnalogHeat<-renderUI({NULL})
+    output$reorderBAMmenuAnalogHeat<-renderUI({NULL})
+    output$showrankingmethod<-renderUI({NULL})
+    output$clustertypeAnalogHeat<-renderUI({NULL})
+    output$orderingAnalogHeat<-renderUI({NULL})
+    output$clusternumbershowAnalogHeat<-renderUI({NULL})
+    output$clusterKstartsAnalogHeat<-renderUI({NULL})
+    output$clusterKiterationsAnalogHeat<-renderUI({NULL})
+    output$clusterHDistMethodAnalogHeat<-renderUI({NULL})
+    output$clusterHClustMethodAnalogHeat<-renderUI({NULL})
+    output$showbinsAnalogHeat<-renderUI({NULL})
+    output$showsampleRandomAnalogHeat<-renderUI({NULL})
   }
 })
 
@@ -682,19 +848,30 @@ observe({
 #should depend on BAMs selected for analogic heatmap
 
 
-observeEvent(input$BAMsForAnalogHeat,{ 
-
+observe({ 
+  input$ROIsForAnalogHeat
   #checks: there must be some ROI
   if(is.null(ROIvariables$listROI) | length(ROIvariables$listROI)<1 | length(input$ROIsForAnalogHeat)<1){
     output$reorderBAMmenuAnalogHeat<-renderUI({NULL})
     return()
   }
+
   #checks: some BAMs must be selected (>0)
   if(length(input$BAMsForAnalogHeat)<1 ){
     output$reorderBAMmenuAnalogHeat<-renderUI({NULL})
     return()    
   }
-    
+  nomi=unlist(lapply(ROIvariables$listROI,getName))
+  pos=match(input$ROIsForAnalogHeat,nomi)
+  #all rois selected
+  roi=ROIvariables$listROI[pos]
+  rawvals=Enrichlist$rawcoverage[pos]    
+
+  #verify that this roi have selected BAM files. input could be remained from previous analysis
+
+
+
+
   getbam=input$BAMsForAnalogHeat
   choicelist=as.list(1:length(getbam))
   names(choicelist)=as.character(1:length(getbam))
@@ -712,7 +889,7 @@ observeEvent(input$BAMsForAnalogHeat,{
 
   output$reorderBAMmenuAnalogHeat<-renderUI({   
     list(
-      HTML("<b>Enrichment order</b>"),
+      list(HTML("<b>Enrichment order</b>"),htmlhelp("","help_analogicHeatmap_parameters_enrichmentorder")),
       wellPanel(id = "logPanelBAM",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
         fluidPage(
           lista
@@ -721,9 +898,38 @@ observeEvent(input$BAMsForAnalogHeat,{
     ) 
 
   })   
-}, ignoreNULL = FALSE)
+})
 
 
+
+#appear menu of choosing order (rank or cluster) only if some BAM selected
+observe({
+  #checks: there must be some ROI
+  if(is.null(ROIvariables$listROI) | length(ROIvariables$listROI)<1 | length(input$ROIsForAnalogHeat)<1){
+    output$showrankingmethod<-renderUI({NULL})
+    return()
+  }
+
+  #checks: some BAMs must be selected (>0)
+  if(length(input$BAMsForAnalogHeat)<1 ){
+    output$showrankingmethod<-renderUI({NULL})
+    return()    
+  }
+
+  output$showrankingmethod<-renderUI({
+    list(
+      HTML("<b>Clustering/ranking</b>"),
+      radioButtons("chooseOrderingAnalogHeat",label=NULL,
+                            choiceNames=list(
+                              htmlhelp("Ranking","help_analogicHeatmap_parameters_ranking"),
+                              htmlhelp("Clustering","help_analogicHeatmap_parameters_clustering")
+                            ),
+                            choiceValues=list("ranking","clustering")
+                  )
+    )
+  })
+
+})
 
 
 
@@ -734,6 +940,7 @@ observe({
   input$chooseOrderingAnalogHeat
   input$BAMsForAnalogHeat
   input$ROIsForAnalogHeat
+
 
   if(length(input$ROIsForAnalogHeat)==1){
     nomi=unlist(lapply(ROIvariables$listROI,getName))
@@ -747,6 +954,13 @@ observe({
     numranges=1
   }
 
+
+  if (!isvalid(input$chooseOrderingAnalogHeat)|!isvalid(input$ROIsForAnalogHeat)){
+    output$clustertypeAnalogHeat<-renderUI({NULL})
+    output$orderingAnalogHeat<-renderUI({NULL})
+    output$clusternumbershowAnalogHeat<-renderUI({NULL})
+    return()
+  }
   #if clustering is selected 
   if(input$chooseOrderingAnalogHeat=="clustering"){
     #observer for number of clusters. uiOutput only if cluster is chosen (not ranking), roi is >0
@@ -767,10 +981,16 @@ observe({
       if(length(input$BAMsForAnalogHeat)>0 ){
         output$clusternumbershowAnalogHeat<-renderUI({
           #numericInput("clustnumAnalogHeat",NULL)
-          numericInput(inputId = 'clustnumAnalogHeat',label="Cluster number",min = 1, max = numranges, step = 1,value=4)
+          numericInput(inputId = 'clustnumAnalogHeat',label=list("Cluster number",htmlhelp("","help_analogicHeatmap_parameters_clusternumber")),min = 1, max = numranges, step = 1,value=4)
         }) 
         output$clustertypeAnalogHeat<-renderUI({
-          radioButtons("clusterTypeAnalogHeat",label="Clustering type",choiceNames=c("K-means","hierarchical"),choiceValues=c("kmean","hierarchical"))
+          radioButtons("clusterTypeAnalogHeat",label="Clustering type",
+            choiceNames=list(
+              htmlhelp("K-means","help_analogicHeatmap_parameters_clusterKmeans"),
+              htmlhelp("hierarchical","help_analogicHeatmap_parameters_clusterHierarchical")
+            ),
+            choiceValues=c("kmean","hierarchical")
+          )
         })
       }else{
         output$clusternumbershowAnalogHeat<-renderUI({
@@ -794,15 +1014,13 @@ observe({
     }
 
 
-
-    
   #if cluster is not selected (ranking selected)
   }else{
     output$orderingAnalogHeat<-renderUI({
       if(length(input$BAMsForAnalogHeat)>0){
           selectInput("BAMsForRankingAnalogHeat",label=NULL,choices=input$BAMsForAnalogHeat)
       }else{
-          checkboxGroupInput("BAMsForClusteringAnalogHeat",NULL,choices=character(0))
+          checkboxGroupInput("BAMsForClusteringAnalogHeat",NULL,choices=NULL)
       }
     })
 
@@ -828,10 +1046,18 @@ observe({
   input$clusterTypeAnalogHeat
   input$BAMsForClusteringAnalogHeat
 
+
+  if (!isvalid(input$chooseOrderingAnalogHeat)|!isvalid(input$ROIsForAnalogHeat)){
+    output$clusterKstartsAnalogHeat<-renderUI({NULL})
+    output$clusterKiterationsAnalogHeat<-renderUI({NULL})
+    output$clusterHDistMethodAnalogHeat<-renderUI({NULL})
+    output$clusterHClustMethodAnalogHeat<-renderUI({NULL})  
+    return()    
+  }
+
   #if "ranking" instead of "clustering", do not show options for clustering!
   if(input$chooseOrderingAnalogHeat=="clustering"){
     if(length(input$BAMsForClusteringAnalogHeat)>0 & !is.null(input$clusterTypeAnalogHeat)){
-
       #NOW define which parameters on which type of clustering:
       if(input$clusterTypeAnalogHeat=="hierarchical"){
         output$clusterHDistMethodAnalogHeat<-renderUI({
@@ -880,50 +1106,53 @@ observe({
 
 #observer for the radiobutton of wich type of coloring scheme is selected for the analog heatmap
 #observe({input$optioncolorsforAnalogHeat})
-observe({
-  input$optioncolorsforAnalogHeat
-  if(!is.null(input$optioncolorsforAnalogHeat)){
-    #if chosen global, show select color input
-    if(input$optioncolorsforAnalogHeat=="global"){
+observeEvent(input$optioncolorsforAnalogHeat,{
+
+  if (!isvalid(input$optioncolorsforAnalogHeat)){
+    output$showcolorsheat<-renderUI({NULL})
+    return()
+  }
+
+  #if chosen global, show select color input
+  if(input$optioncolorsforAnalogHeat=="global"){
+    output$showcolorsheat<-renderUI({
+      selectInput("colorCustomAnalogHeat_global",label="Choose global color:",c("white/red"="white_red4",
+                                                        "white/blue"="white_blue",
+                                                        "rainbow"="rainbow",
+                                                        "blue/white/red"="blue_white_red",
+                                                        "exponential blue"="white_white_white_blue_blue4",
+                                                        "gray scale"="white_grey90_grey80_grey70_grey50_black"))
+    })
+
+  }else if(input$optioncolorsforAnalogHeat=="custom"){
+    #if BAM files in heatvariables is >0, loop and show different color blocks,
+    #otherwise NULL. Variables are color1, color2, ... colorn
+    bams=heatvariables$BAMsForAnalogHeat
+    lista=list()
+
+    if(length(bams)>0){
       output$showcolorsheat<-renderUI({
-        selectInput("colorCustomAnalogHeat_global",label="Choose global color:",c("white/red"="white_red4",
-                                                          "white/blue"="white_blue",
-                                                          "rainbow"="rainbow",
-                                                          "blue/white/red"="blue_white_red",
-                                                          "exponential blue"="white_white_white_blue_blue4",
-                                                          "gray scale"="white_grey90_grey80_grey70_grey50_black"))
-      })
-    }else if(input$optioncolorsforAnalogHeat=="custom"){
-      #if BAM files in heatvariables is >0, loop and show different color blocks,
-      #otherwise NULL. Variables are color1, color2, ... colorn
-      bams=heatvariables$BAMsForAnalogHeat
-      lista=list()
+        for (i in 1:length(bams)){
+          lista[[i]]=fluidRow(
+                              column(12,
+                                    colorSelectorInput(inputId=paste("colorCustomAnalogHeat",i,sep=""),label=bams[i],choices=ColsArray,
+                                                  selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                              )
+                      )
 
-      if(length(bams)>0){
-        output$showcolorsheat<-renderUI({
-          for (i in 1:length(bams)){
-            lista[[i]]=fluidRow(
-                                column(12,
-                                      colorSelectorInput(inputId=paste("colorCustomAnalogHeat",i,sep=""),label=bams[i],choices=ColsArray,
-                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
-                                )
-                        )
-
-          }
-          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
-            lista
-          )
-        })        
-      }else{
-        #bams are NULL. show nothing
-        output$showcolorsheat<-renderUI({NULL})
-      }
+        }
+        wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
+          lista
+        )
+      })        
     }else{
+      #bams are NULL. show nothing
       output$showcolorsheat<-renderUI({NULL})
-    }    
+    }
   }else{
     output$showcolorsheat<-renderUI({NULL})
-  }
+  }    
+
 
 })
 
@@ -933,9 +1162,10 @@ observe({
 
 #observer for chosen color in analog heat.
 observe({
-  optionMenu=isolate(input$optioncolorsforAnalogHeat)
+  optionMenu=input$optioncolorsforAnalogHeat
   input$colorCustomAnalogHeat1
   input$colorCustomAnalogHeat_global
+
   if(!is.null(optionMenu)){
     if(optionMenu=="global"){
       if(!is.null(input$colorCustomAnalogHeat_global)){
@@ -948,7 +1178,7 @@ observe({
 
       bams=isolate(heatvariables$BAMsForAnalogHeat)
       tosearch=paste("colorCustomAnalogHeat",1:length(bams),sep="")
-      # #find all possible colors selected.
+      ##find all possible colors selected.
       # inputs=names(isolate(input))
       # stringval=grep("colorCustomDigitalHeat\\d+$",inputs,value=TRUE)
 
@@ -989,6 +1219,11 @@ observe({
 observe({
   
   input$ROIsForAnalogHeat
+  #if no BAM selected, useless to show the bins
+  if (!isvalid(input$BAMsForAnalogHeat)){
+    output$showbinsAnalogHeat<-renderUI({NULL})
+    return()
+  }
   
   if (length(ROIvariables$listROI)>0 & length(input$ROIsForAnalogHeat)>0){
     #adapt numbr of bins. bins must be <= length of the smallest of range
@@ -1007,14 +1242,23 @@ observe({
       }else{
         valuetoshow=50
       }
-      updateNumericInput(session,"binsAnalogHeat",label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)
+
+      output$showbinsAnalogHeat<-renderUI({
+        list(
+          list(HTML("<b>Number of bins:</b>"),htmlhelp("","help_analogicHeatmap_parameters_nbins")),
+          numericInput("binsAnalogHeat",label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)
+        )
+        
+      })
+      
 
     }else{
-      updateNumericInput(session,"binsAnalogHeat",label=NULL,min = 1, max = 500,value=50,step = 1)
+      output$showbinsAnalogHeat<-renderUI({NULL})
     }
 
   }else{
-    updateNumericInput(session,"binsAnalogHeat",label=NULL,min = 1, max = 500,value=50,step = 1)
+    output$showbinsAnalogHeat<-renderUI({NULL})
+    #updateNumericInput(session,"binsAnalogHeat",label=NULL,min = 1, max = 500,value=50,step = 1)
   }
 })
 
@@ -1027,6 +1271,12 @@ observe({
 observe({
   
   input$ROIsForAnalogHeat
+  #if no BAM selected, useless to show random sample to choose
+
+  if (!isvalid(input$BAMsForAnalogHeat)){
+    output$showsampleRandomAnalogHeat<-renderUI({NULL})
+    return()
+  }
   if (length(input$ROIsForAnalogHeat)>0){
     nomi=unlist(lapply(ROIvariables$listROI,getName))
     pos=match(input$ROIsForAnalogHeat,nomi)
@@ -1055,14 +1305,31 @@ observe({
       valshown=lbr
     }
 
-    updateNumericInput(session,inputId = 'sampleRandomAnalogHeat',label="Random sample of:",min = minim, max = lbr, step = 1000,value=valshown)
+    output$showsampleRandomAnalogHeat<-renderUI({
+      numericInput(inputId = 'sampleRandomAnalogHeat',label=list("Random sample of:",htmlhelp("","help_analogicHeatmap_parameters_subsample")),min = minim, max = lbr, step = 1000,value=valshown)
+    })
+    
   }else{
-    updateNumericInput(session,inputId = 'sampleRandomAnalogHeat',label="Random sample of:",min = 0, max = 0, step = 1000,value=0)
+    output$showsampleRandomAnalogHeat<-renderUI({NULL})
             
   }
 })
 
 
+#observer for button: it will appear only if valid ROI/BAM selected
+#and, if clustering, some ROI have been selected for clustering
+observe({
+  if (!isvalid(input$BAMsForAnalogHeat)|!isvalid(input$ROIsForAnalogHeat)|!isvalid(input$chooseOrderingAnalogHeat)){
+    output$show_confirmUpdateAnalogHeat<-renderUI({NULL})
+    return()
+  }  
+  if(input$chooseOrderingAnalogHeat=="clustering" & length(input$BAMsForClusteringAnalogHeat)==0){
+    output$show_confirmUpdateAnalogHeat<-renderUI({NULL})
+    return()
+  }
+  output$show_confirmUpdateAnalogHeat<-renderUI({actionButton("confirmUpdateAnalogHeat", "Update plot")})
+
+})
 
 
 
@@ -1130,11 +1397,6 @@ observeEvent(input$heatmap_brush,{
     #extract ROI and BAM from current heatvariables$matlist
     if( (xright-xleft)>=0 & (ytop-ybottom)>=0 & xright<=totbamsamples){
       
-      # if (!is.null(heatvariables$completematrixes)){
-      #   matlist=heatvariables$completematrixes
-      # }else{
-      #   matlist=heatvariables$matlist
-      # }
       matlist=heatvariables$matlist
       nrowlist=lapply(matlist,nrow)
       ncollist=lapply(matlist,ncol)
@@ -1231,14 +1493,14 @@ observeEvent(input$heatmap_brush,{
 
       n=length(portionlist_profile)
       #ROIvariables$colorsfordensity <- distinctColorPalette(n)
-      qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
-      col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-      color_distinct <-sample(col_vector, n)
+      # qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+      # col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+      # color_distinct <-sample(col_vector, n)
 
-
+      color_distinct=colors_list[1:n]
+      toplot$gadgetanalogic$color_distinct=color_distinct
       toplot$gadgetanalogic$Log2BoxAnalogHeat=input$Log2BoxAnalogHeat
       toplot$gadgetanalogic$portionlist_profile=portionlist_profile
-      toplot$gadgetanalogic$color_distinct=color_distinct
       toplot$gadgetanalogic$portionlist_boxes=portionlist_boxes
       toplot$gadgetanalogic$lengths_selections=lengths_selections
 
@@ -1265,28 +1527,78 @@ observeEvent(input$heatmap_brush,{
 
       #PLOTS
 
+
+      #options specific to profile
+
+      output$showprofileAnalogHeat_logOptions<-renderUI({
+        checkboxInput("isLog2_profileAnalogHeat", label="log2",value = FALSE, width = NULL)
+      })
+
+      output$showprofileAnalogHeat_colorschemeOptions<-renderUI({
+        radioButtons("colorscheme_profileAnalogHeat",label="Choose color scheme:",choices=c(
+                                                  "Random colors"="random",
+                                                  "Custom colors"="custom"
+                                                        ),selected="random")       
+      })
+      #if custom, menu will be updated in an observer
+
+
       #here, legends are ROIs or clusters, depending on bycluster variable. If TRUE, clsuter 1,2,3,
       #otherwise, ROI1,2,3 and in the legend we need the explanation: ROI1= blablabla
       #plot the profiles of regions selected
       output$profileAnalogHeat<-renderPlot({
-        if(input$Log2BoxAnalogHeat){
-          portionlist_profile2=lapply(portionlist_profile,log2)
-          yl="Log2 read density (rpm/bp)"
+        #check specific inputs
+        if(isvalid(input$isLog2_profileAnalogHeat)){
+          islog=input$isLog2_profileAnalogHeat
+        }else{  
+          islog=FALSE
+        }
+
+        if (isvalid(input$colorscheme_profileAnalogHeat)){
+          if(input$colorscheme_profileAnalogHeat=="custom"){
+            #only the first if custom
+            if (isvalid(input$colorCustomAnalogHeat_profile1)){
+              #extract colors based on choice (loop through them):
+              tosearch=paste("colorCustomAnalogHeat_profile",1:length(portionlist_profile),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  colors=listinputcols
+                }else{
+                  colors=color_distinct
+                }
+              }else{
+                colors=color_distinct
+              }
+            }else{
+              colors=color_distinct
+            }
+          }else{
+            colors=color_distinct
+          }
         }else{
-          portionlist_profile2=portionlist_profile
-          yl="Read density (rpm/bp)"
+          colors=color_distinct
         }
-        maxval=max(unlist(lapply(portionlist_profile2,max)))
-        minval=min(unlist(lapply(portionlist_profile2,min)))
+        plot_analog_profile(islog2=islog,portionlist_profile=portionlist_profile,colors=colors)
+      })
 
-        par(mar=c(4,4,2,2))
-        plot(1, type="n", xlab="",xaxt="n", ylab=yl, xlim=c(1, length(portionlist_profile2[[1]])), ylim=c(minval, maxval))
-        axis(1,at=c(1,length(portionlist_profile2[[1]])/2 +0.5,length(portionlist_profile2[[1]])),labels=c("start","center","end"))
 
-        for(i in 1:length(portionlist_profile2)){
-          lines(portionlist_profile2[[i]],lwd=2,col=color_distinct[i])
-        }
-        legend("topright",legend=names(portionlist_profile),col=color_distinct,lty=rep(1,length(color_distinct)),cex=0.7,bg="transparent")   
+
+
+      #options specific to boxplots
+      output$showboxAnalogHeat_logOptions<-renderUI({
+        checkboxInput("isLog2_boxAnalogHeat", label="log2",value = FALSE, width = NULL)
+      })
+
+      output$showboxAnalogHeat_colorschemeOptions<-renderUI({
+        radioButtons("colorscheme_boxAnalogHeat",label="Choose color scheme:",choices=c(
+                                                  "Random colors"="random",
+                                                  "Custom colors"="custom"
+                                                        ),selected="random")       
       })
 
 
@@ -1294,101 +1606,150 @@ observeEvent(input$heatmap_brush,{
 
       #plot boxplots of regions selected. Use portionlist_boxes
       output$boxplotByBAMAnalogHeat<-renderPlot({
-        #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
-        #invert the order
-        newlist=list()
-        newcols=c()
-        newnames=c()
-        #if grouping colors, adjust legend and colors by groups
-        if(!input$GroupColorsAnalogHeat){
-          for(i in 1:bamnumber){
-            pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
-            newlist=c(newlist,portionlist_boxes[pos_inverted])
-            newcols=c(newcols,color_distinct[pos_inverted])
-            newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
-          }          
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          for(i in 1:bamnumber){
-            pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
-            newlist=c(newlist,portionlist_boxes[pos_inverted])
+          if (isvalid(input$isLog2_boxAnalogHeat)){
+            islog=input$isLog2_boxAnalogHeat
+          }else{
+            islog=FALSE
           }
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-          newcols=rep(color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
-        }
+          if (isvalid(input$GroupColorsAnalogHeat_box)){
+            grouped=input$GroupColorsAnalogHeat_box
+          }else{
+            grouped=FALSE
+          }
+          #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
+          #invert the order
+          newlist=list()
+          newcols=c()
+          newnames=c()
+          if (isvalid(input$colorscheme_boxAnalogHeat)){
+            #if random, check if group or not
+            if (input$colorscheme_boxAnalogHeat=="random"){
+              #if grouping colors, adjust legend and colors by groups
+              if(!grouped){
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newcols=c(newcols,color_distinct[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                }          
+              }else{
+                #in this case, take n° ROI colors, repeated for n° BAMs
+                #in the legend, put n° ROI colors and tell which ROI with number
+                #in xlab, put BAMs
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                }
+                #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
+                newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+                newcols=rep(color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
+              }            
+            }else{
+              #extract all colors,because color scheem is custom
+              tosearch=paste("colorCustomAnalogHeat_box",1:length(portionlist_boxes),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  newcols=listinputcols
+                  for(i in 1:bamnumber){
+                    pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                    newlist=c(newlist,portionlist_boxes[pos_inverted])
+                    newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                  }
+                }else{
+                  for(i in 1:bamnumber){
+                    pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                    newlist=c(newlist,portionlist_boxes[pos_inverted])
+                    newcols=c(newcols,color_distinct[pos_inverted])
+                    newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                  }
+                }
+              }else{
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newcols=c(newcols,color_distinct[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                }
+              }
+            }            
+          }else{
+            #here option is not valid=> default, random colors
+            for(i in 1:bamnumber){
+              pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+              newlist=c(newlist,portionlist_boxes[pos_inverted])
+              newcols=c(newcols,color_distinct[pos_inverted])
+              newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+            } 
 
+          }
 
-        factor_add=rep(0:(bamnumber-1),each=roinumber)
-        addingfactor=1:length(newlist)+factor_add
+          plot_analog_boxByBAM(materialtoplot=newlist,roinumber=roinumber,newcols=newcols,newnames=newnames,
+                                bamname=toplot$gadgetanalogic$bamname,islog=islog,colors=newcols)
 
-        par(mar=c(14,4,1,1))
-        if(input$Log2BoxAnalogHeat){
-          newlist2=lapply(newlist,log2)
-          yl="Log2 read density (rpm/bp)"
-        }else{
-          newlist2=newlist
-          yl="Read density (rpm/bp)"
-        }
-
-        suppressWarnings(boxplot(newlist2,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-        ats=c()
-        for(i in 1:bamnumber){
-          window=addingfactor[(((i-1)*roinumber)+1):(i*roinumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
-
-        axis(1,at=ats,label=bamselected[xleft:xright],las=2)
-        legend("topright",legend=newnames,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-     
       })
 
+
+
       output$boxplotByROIAnalogHeat<-renderPlot({
-        factor_add=rep(0:(roinumber-1),each=bamnumber)
-        addingfactor=1:length(portionlist_boxes)+factor_add
-        if(input$Log2BoxAnalogHeat){
-          portionlist_boxes2=lapply(portionlist_boxes,log2)
-          yl="Log2 read density (rpm/bp)"
-        }else{
-          portionlist_boxes2=portionlist_boxes
-          yl="Read density (rpm/bp)"
-        }
 
-        isgrouped=input$GroupColorsAnalogHeat
-        #if grouping colors, adjust legend and colors by groups
-        if(!isgrouped){
-          newcols=color_distinct
-          newnames=names(portionlist_boxes)
-        }else{
-          #in this case, take n° ROI colors, repeated for n° BAMs
-          #in the legend, put n° ROI colors and tell which ROI with number
-          #in xlab, put BAMs
-          #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-          newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-          newcols=rep(color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
-        }
+          if (isvalid(input$isLog2_boxAnalogHeat)){
+            islog=input$isLog2_boxAnalogHeat
+          }else{
+            islog=FALSE
+          }
+          if (isvalid(input$GroupColorsAnalogHeat_box)){
+            grouped=input$GroupColorsAnalogHeat_box
+          }else{
+            grouped=FALSE
+          }
+          #if grouping colors, adjust legend and colors by groups
+          if (isvalid(input$colorscheme_boxAnalogHeat)){
 
-        par(mar=c(14,4,1,1))
-        suppressWarnings(boxplot(portionlist_boxes2,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-        ats=c()
-        for(i in 1:roinumber){
-          window=addingfactor[(((i-1)*bamnumber)+1):(i*bamnumber)]
-          currentvalue=(window[length(window)]-window[1])/2
-          currentvalue=window[1]+currentvalue
-          ats=c(ats,currentvalue)
-        }
+            if (input$colorscheme_boxAnalogHeat=="random"){
+              if(!grouped){
+                newcols=color_distinct
+                newnames=names(portionlist_boxes)
+              }else{
+                newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+                newcols=rep(color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
+              }
 
-        if(!isgrouped){
-          axis(1,at=ats,label=toplot$gadgetanalogic$roiname,las=2)
-          legend("topright",legend=newnames,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))          
-        }else{
-          axis(1,at=ats,label=newnames,las=2)
-          legend("topright",legend=toplot$gadgetanalogic$bamname,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-        }
+            }else{
+              grouped=FALSE
+              #here is valid color scheme but not random: extract single colors
+              tosearch=paste("colorCustomAnalogHeat_box",1:length(portionlist_boxes),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  newcols=listinputcols
+                  newnames=names(portionlist_boxes)
+                }else{
+                  newcols=color_distinct
+                  newnames=names(portionlist_boxes)
+                }
+              }else{
+                newcols=color_distinct
+                newnames=names(portionlist_boxes)
+              }
+            }
+          }else{
+            grouped=FALSE
+            newcols=color_distinct
+            newnames=names(portionlist_boxes)
+          }
+
+          plot_analog_boxByROI(materialtoplot=portionlist_boxes,roiname=toplot$gadgetanalogic$roiname,
+                              bamname=toplot$gadgetanalogic$bamname,newnames=newnames,islog=islog,
+                              isgrouped=grouped,colors=newcols)
 
       })  
 
@@ -1402,80 +1763,80 @@ observeEvent(input$heatmap_brush,{
       output$saveboxplotByBAMAnalogHeat=renderUI({downloadButton('saveboxplotByBAMAnalogHeatbutton', 'Get PDF')})
 
       #plot correlation heatmap (and partial correlation?)
-      if(roinumber==1 & length(portionlist_boxes)>=2 & (ytop-ybottom)>1){
-        if(input$Log2BoxAnalogHeat){
-          portionlist_boxescors=lapply(portionlist_boxes,log2)
-        }else{
-          portionlist_boxescors=portionlist_boxes
-        }
-        mat=do.call(cbind,portionlist_boxescors)
+      # if(roinumber==1 & length(portionlist_boxes)>=2 & (ytop-ybottom)>1){
+      #   if(input$Log2BoxAnalogHeat){
+      #     portionlist_boxescors=lapply(portionlist_boxes,log2)
+      #   }else{
+      #     portionlist_boxescors=portionlist_boxes
+      #   }
+      #   mat=do.call(cbind,portionlist_boxescors)
         
-        #problem: when playing with heatmap, Error in colnames<-: length of 'dimnames' [2] not equal to array extent.
-        #maybe a simple trycatch would do the job
-        tryCatch({
-          colnames(mat)=bamselected[xleft:xright]
-        },
-        warning = function( w ){
-          colnames(mat)=1:ncol(mat)
-        },
-        error = function( err ){
-          colnames(mat)=1:ncol(mat)
-        }
-        )
+      #   #problem: when playing with heatmap, Error in colnames<-: length of 'dimnames' [2] not equal to array extent.
+      #   #maybe a simple trycatch would do the job
+      #   tryCatch({
+      #     colnames(mat)=bamselected[xleft:xright]
+      #   },
+      #   warning = function( w ){
+      #     colnames(mat)=1:ncol(mat)
+      #   },
+      #   error = function( err ){
+      #     colnames(mat)=1:ncol(mat)
+      #   }
+      #   )
         
-        mat[is.infinite(mat) &mat<0 ]=0
-        correlation_total=cor(mat)
-        trasp_cor=t(correlation_total)
-        brk=c( seq( -1 , 1,0.01))
-        my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
+      #   mat[is.infinite(mat) &mat<0 ]=0
+      #   correlation_total=cor(mat)
+      #   trasp_cor=t(correlation_total)
+      #   brk=c( seq( -1 , 1,0.01))
+      #   my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
 
-        toplot$gadgetanalogic$trasp_cor=trasp_cor
-        toplot$gadgetanalogic$my_palette=my_palette
-        toplot$gadgetanalogic$brk=brk
-        toplot$gadgetanalogic$correlation_total=correlation_total
+      #   toplot$gadgetanalogic$trasp_cor=trasp_cor
+      #   toplot$gadgetanalogic$my_palette=my_palette
+      #   toplot$gadgetanalogic$brk=brk
+      #   toplot$gadgetanalogic$correlation_total=correlation_total
         
 
-        output$corAnalogHeat<-renderPlot({
-          par(mar=c(12,12,1,1),xpd=TRUE)
-          image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-          axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
-          axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
-          for (x in (nrow(correlation_total)-1+0.5):0.5  )
-            for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
-              text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
-        })
-        output$savecorAnalogHeat=renderUI({downloadButton('savecorAnalogHeatbutton', 'Get PDF')})
+      #   output$corAnalogHeat<-renderPlot({
+      #     par(mar=c(12,12,1,1),xpd=TRUE)
+      #     image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
+      #     axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
+      #     axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
+      #     for (x in (nrow(correlation_total)-1+0.5):0.5  )
+      #       for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
+      #         text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
+      #   })
+      #   output$savecorAnalogHeat=renderUI({downloadButton('savecorAnalogHeatbutton', 'Get PDF')})
 
-        if (length(portionlist_boxescors)>2 & (ytop-ybottom)>1){
-          #if number of BAMs is >2, calculate the partial correlation too
-          correlation_partial=pcor(mat)$estimate
-          #warning: The inverse of variance-covariance matrix is calculated using Moore-Penrose generalized matrix invers due to its determinant of zero
-          colnames(correlation_partial)=rownames(correlation_partial)=colnames(mat)
-          trasp_pcor=t(correlation_partial)
-          toplot$gadgetanalogic$trasp_pcor=trasp_pcor
-          toplot$gadgetanalogic$correlation_partial=correlation_partial
-          output$pcorAnalogHeat<-renderPlot({
-            par(mar=c(12,12,1,1),xpd=TRUE)
-            image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-            axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
-            axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
-            for (x in (nrow(correlation_partial)-1+0.5):0.5  )
-              for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
-                text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
-          }) 
-          output$savepcorAnalogHeat=renderUI({downloadButton('savepcorAnalogHeatbutton', 'Get PDF')})         
-        }else{
-          #number of BAM==2 => no pcor
-          output$pcorAnalogHeat<-renderPlot({NULL})
-          output$savepcorAnalogHeat=renderUI({NULL})
-        }
+      #   if (length(portionlist_boxescors)>2 & (ytop-ybottom)>1){
+      #     #if number of BAMs is >2, calculate the partial correlation too
+      #     correlation_partial=pcor(mat)$estimate
+      #     #warning: The inverse of variance-covariance matrix is calculated using Moore-Penrose generalized matrix invers due to its determinant of zero
+      #     colnames(correlation_partial)=rownames(correlation_partial)=colnames(mat)
+      #     trasp_pcor=t(correlation_partial)
+      #     toplot$gadgetanalogic$trasp_pcor=trasp_pcor
+      #     toplot$gadgetanalogic$correlation_partial=correlation_partial
+      #     output$pcorAnalogHeat<-renderPlot({
+      #       par(mar=c(12,12,1,1),xpd=TRUE)
+      #       image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
+      #       axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
+      #       axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
+      #       for (x in (nrow(correlation_partial)-1+0.5):0.5  )
+      #         for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
+      #           text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
+      #     }) 
+      #     output$savepcorAnalogHeat=renderUI({downloadButton('savepcorAnalogHeatbutton', 'Get PDF')})         
+      #   }else{
+      #     #number of BAM==2 => no pcor
+      #     output$pcorAnalogHeat<-renderPlot({NULL})
+      #     output$savepcorAnalogHeat=renderUI({NULL})
+      #   }
 
-      }else{
-        output$corAnalogHeat<-renderPlot({NULL})
-        output$pcorAnalogHeat<-renderPlot({NULL})
-        output$savecorAnalogHeat=renderUI({NULL})
-        output$savepcorAnalogHeat=renderUI({NULL})
-      }
+      # }else{
+      #   output$corAnalogHeat<-renderPlot({NULL})
+      #   output$pcorAnalogHeat<-renderPlot({NULL})
+      #   output$savecorAnalogHeat=renderUI({NULL})
+      #   output$savepcorAnalogHeat=renderUI({NULL})
+      # }
     }else{
       output$textselectedelementsAnalogHeat<-renderText({NULL})
       output$newROIfromAnalogHeat_out<-renderUI({NULL})
@@ -1490,6 +1851,12 @@ observeEvent(input$heatmap_brush,{
       output$pcorAnalogHeat<-renderPlot({NULL})
       output$savecorAnalogHeat=renderUI({NULL})
       output$savepcorAnalogHeat=renderUI({NULL})
+      output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+      output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+      output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+      output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
     } 
   }else{
     #output of the number of selected elements within brushed area:
@@ -1500,6 +1867,12 @@ observeEvent(input$heatmap_brush,{
     output$boxplotByROIAnalogHeat<-renderPlot({NULL})
     output$profileAnalogHeat<-renderPlot({NULL})
     output$saveprofileAnalogHeat=renderUI({NULL})
+    output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+    output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+    output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+    output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
     output$saveboxplotByROIAnalogHeat=renderUI({NULL})
     output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
     output$corAnalogHeat<-renderPlot({NULL})
@@ -1509,6 +1882,97 @@ observeEvent(input$heatmap_brush,{
   }
  # paste0("cella x1=", xleft, "\ncella y1=", ybottom,"\ncella x2=", xright, "\ncella y2=",ytop)
 })
+
+
+
+
+
+
+
+
+
+#respond to color scheme of profile in Analog heat
+observe({
+  colorscheme=input$colorscheme_profileAnalogHeat
+  if (isvalid(colorscheme)){
+    #here is something. appear menu only if custom
+    if(colorscheme=="custom"){
+
+      bams=names(isolate(toplot$gadgetanalogic$portionlist_profile))
+      lista=list()
+      #bams are the names of the lines : ROI; enrichment
+      if(length(bams)>0){
+        output$showprofileAnalogHeat_colorlistOptions<-renderUI({
+          for (i in 1:length(bams)){
+            lista[[i]]=fluidRow(
+                                column(12,
+                                      colorSelectorInput(inputId=paste("colorCustomAnalogHeat_profile",i,sep=""),label=bams[i],choices=ColsArray,
+                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                                )
+                        )
+          }
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; background-color: #ffffff;",
+            lista
+          )
+        })  
+      }else{
+        output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+      }
+    }else{
+      output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+    }
+  }else{  
+    #is null, => no menu
+    output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+  }
+})
+
+
+
+#respond to color scheme of box in Analog heat
+observe({
+  colorscheme=input$colorscheme_boxAnalogHeat
+  if (isvalid(colorscheme)){
+    #here is something. appear menu only if custom
+    if(colorscheme=="custom"){
+      #if custom, cannot group colors
+      output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+      bams=names(isolate(toplot$gadgetanalogic$portionlist_boxes))
+      lista=list()
+      #bams are the names of the lines : ROI; enrichment
+      if(length(bams)>0){
+        output$showboxAnalogHeat_colorlistOptions<-renderUI({
+          for (i in 1:length(bams)){
+            lista[[i]]=fluidRow(
+                                column(12,
+                                      colorSelectorInput(inputId=paste("colorCustomAnalogHeat_box",i,sep=""),label=bams[i],choices=ColsArray,
+                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                                )
+                        )
+          }
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; background-color: #ffffff;",
+            lista
+          )
+        })  
+      }else{
+        output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+      }
+    }else{
+      output$showboxAnalogHeat_groupcolOptions<-renderUI({
+        checkboxInput("GroupColorsAnalogHeat_box", label="Group colors",value = FALSE, width = NULL)
+      })
+      output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+    }
+  }else{  
+    #is null, => no menu
+    output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+    output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+  }
+})
+
+
+
+
 
 
 
@@ -1592,10 +2056,11 @@ observeEvent(input$rowdendrogram_click_Analog,{
 
         n=length(portionlist_profile)
         #ROIvariables$colorsfordensity <- distinctColorPalette(n)
-        qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
-        col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-        color_distinct <-sample(col_vector, n)
+        # qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+        # col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+        # color_distinct <-sample(col_vector, n)
 
+        color_distinct=colors_list[1:n]
 
         toplot$gadgetanalogic$Log2BoxAnalogHeat=input$Log2BoxAnalogHeat
         toplot$gadgetanalogic$portionlist_profile=portionlist_profile
@@ -1624,130 +2089,230 @@ observeEvent(input$rowdendrogram_click_Analog,{
         })
 
         #PLOTS
-        #plot the profiles of regions selected
-        output$profileAnalogHeat<-renderPlot({
-          if(input$Log2BoxAnalogHeat){
-            portionlist_profile2=lapply(portionlist_profile,log2)
-            yl="Log2 read density (rpm/bp)"
-          }else{
-            portionlist_profile2=portionlist_profile
-            yl="Read density (rpm/bp)"
-          }
-          maxval=max(unlist(lapply(portionlist_profile2,max)))
-          minval=min(unlist(lapply(portionlist_profile2,min)))
-
-          par(mar=c(4,4,2,2))
-          plot(1, type="n", xlab="",xaxt="n", ylab=yl, xlim=c(1, length(portionlist_profile2[[1]])), ylim=c(minval, maxval))
-          axis(1,at=c(1,length(portionlist_profile2[[1]])/2 +0.5,length(portionlist_profile2[[1]])),labels=c("start","center","end"))
-
-          for(i in 1:length(portionlist_profile2)){
-            lines(portionlist_profile2[[i]],lwd=2,col=color_distinct[i])
-          }
-          legend("topright",legend=names(portionlist_profile),col=color_distinct,lty=rep(1,length(color_distinct)),cex=0.7,bg="transparent")   
+        #options specific to profile
+        output$showprofileAnalogHeat_logOptions<-renderUI({
+          checkboxInput("isLog2_profileAnalogHeat", label="log2",value = FALSE, width = NULL)
         })
 
+        output$showprofileAnalogHeat_colorschemeOptions<-renderUI({
+          radioButtons("colorscheme_profileAnalogHeat",label="Choose color scheme:",choices=c(
+                                                    "Random colors"="random",
+                                                    "Custom colors"="custom"
+                                                          ),selected="random")       
+        })
+
+
+
+        #if custom, menu will be updated in an observer
+        #plot the profiles of regions selected
+        output$profileAnalogHeat<-renderPlot({
+          #check specific inputs
+          if(isvalid(input$isLog2_profileAnalogHeat)){
+            islog=input$isLog2_profileAnalogHeat
+          }else{  
+            islog=FALSE
+          }
+
+          if (isvalid(input$colorscheme_profileAnalogHeat)){
+            if(input$colorscheme_profileAnalogHeat=="custom"){
+              #only the first if custom
+              if (isvalid(input$colorCustomAnalogHeat_profile1)){
+                #extract colors based on choice (loop through them):
+                tosearch=paste("colorCustomAnalogHeat_profile",1:length(portionlist_profile),sep="")              
+                if(length(tosearch)>0){
+                  listinputcols=list()
+                  for(i in 1:length(tosearch)){
+                    listinputcols[[i]]=input[[tosearch[i]]]
+                  }
+                  listinputcols=unlist(listinputcols)
+                  if(length(listinputcols)==length(tosearch)){
+                    colors=listinputcols
+                  }else{
+                    colors=color_distinct
+                  }
+                }else{
+                  colors=color_distinct
+                }
+              }else{
+                colors=color_distinct
+              }
+            }else{
+              colors=color_distinct
+            }
+          }else{
+            colors=color_distinct
+          }
+          plot_analog_profile(islog2=islog,portionlist_profile=portionlist_profile,colors=colors)
+  
+        })
+
+
+        #options specific to boxplots
+        output$showboxAnalogHeat_logOptions<-renderUI({
+          checkboxInput("isLog2_boxAnalogHeat", label="log2",value = FALSE, width = NULL)
+        })
+
+        output$showboxAnalogHeat_colorschemeOptions<-renderUI({
+          radioButtons("colorscheme_boxAnalogHeat",label="Choose color scheme:",choices=c(
+                                                    "Random colors"="random",
+                                                    "Custom colors"="custom"
+                                                          ),selected="random")       
+        })
 
 
 
         #plot boxplots of regions selected. Use portionlist_boxes
         output$boxplotByBAMAnalogHeat<-renderPlot({
+          if (isvalid(input$isLog2_boxAnalogHeat)){
+            islog=input$isLog2_boxAnalogHeat
+          }else{
+            islog=FALSE
+          }
+          if (isvalid(input$GroupColorsAnalogHeat_box)){
+            grouped=input$GroupColorsAnalogHeat_box
+          }else{
+            grouped=FALSE
+          }
           #will be BAM1 roi1 roi2 roi3... BAM2 roi1 roi2 roi3
           #invert the order
           newlist=list()
           newcols=c()
           newnames=c()
-          #if grouping colors, adjust legend and colors by groups
-          if(!input$GroupColorsAnalogHeat){
+          if (isvalid(input$colorscheme_boxAnalogHeat)){
+            #if random, check if group or not
+            if (input$colorscheme_boxAnalogHeat=="random"){
+              #if grouping colors, adjust legend and colors by groups
+              if(!grouped){
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newcols=c(newcols,color_distinct[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                }          
+              }else{
+                #in this case, take n° ROI colors, repeated for n° BAMs
+                #in the legend, put n° ROI colors and tell which ROI with number
+                #in xlab, put BAMs
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                }
+                #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
+                newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+                newcols=rep(color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
+              }            
+            }else{
+              #extract all colors,because color scheem is custom
+              tosearch=paste("colorCustomAnalogHeat_box",1:length(portionlist_boxes),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  newcols=listinputcols
+                  for(i in 1:bamnumber){
+                    pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                    newlist=c(newlist,portionlist_boxes[pos_inverted])
+                    newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                  }
+                }else{
+                  for(i in 1:bamnumber){
+                    pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                    newlist=c(newlist,portionlist_boxes[pos_inverted])
+                    newcols=c(newcols,color_distinct[pos_inverted])
+                    newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                  }
+                }
+              }else{
+                for(i in 1:bamnumber){
+                  pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
+                  newlist=c(newlist,portionlist_boxes[pos_inverted])
+                  newcols=c(newcols,color_distinct[pos_inverted])
+                  newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
+                }
+              }
+            }            
+          }else{
+            #here option is not valid=> default, random colors
             for(i in 1:bamnumber){
               pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
               newlist=c(newlist,portionlist_boxes[pos_inverted])
               newcols=c(newcols,color_distinct[pos_inverted])
               newnames=c(newnames,names(portionlist_boxes)[pos_inverted])
-            }          
-          }else{
-            #in this case, take n° ROI colors, repeated for n° BAMs
-            #in the legend, put n° ROI colors and tell which ROI with number
-            #in xlab, put BAMs
-            for(i in 1:bamnumber){
-              pos_inverted=seq(i,length(portionlist_boxes),bamnumber)
-              newlist=c(newlist,portionlist_boxes[pos_inverted])
-            }
-            #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-            newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-            newcols=rep(color_distinct[1:toplot$gadgetanalogic$roinumber],toplot$gadgetanalogic$bamnumber)
+            } 
+
           }
 
+          plot_analog_boxByBAM(materialtoplot=newlist,roinumber=roinumber,newcols=newcols,newnames=newnames,
+                                bamname=toplot$gadgetanalogic$bamname,islog=islog,colors=newcols)
 
-          factor_add=rep(0:(bamnumber-1),each=roinumber)
-          addingfactor=1:length(newlist)+factor_add
-
-          par(mar=c(14,4,1,1))
-          if(input$Log2BoxAnalogHeat){
-            newlist2=lapply(newlist,log2)
-            yl="Log2 read density (rpm/bp)"
-          }else{
-            newlist2=newlist
-            yl="Read density (rpm/bp)"
-          }
-
-          suppressWarnings(boxplot(newlist2,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-          ats=c()
-          for(i in 1:bamnumber){
-            window=addingfactor[(((i-1)*roinumber)+1):(i*roinumber)]
-            currentvalue=(window[length(window)]-window[1])/2
-            currentvalue=window[1]+currentvalue
-            ats=c(ats,currentvalue)
-          }
-
-          axis(1,at=ats,label=bamselected,las=2)
-          legend("topright",legend=newnames,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-       
         })
 
+
+
+
         output$boxplotByROIAnalogHeat<-renderPlot({
-          factor_add=rep(0:(roinumber-1),each=bamnumber)
-          addingfactor=1:length(portionlist_boxes)+factor_add
-          if(input$Log2BoxAnalogHeat){
-            portionlist_boxes2=lapply(portionlist_boxes,log2)
-            yl="Log2 read density (rpm/bp)"
+          if (isvalid(input$isLog2_boxAnalogHeat)){
+            islog=input$isLog2_boxAnalogHeat
           }else{
-            portionlist_boxes2=portionlist_boxes
-            yl="Read density (rpm/bp)"
+            islog=FALSE
+          }
+          if (isvalid(input$GroupColorsAnalogHeat_box)){
+            grouped=input$GroupColorsAnalogHeat_box
+          }else{
+            grouped=FALSE
           }
 
-          isgrouped=input$GroupColorsAnalogHeat
           #if grouping colors, adjust legend and colors by groups
-          if(!isgrouped){
+          if (isvalid(input$colorscheme_boxAnalogHeat)){
+
+            if (input$colorscheme_boxAnalogHeat=="random"){
+              if(!grouped){
+                newcols=color_distinct
+                newnames=names(portionlist_boxes)
+              }else{
+                newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
+                newcols=rep(color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
+              }
+
+            }else{
+              grouped=FALSE
+              #here is valid color scheme but not random: extract single colors
+              tosearch=paste("colorCustomAnalogHeat_box",1:length(portionlist_boxes),sep="")              
+              if(length(tosearch)>0){
+                listinputcols=list()
+                for(i in 1:length(tosearch)){
+                  listinputcols[[i]]=input[[tosearch[i]]]
+                }
+                listinputcols=unlist(listinputcols)
+                if(length(listinputcols)==length(tosearch)){
+                  newcols=listinputcols
+                  newnames=names(portionlist_boxes)
+                }else{
+                  newcols=color_distinct
+                  newnames=names(portionlist_boxes)
+                }
+              }else{
+                newcols=color_distinct
+                newnames=names(portionlist_boxes)
+              }
+            }
+          }else{
+            grouped=FALSE
             newcols=color_distinct
             newnames=names(portionlist_boxes)
-          }else{
-            #in this case, take n° ROI colors, repeated for n° BAMs
-            #in the legend, put n° ROI colors and tell which ROI with number
-            #in xlab, put BAMs
-            #numbers_rois=unique(gsub(".*\\(|\\).*", "", names(portionlist_boxes)))
-            newnames=unique(sapply(strsplit(names(portionlist_boxes),split=";"),"[[",1))
-            newcols=rep(color_distinct[1:toplot$gadgetanalogic$bamnumber],toplot$gadgetanalogic$roinumber)
           }
-
-          par(mar=c(14,4,1,1))
-          suppressWarnings(boxplot(portionlist_boxes2,at=addingfactor,col=newcols,ylab=yl,xaxt="n",notch=TRUE,varwidth=TRUE,outline=FALSE))
-          ats=c()
-          for(i in 1:roinumber){
-            window=addingfactor[(((i-1)*bamnumber)+1):(i*bamnumber)]
-            currentvalue=(window[length(window)]-window[1])/2
-            currentvalue=window[1]+currentvalue
-            ats=c(ats,currentvalue)
-          }
-
-          if(!isgrouped){
-            axis(1,at=ats,label=toplot$gadgetanalogic$roiname,las=2)
-            legend("topright",legend=newnames,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))          
-          }else{
-            axis(1,at=ats,label=newnames,las=2)
-            legend("topright",legend=toplot$gadgetanalogic$bamname,col=newcols,cex=0.7,bg="transparent",pch=rep(19,length(portionlist_boxes)))
-          }
-
+          
+          plot_analog_boxByROI(materialtoplot=portionlist_boxes,roiname=ROIname,
+                                bamname=toplot$gadgetanalogic$bamname,newnames=newnames,islog=islog,
+                                isgrouped=grouped,colors=newcols)
         })  
+
+
+
+
 
         #buttons for download PDF of profile, boxplot by ROI, boxplot by BAM
         output$saveprofileAnalogHeat=renderUI({downloadButton('saveprofileAnalogHeatbutton', 'Get PDF')})
@@ -1755,86 +2320,86 @@ observeEvent(input$rowdendrogram_click_Analog,{
         output$saveboxplotByBAMAnalogHeat=renderUI({downloadButton('saveboxplotByBAMAnalogHeatbutton', 'Get PDF')})
     
         #plot correlation heatmap (and partial correlation?)
-        if(roinumber==1 & length(portionlist_boxes)>=2& length(value)>1){
-          if(input$Log2BoxAnalogHeat){
-            portionlist_boxescors=lapply(portionlist_boxes,log2)
-          }else{
-            portionlist_boxescors=portionlist_boxes
-          }
-          mat=do.call(cbind,portionlist_boxescors)
+        # if(roinumber==1 & length(portionlist_boxes)>=2& length(value)>1){
+        #   if(input$isLog2_boxAnalogHeat){
+        #     portionlist_boxescors=lapply(portionlist_boxes,log2)
+        #   }else{
+        #     portionlist_boxescors=portionlist_boxes
+        #   }
+        #   mat=do.call(cbind,portionlist_boxescors)
           
-          #problem: when playing with heatmap, Error in colnames<-: length of 'dimnames' [2] not equal to array extent.
-          #maybe a simple trycatch would do the job
-          tryCatch({
-            colnames(mat)=bamselected
-          },
-          warning = function( w ){
-            colnames(mat)=1:ncol(mat)
-          },
-          error = function( err ){
-            colnames(mat)=1:ncol(mat)
-          }
-          )
+        #   #problem: when playing with heatmap, Error in colnames<-: length of 'dimnames' [2] not equal to array extent.
+        #   #maybe a simple trycatch would do the job
+        #   tryCatch({
+        #     colnames(mat)=bamselected
+        #   },
+        #   warning = function( w ){
+        #     colnames(mat)=1:ncol(mat)
+        #   },
+        #   error = function( err ){
+        #     colnames(mat)=1:ncol(mat)
+        #   }
+        #   )
           
-          mat[is.infinite(mat) &mat<0 ]=0
-          correlation_total=cor(mat)
-          trasp_cor=t(correlation_total)
-          brk=c( seq( -1 , 1,0.01))
-          my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
+        #   mat[is.infinite(mat) &mat<0 ]=0
+        #   correlation_total=cor(mat)
+        #   trasp_cor=t(correlation_total)
+        #   brk=c( seq( -1 , 1,0.01))
+        #   my_palette <- colorRampPalette(c("darkred","red", "white", "green","darkgreen"))(n = length(brk)-1 )  
 
-          toplot$gadgetanalogic$trasp_cor=trasp_cor
-          toplot$gadgetanalogic$my_palette=my_palette
-          toplot$gadgetanalogic$brk=brk
-          toplot$gadgetanalogic$correlation_total=correlation_total
+        #   toplot$gadgetanalogic$trasp_cor=trasp_cor
+        #   toplot$gadgetanalogic$my_palette=my_palette
+        #   toplot$gadgetanalogic$brk=brk
+        #   toplot$gadgetanalogic$correlation_total=correlation_total
           
 
-          output$corAnalogHeat<-renderPlot({
-            par(mar=c(12,12,1,1),xpd=TRUE)
-            image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-            axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
-            axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
-            for (x in (nrow(correlation_total)-1+0.5):0.5  )
-              for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
-                text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
-          })
-          output$savecorAnalogHeat=renderUI({downloadButton('savecorAnalogHeatbutton', 'Get PDF')})
+        #   output$corAnalogHeat<-renderPlot({
+        #     par(mar=c(12,12,1,1),xpd=TRUE)
+        #     image(0:nrow(trasp_cor), 0:ncol(trasp_cor),trasp_cor[,ncol(trasp_cor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
+        #     axis( 2, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= rev(colnames( trasp_cor )), las= 2 )
+        #     axis( 1, at=seq(0.5,ncol(trasp_cor)+0.5-1,1 ), labels= colnames( trasp_cor ), las= 2 )
+        #     for (x in (nrow(correlation_total)-1+0.5):0.5  )
+        #       for (y in 0.5: ((ncol(correlation_total)-1+0.5)   ))
+        #         text(y,x, round(correlation_total[ncol(correlation_total)-x+0.5,y+0.5],2),col="blue")
+        #   })
+        #   output$savecorAnalogHeat=renderUI({downloadButton('savecorAnalogHeatbutton', 'Get PDF')})
 
 
-          if (length(portionlist_boxescors)>2 & length(value)>1){
-            #if number of BAMs is >2, calculate the partial correlation too
-            correlation_partial=pcor(mat)$estimate
-            #warning: The inverse of variance-covariance matrix is calculated using Moore-Penrose generalized matrix invers due to its determinant of zero
-            colnames(correlation_partial)=rownames(correlation_partial)=colnames(mat)
-            trasp_pcor=t(correlation_partial)
+        #   if (length(portionlist_boxescors)>2 & length(value)>1){
+        #     #if number of BAMs is >2, calculate the partial correlation too
+        #     correlation_partial=pcor(mat)$estimate
+        #     #warning: The inverse of variance-covariance matrix is calculated using Moore-Penrose generalized matrix invers due to its determinant of zero
+        #     colnames(correlation_partial)=rownames(correlation_partial)=colnames(mat)
+        #     trasp_pcor=t(correlation_partial)
 
-            toplot$gadgetanalogic$trasp_pcor=trasp_pcor
-            toplot$gadgetanalogic$correlation_partial=correlation_partial
+        #     toplot$gadgetanalogic$trasp_pcor=trasp_pcor
+        #     toplot$gadgetanalogic$correlation_partial=correlation_partial
 
-            output$pcorAnalogHeat<-renderPlot({
-              par(mar=c(12,12,1,1),xpd=TRUE)
-              image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
-              axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
-              axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
-              for (x in (nrow(correlation_partial)-1+0.5):0.5  )
-                for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
-                  text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
-            }) 
+        #     output$pcorAnalogHeat<-renderPlot({
+        #       par(mar=c(12,12,1,1),xpd=TRUE)
+        #       image(0:nrow(trasp_pcor), 0:ncol(trasp_pcor),trasp_pcor[,ncol(trasp_pcor):1],axes=FALSE,xaxt="n",yaxt="n", xlab = "", ylab = "",col=my_palette,breaks=brk)
+        #       axis( 2, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= rev(colnames( trasp_pcor )), las= 2 )
+        #       axis( 1, at=seq(0.5,ncol(trasp_pcor)+0.5-1,1 ), labels= colnames( trasp_pcor ), las= 2 )
+        #       for (x in (nrow(correlation_partial)-1+0.5):0.5  )
+        #         for (y in 0.5: ((ncol(correlation_partial)-1+0.5)   ))
+        #           text(y,x, round(correlation_partial[ncol(correlation_partial)-x+0.5,y+0.5],2),col="blue")
+        #     }) 
 
 
-            output$savepcorAnalogHeat=renderUI({downloadButton('savepcorAnalogHeatbutton', 'Get PDF')})         
+        #     output$savepcorAnalogHeat=renderUI({downloadButton('savepcorAnalogHeatbutton', 'Get PDF')})         
           
-          }else{
-            #number of BAM==2 => no pcor
-            output$pcorAnalogHeat<-renderPlot({NULL})
-            output$savepcorAnalogHeat=renderUI({NULL})
-          }
+        #   }else{
+        #     #number of BAM==2 => no pcor
+        #     output$pcorAnalogHeat<-renderPlot({NULL})
+        #     output$savepcorAnalogHeat=renderUI({NULL})
+        #   }
 
-        }else{
-          output$corAnalogHeat<-renderPlot({NULL})
-          output$pcorAnalogHeat<-renderPlot({NULL})
-          output$savecorAnalogHeat=renderUI({NULL})
-          output$savepcorAnalogHeat=renderUI({NULL})
-        }
+        # }else{
+        #   output$corAnalogHeat<-renderPlot({NULL})
+        #   output$pcorAnalogHeat<-renderPlot({NULL})
+        #   output$savecorAnalogHeat=renderUI({NULL})
+        #   output$savepcorAnalogHeat=renderUI({NULL})
+        # }
       }else{
         output$textselectedelementsAnalogHeat<-renderText({NULL})
         output$newROIfromAnalogHeat_out<-renderUI({NULL})
@@ -1843,6 +2408,13 @@ observeEvent(input$rowdendrogram_click_Analog,{
         output$boxplotByROIAnalogHeat<-renderPlot({NULL})
         output$profileAnalogHeat<-renderPlot({NULL})
         output$saveprofileAnalogHeat=renderUI({NULL})
+        output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+  output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+
+      output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+      output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
         output$saveboxplotByROIAnalogHeat=renderUI({NULL})
         output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
         output$corAnalogHeat<-renderPlot({NULL})
@@ -1903,22 +2475,41 @@ observe({
       }
       #if at least one BAM in common found, put the chioces
       if (length(finalBAMs)>0){
-        updateCheckboxGroupInput(session,"BAMsForProfilesAndBox",NULL,choices=finalBAMs)
+        output$showBAMsforProfilesAndBox<-renderUI({
+          list(
+            list(HTML("<b>Select enrichments to show:</b>"),htmlhelp("","help_enrichmentInRois_parameters_enrichments")),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput("BAMsForProfilesAndBox",NULL,choices=finalBAMs)
+            )
+          )
+        })
+        
       }else{
-        updateCheckboxGroupInput(session,"BAMsForProfilesAndBox",NULL,choices=character(0))
+        output$showBAMsforProfilesAndBox<-renderUI({
+          list(
+            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to ROIs</font>"),
+            checkboxGroupInput("BAMsForProfilesAndBox",NULL,choices=NULL)
+          )
+          
+        })
       }
- 
     }
   }else{
-    updateCheckboxGroupInput(session,"BAMsForProfilesAndBox",NULL,choices=character(0))
+    output$showBAMsforProfilesAndBox<-renderUI({checkboxGroupInput("BAMsForProfilesAndBox",NULL,choices=NULL)})
   }
 })
+
+
 
 
 #observer for the number of bins? (check if nbins > width of some range)
 observe({
   
   input$ROIsForProfilesAndBox
+  if (!isvalid(input$BAMsForProfilesAndBox)){
+    output$showbinsforProfilesAndBox<-renderUI({NULL})
+    return()
+  }
   if (length(ROIvariables$listROI)>0 & length(input$ROIsForProfilesAndBox)>0){
     #adapt numbr of bins. bins must be <= length of the smallest of range
     nomi=unlist(lapply(ROIvariables$listROI,getName))
@@ -1942,36 +2533,162 @@ observe({
       }else{
         valuetoshow=50
       }
-      updateNumericInput(session,"binsProfilesAndBox",label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)
-      
+      output$showbinsforProfilesAndBox<-renderUI({
+        list(
+          list(HTML("<b>Number of bins:</b>"),htmlhelp("","help_enrichmentInRois_parameters_bins")),
+          numericInput(inputId = 'binsProfilesAndBox',label=NULL,min = 1, max = maxtoshow,value=valuetoshow,step = 1)
+        )
+      })    
     }
-
-
-
   }else{
-    updateNumericInput(session,"binsProfilesAndBox",label=NULL,min = 1, max = 500,value=50,step = 1)
+    output$showbinsforProfilesAndBox<-renderUI({NULL})
   }
 })
 
 
 
+#observer for button
+observe({
+  if (!isvalid(input$ROIsForProfilesAndBox)|!isvalid(input$BAMsForProfilesAndBox)){
+    output$show_confirmUpdateProfilesAndBox<-renderUI({NULL})
+    return()
+  }
+  output$show_confirmUpdateProfilesAndBox<-renderUI({
+    actionButton("confirmUpdateProfilesAndBox", "Update plot")
+  })
+})
+
+
+
+
+
+
+#respond to color scheme of profile in profiles&box, profile plot
+observe({
+  colorscheme=input$colorscheme_profileProfileAndBox
+  if (isvalid(colorscheme)){
+    #here is something. appear menu only if custom
+    if(colorscheme=="custom"){
+      bams=names(isolate(toplot$profileAndBoxes$portionlist_profile))
+      lista=list()
+      #bams are the names of the lines : ROI; enrichment
+      if(length(bams)>0){
+        output$showprofileProfileAndBox_colorlistOptions<-renderUI({
+          for (i in 1:length(bams)){
+            lista[[i]]=fluidRow(
+                                column(12,
+                                      colorSelectorInput(inputId=paste("colorCustomProfileAndBox_profile",i,sep=""),label=bams[i],choices=ColsArray,
+                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                                )
+                        )
+          }
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; background-color: #ffffff;",
+            lista
+          )
+        })  
+      }else{
+        output$showprofileProfileAndBox_colorlistOptions<-renderUI({NULL})
+      }
+    }else{
+      output$showprofileProfileAndBox_colorlistOptions<-renderUI({NULL})
+    }
+  }else{  
+    #is null, => no menu
+    output$showprofileProfileAndBox_colorlistOptions<-renderUI({NULL})
+  }
+})
+
+
+
+
+
+
+#respond to color scheme of box in profiles&box
+observe({
+  colorscheme=input$colorscheme_boxProfileAndBox
+  if (isvalid(colorscheme)){
+    #here is something. appear menu only if custom
+    if(colorscheme=="custom"){
+      #if custom, cannot group colors
+      output$showBoxProfileAndBox_groupcolOptions<-renderUI({NULL})
+      bams=names(isolate(toplot$profileAndBoxes$portionlist_boxes))
+      lista=list()
+      #bams are the names of the lines : ROI; enrichment
+      if(length(bams)>0){
+        output$showBoxProfileAndBox_colorlistOptions<-renderUI({
+          for (i in 1:length(bams)){
+            lista[[i]]=fluidRow(
+                                column(12,
+                                      colorSelectorInput(inputId=paste("colorCustomProfileAndBox_box",i,sep=""),label=bams[i],choices=ColsArray,
+                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                                )
+                        )
+          }
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; background-color: #ffffff;",
+            lista
+          )
+        })  
+      }else{
+        output$showBoxProfileAndBox_colorlistOptions<-renderUI({NULL})
+      }
+    }else{
+      output$showBoxProfileAndBox_groupcolOptions<-renderUI({
+        checkboxInput("GroupColorsProfileAndBox_box", label="Group colors",value = FALSE, width = NULL)
+      })
+      output$showBoxProfileAndBox_colorlistOptions<-renderUI({NULL})
+    }
+  }else{  
+    #is null, => no menu
+    output$showBoxProfileAndBox_groupcolOptions<-renderUI({NULL})
+    output$showBoxProfileAndBox_colorlistOptions<-renderUI({NULL})
+  }
+})
+
+
+
+
+
+#observer for log2 or not depending on the cor method (if spearman, do not show log2)
+observe({
+  cormethod=input$corMethodProfilesAndBox_Cor
+  if (isvalid(cormethod)){
+    if (cormethod=="pearson"){
+      output$showCorProfileAndBox_logOptions<-renderUI({
+        checkboxInput("isLog2_CorProfileAndBox", label="log2",value = FALSE, width = NULL)
+      })
+    }else{
+      #log2 option must be NULL, because cor method is spearman
+      output$showCorProfileAndBox_logOptions<-renderUI({NULL})
+    }
+  }else{
+    #log2 option must be NULL
+    output$showCorProfileAndBox_logOptions<-renderUI({NULL})
+  }
+})
+
+
+
+
 toListenCor <- reactive({
-    list(input$cor_click$y,input$cor_click$x,input$Log2BoxProfilesAndBox)
+    list(input$cor_click$y,input$cor_click$x,input$isLog2_CorProfileAndBox,input$normalization_CorProfileAndBox)
 })
 
 
 #observer for click the correlation/partial correlation heatmap
 observeEvent(toListenCor(),{
-  
   set.seed(123)
   if(!is.null(input$cor_click$x) & !is.null(input$cor_click$y) ){
     toplot$profileAndBoxes$x=floor(as.numeric(input$cor_click$x))+1
-    toplot$profileAndBoxes$y=floor(as.numeric(input$cor_click$y))+1
-        
+    toplot$profileAndBoxes$y=floor(as.numeric(input$cor_click$y))+1  
   }
-  portionlist_boxes=corvariables$portionlist_boxes 
+  portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
   if(!is.null(portionlist_boxes) & length(toplot$profileAndBoxes$x)>0 & length(toplot$profileAndBoxes$y) >0){
-
+    #Snorm
+    if(input$normalization_CorProfileAndBox=="readdensity"){
+      for (i in 1:length(portionlist_boxes)){
+        portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+      }
+    } 
     array_x=portionlist_boxes[[toplot$profileAndBoxes$x]]
     array_y=portionlist_boxes[[length(portionlist_boxes)-toplot$profileAndBoxes$y+1]]
     name_x=names(portionlist_boxes)[toplot$profileAndBoxes$x]
@@ -1982,18 +2699,18 @@ observeEvent(toListenCor(),{
       array_x=array_x[smpl]
       array_y=array_y[smpl]
     }
-    if(input$Log2BoxProfilesAndBox){
+    if(input$isLog2_CorProfileAndBox){
       array_x=log2(array_x)
       array_y=log2(array_y)
       name_x=paste("log2",name_x)
       name_y=paste("log2",name_y)
     }
-    if(corvariables$is.density){
-      name_x=paste(name_x,"read density (rpm/bp)")
-      name_y=paste(name_y,"read density (rpm/bp)")
+    if(input$normalization_CorProfileAndBox=="readdensity"){
+      name_x=paste(name_x,"Read density (reads/bp)")
+      name_y=paste(name_y,"Read density (reads/bp)")
     }else{
-      name_x=paste(name_x,"normalized reads (rpm)")
-      name_y=paste(name_y,"normalized reads (rpm)")
+      name_x=paste(name_x,"Total reads")
+      name_y=paste(name_y,"Total reads")
     }
     #remove -Inf, because log2(0)=-Inf
     array_x[is.infinite(array_x) &array_x<0 ]=0
@@ -2003,7 +2720,6 @@ observeEvent(toListenCor(),{
     corP=round(cor(array_x,array_y,method="pearson"),2)
     corS=round(cor(array_x,array_y,method="spearman"),2)
     corlegend=c(paste("cor Pearson:",corP),paste("cor Spearman:",corS))
-
     # toplot$profileAndBoxes$logicscatter="ON"
     toplot$profileAndBoxes$array_x=array_x
     toplot$profileAndBoxes$array_y=array_y
@@ -2040,23 +2756,29 @@ observeEvent(toListenCor(),{
 #observer for the partial correlation click
 
 toListenParcor <- reactive({
-    list(input$pcor_click$y,input$pcor_click$x,input$Log2BoxProfilesAndBox)
+    list(input$pcor_click$y,input$pcor_click$x,input$isLog2_CorProfileAndBox,input$normalization_CorProfileAndBox)
 })
 
 observeEvent(toListenParcor(),{
   set.seed(123)
-  
   if(!is.null(input$pcor_click$x) & !is.null(input$pcor_click$y) ){
     toplot$profileAndBoxes$px=floor(as.numeric(input$pcor_click$x))+1
     toplot$profileAndBoxes$py=floor(as.numeric(input$pcor_click$y))+1     
   }
-  portionlist_boxes=corvariables$portionlist_boxes 
+  portionlist_boxes=toplot$profileAndBoxes$portionlist_boxes
+
   if(!is.null(portionlist_boxes) & length(toplot$profileAndBoxes$px)>0 & length(toplot$profileAndBoxes$py) >0 &length(portionlist_boxes)>2 ){
+    #Snorm
+    if(input$normalization_CorProfileAndBox=="readdensity"){
+      for (i in 1:length(portionlist_boxes)){
+        portionlist_boxes[[i]]=portionlist_boxes[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+      }
+    } 
 
     mat=do.call(cbind,portionlist_boxes)
     #remove -Inf, because log2(0)=-Inf
     mat[is.infinite(mat) &mat<0 ]=0
-    if(input$Log2BoxProfilesAndBox){
+    if(input$isLog2_CorProfileAndBox){
       mat=log2(mat)
     }
     #take a random sample (2000) of the total number of points
@@ -2064,6 +2786,7 @@ observeEvent(toListenParcor(),{
       smpl=sort(sample(nrow(mat),2000,replace=FALSE))
       mat=mat[smpl,]
     }
+    colnames(mat)=names(portionlist_boxes)
     #select idx of the matrix
     name_x=names(portionlist_boxes)[toplot$profileAndBoxes$px]
     name_y=names(portionlist_boxes)[length(portionlist_boxes)-toplot$profileAndBoxes$py+1]
@@ -2076,12 +2799,12 @@ observeEvent(toListenParcor(),{
     array_x=model[[1]]
     array_y=model[[2]]
 
-    if(corvariables$is.density){
-      name_x=paste(name_x,"read density (rpm/bp)")
-      name_y=paste(name_y,"read density (rpm/bp)")
+    if(input$normalization_CorProfileAndBox=="readdensity"){
+      name_x=paste(name_x,"Read density (reads/bp)")
+      name_y=paste(name_y,"Read density (reads/bp)")
     }else{
-      name_x=paste(name_x,"normalized reads (rpm)")
-      name_y=paste(name_y,"normalized reads (rpm)")
+      name_x=paste(name_x,"Total reads")
+      name_y=paste(name_y,"Total reads")
     }
 
     toplot$profileAndBoxes$array_x=array_x
@@ -2154,11 +2877,18 @@ observe({
     #historylist=as.list(paste("genelist",common))
     historylist=as.list(common)
     names(historylist)=paste(historylist,lens)
-    updateCheckboxGroupInput(session,inputId="genelistsforDynamics",label=NULL,
-                                      choices = historylist)     
+
+    output$show_genelistsforDynamics<-renderUI({
+      list(
+        list(HTML("<b>Select gene list(s):</b>"),htmlhelp("","help_dynamicsOnGenes_parameters_genelist")),
+        wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
+          checkboxGroupInput("genelistsforDynamics",label=NULL,choices = historylist)
+        )
+      )
+    })
+ 
   }else{
-    updateCheckboxGroupInput(session,inputId="genelistsforDynamics",label=NULL,
-                                      choices = character(0))  
+    output$show_genelistsforDynamics<-renderUI({HTML("<font color='red'>No genelists available. To import genelists, go to 'ROIs' -> 'Get promoters, transcripts, TES coordinates of a list of genes'</font>")})  
   }
    
 })
@@ -2215,7 +2945,7 @@ observe({
     #show triads ROI for selected genelists
     output$showROItriadGeneList<-renderUI({
       list(
-        HTML("<b>ROIs associated to selected gene lists:</b>"),
+        list(HTML("<b>ROIs constituting the selected gene list(s):</b>"),htmlhelp("","help_dynamicsOnGenes_parameters_ROIassociated")),
         wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
           HTML(triadsROItoshow,collapse="<br>")
         )
@@ -2228,22 +2958,605 @@ observe({
     if(length(common)!=0){
       historylist=as.list(common)
       names(historylist)=common
-      #then, find BAM files common to the genelists selected:    
-      updateCheckboxGroupInput(session,inputId="BAMforDynamics",label=NULL,
-                                        choices = historylist)  
+      #then, find BAM files common to the genelists selected: 
+      output$show_BAMforDynamics<-renderUI({
+        list(
+          list(HTML("<b>Select enrichments to show:</b>"),htmlhelp("","help_dynamicsOnGenes_parameters_ernichments")),
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
+            checkboxGroupInput(inputId="BAMforDynamics",label=NULL,choices = historylist)
+          )
+        )
+      })
+
     }else{
-      updateCheckboxGroupInput(session,inputId="BAMforDynamics",label=NULL,
-                                        choices = character(0))        
+      output$show_BAMforDynamics<-renderUI({
+        list(
+          HTML("<font color='red'>Some of genelist(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to genelists</font>"),
+          checkboxGroupInput(inputId="BAMforDynamics",label=NULL,choices = NULL)
+        )    
+      })        
     }
 
 
   }else{
-    updateCheckboxGroupInput(session,inputId="BAMforDynamics",label=NULL,
-                                        choices = character(0))  
+    output$show_BAMforDynamics<-renderUI({checkboxGroupInput(inputId="BAMforDynamics",label=NULL,choices = NULL)})      
     #print nothing for ROI triads
-    output$showROItriadGeneList<-renderUI({NULL})                                      
+    output$showROItriadGeneList<-renderUI({NULL})
   }
-
 
 })
 
+
+#observer for button
+observe({
+  if(!isvalid(input$genelistsforDynamics)|!isvalid(input$BAMforDynamics)){
+    output$show_plotDynamics<-renderUI({NULL})
+    return()
+  }
+  output$show_plotDynamics<-renderUI({actionButton("plotDynamics","Update plot")})
+})
+
+
+
+#observer for number of bins. Depends on ROI selected/existent and enrichment selected
+observe({
+  input$genelistsforDynamics
+  input$BAMforDynamics
+  if (!isvalid(ROIvariables$listROI)|!isvalid(input$genelistsforDynamics)|!isvalid(input$BAMforDynamics)){
+    output$show_binsforDynamics<-renderUI({NULL})
+    return()
+  }
+  output$show_binsforDynamics<-renderUI({
+    list(
+        list(HTML("<b>Number of bins:</b>"),htmlhelp("","help_dynamicsOnGenes_parameters_nbins")),
+        numericInput(inputId = 'binsforDynamics',label=NULL,min = 1, max = 300, step = 1,value=100)
+    )
+  })
+
+})
+
+
+
+
+
+#respond to color scheme in dynamics
+observe({
+  colorscheme=input$colorschemeDynamics
+  if (isvalid(colorscheme)){
+    #here is something. appear menu only if custom
+    if(colorscheme=="custom"){
+
+      bams=isolate(toplot$dynamics$totalnames)
+      lista=list()
+      #bams are the names of the lines : ROI; enrichment
+      if(length(bams)>0){
+        output$show_colorsDynamics<-renderUI({
+          for (i in 1:length(bams)){
+            lista[[i]]=fluidRow(
+                                column(12,
+                                      colorSelectorInput(inputId=paste("colorCustomDynamics",i,sep=""),label=bams[i],choices=ColsArray,
+                                                    selected=ColsArray[1],mode="radio",ncol=length(ColsArray))
+                                )
+                        )
+          }
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 400px; background-color: #ffffff;",
+            lista
+          )
+        })  
+      }else{
+        output$show_colorsDynamics<-renderUI({NULL})
+      }
+    }else{
+      output$show_colorsDynamics<-renderUI({NULL})
+    }
+  }else{  
+    #is null, => no menu
+    output$show_colorsDynamics<-renderUI({NULL})
+  }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+######################################################################################
+######################################################################################
+########################################################################
+#GO analyses
+########################################################################
+######################################################################################
+######################################################################################
+
+#observer for choices (from ROI or from a custom genelist?)
+observe({
+
+  input$chooseSourceGO
+  if(input$chooseSourceGO=="fromGeneList"){
+    #create text area input to put gene symbols/IDs
+
+    output$viewSelectGenesGO<-renderUI({
+      list(
+        HTML("<b>Paste genes here (1 gene per line):</b>"),
+        textAreaInput("pastedGenesGO",NULL,value="",height=250)
+      )
+      
+    })
+  }else{
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    if(isvalid(nomi)){
+      if("promoters"%in%nomi){
+        historylist=as.list(nomi)
+        lens=unlist(lapply(ROIvariables$listROI,getLength))
+        lens2=paste("(",lens,")",sep="")
+        if(length(nomi)>0){
+          names(historylist)=paste(nomi,lens2)
+        }else{
+          names(historylist)=paste(nomi,lens)
+        }
+        getwdth=lapply(ROIvariables$listROI,getWidth) 
+        getwdth=unlist(lapply(getwdth, function(k) {table(!duplicated(k))["TRUE"]==1}))
+        #correction on NAs. Maybe fix the error :"NAs are not allowed in subscripted assignments"
+        if(!is.null(getwdth)){
+          getwdth[is.na(getwdth)]=FALSE
+        }
+        names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
+        output$viewSelectGenesGO<-renderUI({
+          list(
+            HTML("<b>Select ROI(s):</b>"),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
+              checkboxGroupInput("selectROIGO",label=NULL,choices=historylist)
+            )          
+          )
+        })      
+      
+      }else{
+        #DB not present, ROI not annotated => cannot extract genes from ROIs => warning
+        output$viewSelectGenesGO<-renderUI({
+          HTML("<font color='red'>Need a genome assembly. Choose the appropriate database from the 'Assembly' section</font><br>")
+        })
+      }      
+    }else{
+      #no ROI present
+      output$viewSelectGenesGO<-renderUI({
+        HTML("<font color='red'>No ROIs present. To import ROIs, go to 'ROIs' or load a session file in 'Load session file'</font><br>")
+      })      
+    }
+
+  }
+
+})
+
+
+#observer for signatures (only if some ROI or genes have been typed or selected)
+observe({
+  input$chooseSourceGO
+  input$pastedGenesGO
+  input$selectROIGO
+  if (input$chooseSourceGO=="fromROI" & length(input$selectROIGO)==0){
+    output$show_selectedGenesetsGO<-renderUI({checkboxGroupInput(inputId="selectedGenesetsGO",label=NULL,choices=NULL)})
+    return()    
+  }
+
+  if (input$chooseSourceGO=="fromGeneList" & !isvalid(input$pastedGenesGO)){
+    output$show_selectedGenesetsGO<-renderUI({checkboxGroupInput(inputId="selectedGenesetsGO",label=NULL,choices=NULL)})
+    return()    
+  }
+
+  output$show_selectedGenesetsGO<-renderUI({
+    list(
+      list(HTML("<b>Select signature(s):</b>"),htmlhelp("","help_goAnalysis_parameters_signatures")),
+      wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 150px; max-width: 300px; background-color: #ffffff;",
+        checkboxGroupInput(inputId="selectedGenesetsGO",label=NULL,choices=names(GenesetsGMT))
+      )
+    )
+  })
+
+})
+
+
+#observer for button
+observe({
+  input$selectROIGO
+  input$pastedGenesGO
+  if (!isvalid(input$chooseSourceGO)|!isvalid(input$selectedGenesetsGO)){
+    output$show_doTheGO<-renderUI({NULL})
+    return()
+  }
+  output$show_doTheGO<-renderUI({actionButton("doTheGO","GO!")})
+})
+
+
+
+
+#observer for additional parameters. If from geneset, if textArea filled, ask if symbls or other IDs
+#if ROI, ask if genes inside a window or the nearest
+observe({
+  #must react to the initial choice
+  input$chooseSourceGO
+  #must react to area or ROI selected
+  input$pastedGenesGO
+  input$selectROIGO
+  if(input$chooseSourceGO=="fromROI"){
+    #choice is ROI, now look at the ROIs selected. If >1, show the additional input
+    if(isvalid(input$selectROIGO)){
+      output$additionalparametersGO<-renderUI({
+        list(
+          radioButtons("chooseCriteriaROIGO",label="Choose which annotated genes" ,
+                                   choiceNames=list(
+                                    htmlhelp("Nearest genes","help_goAnalysis_parameters_nearestgenes"),
+                                    htmlhelp("Genes inside window","help_goAnalysis_parameters_genewindow")),
+                                   choiceValues=list("nearestGene","windowGene"),
+                                   selected="nearestGene"
+                      )
+        )
+      })
+    }else{
+      output$additionalparametersGO<-renderUI({NULL})
+    }
+  }else{
+    #from custom list of genes. If textArea is not empty, check database. If present, 
+    #show options for various IDs
+
+    if(isvalid(input$pastedGenesGO)){
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+      if("promoters"%in%nomi){
+        output$additionalparametersGO<-renderUI({
+          radioButtons("chooseIDgeneGO",label=list("Which kinkd of identifiers?",htmlhelp("","help_goAnalysis_parameters_kindofID")),choices=c(
+                                                "Symbols"="symbol",
+                                                "ENTREZ IDs"="entrez",
+                                                "ENSEMBL IDs"="ensembl",         
+                                                "RefSeq IDs"="refseq"
+                                          ),selected="symbol")     
+        })
+      }else{
+        #must be symbols
+        output$additionalparametersGO<-renderUI({HTML("Without a genome assembly, only symbols allowed. For other identifiers, go to 'Databases' section<br>")})
+      }      
+    }else{
+      #empty text area...
+      output$additionalparametersGO<-renderUI({NULL})
+    }
+
+  }
+})
+
+
+#observer for showing the genomic window from ROI to take genes
+observe({
+  input$chooseCriteriaROIGO
+  #if everything is ok, show, otherwise hide
+  if(input$chooseSourceGO=="fromROI" & isvalid(input$selectROIGO) & isvalid(input$chooseCriteriaROIGO)){
+    if(input$chooseCriteriaROIGO=="windowGene"){
+      output$chooseWindowROIGO<-renderUI({
+        numericInput(inputId = 'WindowROIGO',label="Choose genomic window:",min = 1, max = 20000, step = 50,value=1000) 
+      })      
+    }else{
+      output$chooseWindowROIGO<-renderUI({NULL})
+    }
+  }else{
+    output$chooseWindowROIGO<-renderUI({NULL})
+  }
+})
+
+
+
+
+
+### better to keep fixde in the UI.
+### so heatmap is not reactive to changes in ROI/genelist input
+### but only in the way we rank
+
+# #here, observer for clustering/ranking pf padj matrix (result of GO)
+observe({
+  #menu of ranking/clustering should be put only when both genelist (from ROI, from
+  #single list is only ranked) and at least one geneset is selected and at least 2 ROIs selected (otherwise barplot...)
+  if(input$chooseSourceGO=="fromROI" & isvalid(input$selectROIGO) & length(input$selectROIGO)>1 & isvalid(input$chooseCriteriaROIGO) & isvalid(input$selectedGenesetsGO) & length(input$selectedGenesetsGO)>0){
+    #ok, here you can show the options "ranking" (according to best padj) or "clustering"
+    output$chooseOrderingGO_widget<-renderUI({
+      radioButtons("chooseOrderingGO",label=list("How to order results",htmlhelp("","help_goAnalysis_parameters_orderresults")),choices=c(
+                                            "Ranking best padj"="ranking",
+                                            "Custering"="clustering"
+                                      ),selected="ranking")     
+    })    
+  }else{
+    #else, do not show the radiobutton menu of the ranking
+    output$chooseOrderingGO_widget<-renderUI({NULL})
+  }
+
+})
+
+
+
+#here, observer for cluster type if "clustering" has been selected
+observe({
+  if (input$chooseSourceGO=="fromROI" & isvalid(input$selectROIGO) & length(input$selectROIGO)>1 & isvalid(input$chooseCriteriaROIGO) 
+          & isvalid(input$selectedGenesetsGO) & length(input$selectedGenesetsGO)>0&isvalid(input$chooseOrderingGO)){
+    #same conditions as before, PLUS the "clustering" choice
+    if(input$chooseOrderingGO=="clustering"){
+      output$clustertypeGO_widget<-renderUI({
+        radioButtons("clustertypeGO","Cluster type",choices=c(
+                                              "K-means"="kmean",
+                                              "hierarchical"="hierarchical"
+                                        ),selected="kmean")       
+      })
+    }else{
+      #if we are here it means that "ranking" or no menu for ranking/clustering appeared
+      output$clustertypeGO_widget<-renderUI({NULL})
+    }
+  }else{
+    #if we are here, some elements are not valid in the chain upstream
+    output$clustertypeGO_widget<-renderUI({NULL})
+  }
+})
+
+
+
+
+
+
+#cluster number and K parameter if "kmeans" selected from the radiobutton,
+#otherwise hierarchical clustering parameters
+observe({
+  if (input$chooseSourceGO=="fromROI" & isvalid(input$selectROIGO) & length(input$selectROIGO)>1 & isvalid(input$chooseCriteriaROIGO) 
+          & isvalid(input$selectedGenesetsGO) & length(input$selectedGenesetsGO)>0&isvalid(input$chooseOrderingGO)){
+ 
+
+
+    if(input$chooseOrderingGO=="clustering" & isvalid(input$clustertypeGO)){
+      if(input$clustertypeGO=="kmean"){
+        #cluster number, kstarts and kiterations. Hclust parameters are NULL
+        output$clusternumbershowGO_widget<-renderUI({
+          numericInput(inputId = 'clustnumGO',label="Cluster number",min = 1, max = 100, step = 1,value=4)
+        })
+        output$clusterKstartsGO_widget<-renderUI({
+          numericInput(inputId = 'clustrandomstartsGO',label="Num. starting points",min = 1, max = 40, step = 1,value=5)
+        })
+        output$clusterKiterationsGO_widget<-renderUI({
+          numericInput(inputId = 'clustnumiterationsGO',label="Num. iterations",min = 1, max = 40, step = 1,value=10)  
+        })    
+        output$clusterHDistMethodGO_widget<-renderUI({NULL})    
+        output$clusterHClustMethodGO_widget<-renderUI({NULL})
+      }else if(input$clustertypeGO=="hierarchical"){
+        #distmethod, clustmethod. Kmeans parameters are NULL
+        output$clusterHDistMethodGO_widget<-renderUI({
+          selectInput("distmethodGO",label="Distance method:",c("Euclidean"="euclidean",
+                                                                    "Manhattan"="manhattan",
+                                                                    "Canberra"="canberra",
+                                                                    "Minkowski"="minkowski"))
+        })
+        output$clusterHClustMethodGO_widget<-renderUI({
+          selectInput("clustmethodGO",label="Clustering method:",c("Average"="average",
+                                                                     "Complete"="complete",
+                                                                     "Median"="median",
+                                                                     "Centroid"="centroid"))
+        })
+        output$clusternumbershowGO_widget<-renderUI({NULL})
+        output$clusterKstartsGO_widget<-renderUI({NULL})
+        output$clusterKiterationsGO_widget<-renderUI({NULL})
+      }
+
+    }else{
+      #no clustering parameters!
+      output$clusterHDistMethodGO_widget<-renderUI({NULL})    
+      output$clusterHClustMethodGO_widget<-renderUI({NULL})
+      output$clusternumbershowGO_widget<-renderUI({NULL})
+      output$clusterKstartsGO_widget<-renderUI({NULL})
+      output$clusterKiterationsGO_widget<-renderUI({NULL})
+    }
+  }else{
+    #some parameters are not valid....
+    output$clusterHDistMethodGO_widget<-renderUI({NULL})    
+    output$clusterHClustMethodGO_widget<-renderUI({NULL})
+    output$clusternumbershowGO_widget<-renderUI({NULL})
+    output$clusterKstartsGO_widget<-renderUI({NULL})
+    output$clusterKiterationsGO_widget<-renderUI({NULL})
+  }
+})
+
+
+
+#observer for min/max size (some signature must be selected)
+observe({
+  input$selectedGenesetsGO
+  if (!isvalid(input$selectedGenesetsGO) | length(input$selectedGenesetsGO)==0){
+    output$show_minmaxSizeGO<-renderUI({NULL})
+    return()
+  }
+
+  if (input$chooseSourceGO=="fromROI" & length(input$selectROIGO)==0){
+    output$show_minmaxSizeGO<-renderUI({NULL})
+    return()    
+  }
+  if (input$chooseSourceGO=="fromGeneList" & length(input$pastedGenesGO)==0){
+    output$show_minmaxSizeGO<-renderUI({NULL})
+    return()    
+  }
+
+  output$show_minmaxSizeGO<-renderUI({
+    list(
+      list(HTML("<b>Min signature size:</b>"),htmlhelp("","help_goAnalysis_parameters_minsize")),
+      numericInput(inputId = 'minSizeGO',label=NULL,min = 1, step = 5,value=15),
+      list(HTML("<b>Max signature size:</b>"),htmlhelp("","help_goAnalysis_parameters_maxsize")),
+      numericInput(inputId = 'maxSizeGO',label=NULL,min = 1, step = 5,value=500)
+    )
+  })
+
+})
+
+
+
+
+
+#observer for GO plot interactivity (click/hover mouse)
+observeEvent(input$GO_click,{
+  x=input$GO_click$x
+  y=input$GO_click$y
+
+  #extract from cordinates the correct genes, GO and ROI from heatmap (if heatmap)
+  mat=toplot$GOvariables$completemat
+
+  if(!is.null(mat)){
+    x=ceiling(x)
+    y=ceiling(y)
+
+    if(x==0){
+      x=1
+    }
+    if(y==0){
+      y=1
+    }
+    if(y==11& (ncol(mat)/3) <=30){
+      y=10
+    }
+    if(x==31 & nrow(mat)<=30){
+      x=30
+    }
+    
+    #extract name of ROIs/genelist from
+    extr=grep("_Genes$",colnames(mat),value=TRUE)
+    blockNames=unlist(strsplit(extr,split="_Genes"))
+    termNames=rownames(mat)
+
+    if(x<=length(termNames)){
+
+      #retrieve all genes for a term, if wanted by the user:
+      termsdt=toplot$GOvariables$termsdt
+      #                   ont  gene
+      # BIOCARTA_RELA_PATHWAY IKBKG
+      # BIOCARTA_RELA_PATHWAY  CHUK
+      # BIOCARTA_RELA_PATHWAY EP300
+      # BIOCARTA_RELA_PATHWAY  RELA
+      # BIOCARTA_RELA_PATHWAY   TNF
+      # BIOCARTA_RELA_PATHWAY IKBKB
+      #only if we are capturing something internal to the heatmap
+      if(length(blockNames)==1){
+        #barplot. Only one single gene list
+        Term=rownames(mat)[x]
+        posGene=grepl("_Genes$",colnames(mat))
+        
+        #if genes in the overlap:
+
+        genes=mat[x,posGene]
+        #format the genes in the overlaps to show
+        if(length(genes)==1){
+          if(is.na(genes)){
+            genes="No genes in overlap"
+          }else{
+            genes=as.list(paste(strsplit(genes,split="/")[[1]],"<br>",sep=""))
+            genes=paste(genes,collapse="\n")          
+          }
+        }else{
+          genes=as.list(paste(strsplit(genes,split="/")[[1]],"<br>",sep=""))
+          genes=paste(genes,collapse="\n")
+        }
+
+
+        #if genes in the entire term (use toplot$GOvariables$termsdt if not null to find genes)
+
+
+        output$showTermClicked<-renderUI({
+          list(
+            HTML("<b>Term:</b><br>"),
+            wellPanel(id = "logPanel",style = "overflow-x:scroll; background-color: #ffffff;",
+              HTML(paste(Term,sep=""))
+            )
+          )
+        })
+
+        output$GenesClicked<-renderText({genes})
+        output$showGenesClicked<-renderUI({
+          list(
+            HTML("<b>Common genes in Term:</b><br>"),
+            wellPanel(id = "logPanel",style = "overflow-y:scroll; max-height: 250px; background-color: #ffffff;",
+              htmlOutput("GenesClicked")
+            ) 
+          )
+        })
+
+      }else{
+        if(y<=length(blockNames)){
+          #multiple gene lists: is a heatmap
+          #x,y: detect which ROI and which ontological Term
+          #y is reversed
+          nameblockrev=rev(blockNames)
+          current=nameblockrev[y]
+          colname_gene=paste(current,"_Genes",sep="")
+          colname_geneRatio=paste(current,"_gene_ratio",sep="")
+          colname_padj=paste(current,"_padj",sep="")
+          posGene=which(colnames(mat)==colname_gene)
+          posgeneRatio=which(colnames(mat)==colname_geneRatio)
+          pospadj=which(colnames(mat)==colname_padj)
+          genes=mat[x,posGene]
+          #format the genes in the overlaps to show
+          if(length(genes)==1){
+            if(is.na(genes)){
+              genes="No genes in overlap"
+            }else{
+              genes=as.list(paste(strsplit(genes,split="/")[[1]],"<br>",sep=""))
+              genes=paste(genes,collapse="\n")          
+            }
+          }else{
+            genes=as.list(paste(strsplit(genes,split="/")[[1]],"<br>",sep=""))
+            genes=paste(genes,collapse="\n")
+          }
+
+          geneRatio=mat[x,posgeneRatio]
+          padj=mat[x,pospadj]
+          Term=rownames(mat)[x]
+
+          #output Term clicked and the ROI clicked
+          output$showTermClicked<-renderUI({
+            list(
+              HTML("<b>Term:</b><br>"),
+              wellPanel(id = "logPanel",style = "overflow-x:scroll; background-color: #ffffff;",
+                HTML(paste(Term,sep=""))
+              ),
+              HTML("<b>ROI:</b><br>"),
+              wellPanel(id = "logPanel",style = "overflow-x:scroll; background-color: #ffffff;",
+                HTML(current)
+              )
+            )
+          })
+
+          #output window with genes
+          output$GenesClicked<-renderText({genes})
+          output$showGenesClicked<-renderUI({
+            list(
+              HTML("<b>Common genes in Term:</b><br>"),
+              wellPanel(id = "logPanel",style = "overflow-y:scroll; max-height: 250px; background-color: #ffffff;",
+                htmlOutput("GenesClicked")
+              ) 
+            )
+          })        
+        }else{
+          output$GenesClicked<-renderText({NULL})
+          output$showGenesClicked<-renderUI({NULL})    
+          output$showTermClicked<-renderUI({NULL})        
+        }
+        
+
+      }    
+    }else{
+      output$GenesClicked<-renderText({NULL})
+      output$showGenesClicked<-renderUI({NULL})    
+      output$showTermClicked<-renderUI({NULL})
+    }
+
+  }else{
+    output$GenesClicked<-renderText({NULL})
+    output$showGenesClicked<-renderUI({NULL})    
+    output$showTermClicked<-renderUI({NULL})    
+  }
+  
+
+
+})

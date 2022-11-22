@@ -21,30 +21,202 @@ output$fileHead <- renderDataTable({
   
 },options=list(pagingType = "simple",pageLength = 5,lengthChange=FALSE,searching=FALSE))
 
-# #show BED file name history
-# output$showBEDfiles<-renderText({
-#   paste(as.list(BEDvariables$BEDfilehistory),collapse="<br>")
-# })
 
-
-# #show current problem or not in opening the file, if any over file preview
-# output$showproblem<-renderText({
-#   paste(logvariables$currentproblem,collapse="\n")
-# })
 
 #show current file opened
 output$showcurrentfile<-renderText({
   paste("File content: <b>",BEDvariables$sfn,"</b>",sep="")
 })
 
-# #update checkbox input of the files to be deleted, if BEDfilehistory changes
-# observe({
-#     historylist=as.list(GRvariables$names)
-#     names(historylist)=GRvariables$names
-#     updateCheckboxGroupInput(session,inputId="selectedBEDtoRemove",label="Coordinates to delete:",
-#                                 choices = historylist)    
-# })
 
+
+
+
+#observer for missing BSgenome
+observe({
+  ROIvariables$listROI
+  if (!isvalid(ROIvariables$listROI)){
+    output$showWarningBSgenome2<-renderUI({NULL})
+    return()
+  }
+  #ROIvariables$listROI
+  DATABASEvariables$currentASSEMBLY
+  #use an old name for retro-compatibility
+  DATABASEvariables$currentORG
+  if(length(DATABASEvariables$currentASSEMBLY)>0){
+    #calculate BSgenome string
+    #BSgenome.Xyyyyy.UCSC.(genomeass)
+    asm=DATABASEvariables$currentASSEMBLY
+    avail_spl=strsplit(all_avail_assemblies,split="\\.")
+    org=sapply(avail_spl,"[[",2)
+    asms=sapply(avail_spl,"[[",4)
+    pos=match(asm,asms)
+    BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
+    x=rownames(installed.packages())
+    pos_pkg=match(BSstring,x)
+    if(!is.na(pos_pkg)){
+      #BSgenome found. Import library and do nothing
+      library(BSstring,character.only=TRUE)
+      output$showWarningBSgenome2<-renderUI({NULL})
+    }else{
+      #button for download the package
+      output$showWarningBSgenome2<-renderUI({
+        list(
+        HTML(paste("<font color='red'>Need ",BSstring," package to be installed. Install it now?</font><br>",sep="")),
+        actionButton("DownloadBSgenome2","Download")
+        )
+      })
+    }
+
+  }else{
+    #warning message: I need database of a genome assembly
+    output$showWarningBSgenome2<-renderUI({HTML("<font color='red'>Warning: choose a genome assembly from 'Databases' section</font>")})
+    #here should nullify all other options!
+  }
+
+})
+
+
+
+
+#react to main radiobutton (from where ROI?)
+observe({
+  if(!is.null(input$importROImainchoice)){
+    if(input$importROImainchoice=="fromfile"){
+      output$importROIwindowToShow<-renderUI({
+        list(
+          column(width=4,
+            HTML("<h3>Open file:</h3><br>"),
+            radioButtons("loadBEDsource",NULL,choices=c(
+                                                      "Choose file from filesystem"="filesystem",
+                                                      "Manually type the path of the file"="path"
+                                                            ),selected="filesystem"),
+            uiOutput("loadBEDsource"),
+            HTML("<br>"),
+            HTML('<hr size=3>'),
+            HTML("<h4>Parameters:</h4>"),
+            checkboxInput("readheader",label=list("Header",htmlhelp("","help_BED_headeroption")),value=TRUE),
+            numericInput(inputId = 'skiplines',label=list("Lines to skip:",htmlhelp("","help_BED_linesskip")),min = 0, step = 1,value=0)
+            
+          ),
+          column(width=8,
+            list(HTML("<h3>File preview</h3>"),htmlhelp("","help_BED_filepreview")),
+            HTML("<br>"),
+            htmlOutput("showcurrentfile"),
+            dataTableOutput("fileHead"),
+            HTML("<br><br>"),
+            #open button and cancel button
+            fluidRow(
+              column(4,uiOutput('cancelfilebutton')),
+              column(2,uiOutput('openfilebutton'))
+            )          
+          )
+
+        )
+
+      })
+    }else if(input$importROImainchoice=="fromgenelist"){
+      output$importROIwindowToShow<-renderUI({
+        list(
+          column(width=6,  
+            HTML("<h3>Genes to import</h3>"),
+
+            radioButtons("loadGenelistsource",NULL,choices=c(
+                                                      "Paste IDs/symbols"="paste",
+                                                      "Choose gene list from filesystem"="filesystem",
+                                                      "Manually type the path of the file"="path"
+                                                            ),selected="paste"),
+            uiOutput("loadGenelistsource")
+          ),
+          column(width=6,
+            HTML("<h3>Parameters</h3>"),
+            HTML("<br>"),
+            radioButtons("symbolORid",label=list("What kind of identifiers are you importing?",htmlhelp("","help_BED_kindofID")),choices=c(
+                                                      "ENTREZ IDs"="entrez",
+                                                      "ENSEMBL IDs"="ensembl",
+                                                      "Symbols"="symbol",
+                                                      "RefSeq IDs"="refseq"
+                                                            ),selected="symbol"),
+            HTML("<br>"),
+            list(HTML("<b>Max length for transcripts:</b>"),htmlhelp("","help_BED_maxtranscriptlen")),
+            numericInput(inputId = 'thresholdTranscripts',label=NULL,min = 0, step = 100000,value=200000)       
+          )
+        )
+      })
+    }else{
+      output$importROIwindowToShow<-renderUI({
+        list(
+          #warning in case BSgenome DB not present (copy of what seen in extract pattern from modifyROI)
+          uiOutput("showWarningBSgenome2"),
+          #motif text input (copy of that in motifyROI)
+          textInput("PatternToSearch2",label=list("Select pattern (IUPAC nomenclature)",htmlhelp("","help_BED_IUPACpattern")),placeholder="ATCNYGG"),
+          #new ROI name
+          textInput("ROInamePattern2",label="Name of the ROI",placeholder="type new ROI name here"),
+          actionButton("ExtractPatternROI2","Create ROI") 
+        )
+      })
+    }
+  }else{
+    output$importROIwindowToShow<-renderUI({NULL})
+  }
+})
+
+
+
+
+#react to radiobutton, whether to choose from filesystem the coordinate file
+observe({
+  if (!is.null(input$loadBEDsource)){
+    if(input$loadBEDsource=="filesystem"){
+      output$loadBEDsource<-renderUI({
+        shinyFilesButton('file', 'Select a file', 'Please select a file', FALSE)
+      })
+    }else{
+      output$loadBEDsource<-renderUI({
+        list(
+          textInput("BEDfrompath",NULL,value="",placeholder = "/path/to/BEDorGTF"),
+          actionButton("confirmImportBEDfrompath", "Open file")
+        )
+      })
+    }
+  }else{
+    output$loadBEDsource<-renderUI({NULL})
+  }
+})
+
+
+#react to radiobutton, whether to choose from filesystem or other source the genelist file
+observe({
+  if (!is.null(input$loadGenelistsource)){
+
+    if(input$loadGenelistsource=="paste"){
+      output$loadGenelistsource<-renderUI({
+        list(
+          HTML("<b>Paste IDs/symbols here:</b><br>"),
+          textAreaInput("pastedGENELISTS",NULL,value="",height=150),
+          textInput("nameGENELISTS",NULL,placeholder="new genelist name",value=""),
+          actionButton("createGENELISTSfrompaste", "Import")  
+        )
+      })
+    }else if (input$loadGenelistsource=="filesystem"){
+      output$loadGenelistsource<-renderUI({
+        shinyFilesButton('fileGENELISTS', 'Open gene list text file', 'Please select a txt file', FALSE)
+      })
+    }else{
+      output$loadGenelistsource<-renderUI({
+        list(
+          textInput("GENELISTSfrompath",NULL,value=NULL,placeholder = "/path/to/geneList.txt"),
+          actionButton("createGENELISTSfrompath", "Open gene list")
+        )
+      })
+    }
+
+
+  }else{
+    output$loadGenelistsource<-renderUI({NULL})
+  }
+
+})
 
 
 
@@ -54,14 +226,14 @@ output$showcurrentfile<-renderText({
 observe({
   if(!is.null(BEDvariables$tempBED) & !is.null(BEDvariables$tempBEDname)){
     output$openfilebutton<-renderUI({
-      actionButton("confirmation", "Import as ROI")
+      actionButton("confirmation", "Confirm and import as ROI")
     })
     output$cancelfilebutton<-renderUI({
       actionButton("cancellation", "Cancel")
     })      
   }else{
     output$openfilebutton<-renderText({
-      c("select a file...")
+      c("")
     })
     output$cancelfilebutton<-renderUI({
       c("")
@@ -110,49 +282,59 @@ observe({
 
 
 
-######################################################################################
-######################################################################################
-######################################################################################
-#RENAME ROI
-######################################################################################
-######################################################################################
-######################################################################################
 
 
-#update text field for renaming the ROI, if ROIvariables$names changed
+  ######################################################################################
+  #VIEW ROI statistics
+  ######################################################################################
+  ######################################################################################
+  ######################################################################################
+
+
+#observer for options to view (width distribtion or number of ranges)
 observe({
-  
-  nomi=unlist(lapply(ROIvariables$listROI,getName))
-  updateTextInput(session,inputId="newfilenameROI",label="New ROI name:",value="")    
+  input$confirmviewROI
+  if (!isvalid(input$confirmviewROI)){
+    output$show_chooseROIvisualiz<-renderUI({NULL})
+    return()
+  }
+
+  output$show_chooseROIvisualiz<-renderUI({ radioButtons("chooseROIvisualiz",label=list(HTML("Select how to view ROIs info"),htmlhelp("","help_BED_viewoptions")),
+                                choiceNames=list(  
+                                  "Distribution of ranges width",
+                                  "Number of ranges"
+                                ),
+                                choiceValues=list(
+                                  "ROIwidth",
+                                  "ROIintervals"
+                                ),selected="ROIwidth",inline=TRUE)
+  })
+
 })
 
-######################################################################################
-######################################################################################
-######################################################################################
-#reorder ROI
-######################################################################################
-######################################################################################
-######################################################################################
 
-#reorder ROI
-observeEvent(ROIvariables$listROI,{
-  
-  output$dinamicROI<-renderUI({
-    if (!is.null(ROIvariables$listROI) & length(ROIvariables$listROI)>=1){
-      lista=list()
-      nomi=unlist(lapply(ROIvariables$listROI,getName))
-      choicelist=as.list(1:length(nomi))
-      names(choicelist)=as.character(1:length(nomi))
-      for (i in 1:length(nomi)){
-        lista[[i]]=fluidRow(column(3,
-                                selectInput(inputId = paste("reorderoptionROI",i,sep=""), label = NULL, 
-                              choices = choicelist,selected=i)),
-                column(4,HTML(nomi[i])))
-      }
-      return(lista)       
-    }else{
-      return(HTML("No ROI..."))
-    }
+  # observe({
+    
+  #       input$confirmviewROI
+  #       output$viewROIstat<-renderText(
+  #         if(length(input$confirmviewROI)==1){
+  #           nomi=unlist(lapply(ROIvariables$listROI,getName))
+  #           pos=match(input$confirmviewROI,nomi)
+  #           roi=ROIvariables$listROI[[pos]]
+  #           if(!is.null(roi)){
+  #             selectedrange=getRange(roi)
+            
+  #             wdth=width(selectedrange)
+  #             x=quantile(wdth,input$quantileROIwidth)
+  #             y=length(selectedrange[wdth>x])
+  #             paste("Width at that quantile: <b>",round(x,0),"</b><br>Number peaks with greater width: <b>",y,"</b>",sep="")
+  #           }else{
+  #             paste("You have selected a non existent ROI...")
+  #           }
 
-  })   
-})
+  #         }else{
+  #           paste("You have to select ONE ROI...")
+  #         }
+  #       )
+
+  # })

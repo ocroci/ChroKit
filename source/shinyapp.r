@@ -7,6 +7,9 @@ Port=6060
 ### select the number of cores for execution
 ### on windows systems, it will put nc=1
 nc=4
+#select RAM (in Gb) available on your system. Make sure to have at least a 4/8 Gb machine
+RAM_system=8
+
 #define colors for the palettes (from white)
 ColsArray=c("red","#e202b2","hotpink","deepskyblue","darkorange","darkorchid",
 			"#00CC59","#00ba96","#f46036","#031d44","#138a36","#3891a6","#748386","#fff05a",
@@ -51,8 +54,16 @@ if(!is.na(args[4])){
 }
 
 
-
-
+set.seed(123)
+#for this line of code, thanks to
+# http://stackoverflow.com/questions/15282580/how-to-generate-a-number-of-most-distinctive-colors-in-r
+# Jelena-bioinf / Megatron
+colors_list = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+sam=sample(colors_list)
+pos=apply(col2rgb(sam),2,sum) < 600
+samdark=sam[pos]
+samlight=sam[!pos]
+colors_list=c(samdark,samlight)
 
 
 
@@ -95,10 +106,14 @@ library(RColorBrewer)
 library(Rsamtools)
 #ppcor for calculating partial correlations
 library(ppcor)
-#inline, for compiling Rcpp functions
-library(inline)
+#Rcpp, for compiling Rcpp functions
+library(Rcpp)
 #bamsignals, for efficient pileups/coverage computation from BAM files
 library(bamsignals)
+#qs for LZ4 compression/decompression
+library(qs)
+#parallel for multi-processing
+library(parallel)
 
 
 
@@ -164,6 +179,8 @@ names(all_avail_assemblies)=c(
 
 #define functions
 source("appContent/_functions.R")
+source("appContent/_functions_plot.R")
+sourceCpp("appContent/_functions.cpp")
 
 #open help buttons (?) text messages:
 source("appContent/_help_messages.R")

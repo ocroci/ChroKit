@@ -33,6 +33,18 @@ cranRepo='http://cran.us.r-project.org'
 # source .bashrc
 
 
+
+#if "get_fun_from_pkg" not found error:
+
+# packageurl <- "https://cran.r-project.org/src/contrib/Archive/rvcheck/rvcheck_0.1.8.tar.gz"
+# install.packages(packageurl, repos=NULL, type="source")
+# remove.packages("clusterProfiler")
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("clusterProfiler")
+
+
+
 #shiny
 if(! ("shiny" %in% x)){
 	print("Installing shiny package...")
@@ -108,12 +120,21 @@ if(! ("ppcor" %in% x)){
 	print("ppcor package already installed...")
 }
 
-#inline
-if(! ("inline" %in% x)){
-	print("Installing inline package...")
-	install.packages('inline', repos=cranRepo)
+#Rcpp
+if(! ("Rcpp" %in% x)){
+	print("Installing Rcpp package...")
+	install.packages('Rcpp', repos=cranRepo)
 }else{
-	print("inline package already installed...")
+	print("Rcpp package already installed...")
+}
+
+
+#qs
+if(! ("qs" %in% x)){
+	print("Installing qs package...")
+	install.packages('qs', repos=cranRepo)
+}else{
+	print("qs package already installed...")
 }
 
 

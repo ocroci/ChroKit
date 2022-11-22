@@ -1,3 +1,25 @@
+#react to radiobutton, whether to choose from filesystem the enrichment file
+observe({
+  if (!is.null(input$loadEnrichmentsource)){
+    if(input$loadEnrichmentsource=="filesystem"){
+      output$loadEnrichmentsource<-renderUI({
+        shinyFilesButton('fileBAM', 'Select a file', 'Please select an enrichment file', FALSE,multiple=TRUE)
+      })
+    }else{
+      output$loadEnrichmentsource<-renderUI({
+        list(
+          textInput("BAMfrompath",NULL,value=NULL,placeholder = "/path/to/BAM.bam or bigWig.bw"),
+          actionButton("confirmImportBAMfrompath", "Open file")
+        )
+      })
+    }
+  }else{
+    output$loadEnrichmentsource<-renderUI({NULL})
+  }
+})
+
+
+
 
 
 #show BAM files to delete
