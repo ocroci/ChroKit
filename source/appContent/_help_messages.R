@@ -93,7 +93,12 @@ htmlhelp<-function(text,id) {
 msg_coordinateFiles_chooseCoordinates<-list(
 	title="Import a new ROI",
 	text=list(
-		"Here you can import new ROIs from files, from sequence pattern occurrences in the genome and import genelists"
+		HTML("Here you can import new ROIs (Regions of Interest). A ROI can be:<br>
+		<li>A set of genomic coordinates</li>
+		<li>A list of genes</li><br> 
+		You can import or create new ROIs from files (bed/gtf/gff format), from lists of genes and from sequence pattern occurrences in the genome"),
+		tags$br(),
+		Comment("If an assembly is already loaded, the imported ROI will be automatically annotated with the genes nearest to its genomic ranges")	
 	)
 )
 
@@ -210,14 +215,14 @@ help_BED_filepreview<-list(
 ############################################################
 msg_quickviewROIs<-list(
 	title="Quick look at imported ROIs",
-	text="Select one or more ROIs to view the number of ranges or the ranges width distribution"
+	text="Select one or more ROIs to view the number of genomic ranges or the ranges width distribution"
 )
 
 
 help_BED_viewoptions<-list(
 	title="Which info to display",
 	text=HTML("Select which information you want to display of the selected ROIs.<br>
-		<b>Distribution of ranges width</b>: This shows the distribution of the log2 of the width of the ranges<br>
+		<b>Distribution of genomic ranges width</b>: This shows the distribution of the log2 of the width of the ranges<br>
 		<b>Number of ranges</b>: This shows a barplot of the number of genomic ranges for each of the selected ROIs")
 )
 
@@ -251,7 +256,7 @@ msg_deleteRois_deleteRois<-list(
 msg_getRois_BOX<-list(
 	title="Export a ROI to a file",
 	text=list(
-		"Get all the info associated to a ROI and download it."
+		"Download a ROI and its associated information."
 	)
 )
 
@@ -460,15 +465,14 @@ help_txdb_windowupdownstream<-list(
 
 #Extract annotated elements from database
 msg_databases_extractAnnotatedElements<-list(
-	title="Extract annotated promoters, transcripts, TES coordinates of a genome assembly",
+	title="Select an available assembly",
 	text=list(
 
-		Field("Choose assembly to use","Here you can choose the genome assembly to use for extracting annotated promoters, 
-										transcripts and TES (transcription end sites)"),
+		Field("Choose assembly to use","Choose a genome assembly to extract annotated genomic elements (promoters, transcripts, TES)"),
 		tags$br(),
 
 		Comment("1. The selected assembly will be used to automatically annotate all the ROIs that will be imported later.<br>
-				2. The selected assembly will be used to obtain a set of promoters, transcripts and TES from a custom list of genes ('ROI' section). <br>
+				2. The selected assembly will be used to obtain a set of promoters, transcripts and TES from a custom list of genes ('ROIs' section). <br>
 				3. ROIs already imported into the program will be automatically re-annotated according to the newly selected genome assembly 
 				(except those derived from a previous database, for example the promoters of a list of genes obtained from another database).<br>
 				4. Additional genome assemblies can be downloaded from bioconductor using the 'Download databases' box 
@@ -509,7 +513,7 @@ msg_databases_downloadDatabases<-list(
 ############################################################
 msg_ROImanipulation<-list(
 	title="Prepare ROIs for analyses and visualization",
-	text=list("A set of tools to modify ROIs in order to have full visualization capabilities")
+	text=list("A set of tools for preparing ROIs for data visualization")
 )
 
 msg_prepare_ultraeasy<-list(
@@ -542,7 +546,7 @@ msg_prepare_formetagene<-list(
 
 msg_prepare_manual<-list(
 	title="In-depth ROI editing",
-	text=list("Manually edit ROIs. This is a 'swiss army knife' for modifying ranges, associating enrichments, filtering genomic intervals in detail."
+	text=list("Manually edit ROIs. This is a 'swiss army knife' for modifying genomic ranges, associating enrichments, filtering genomic intervals in detail."
 	)
 )
 
@@ -571,13 +575,14 @@ help_ultraeasy_enrichmentAssoc<-list(
 ############################################################
 help_prepheat_subsample<-list(
 	title="Subsample ROI",
-	text=list("This value determines how many of the genomic ranges of the selected ROI will be used.")
+	text=list("This value determines how many of the genomic ranges of the selected ROI will randomly subsampled.")
 
 )
 
 help_prepheat_summit<-list(
-	title="Center the ranges on summits",
-	text=list("If 'Yes', set the midpoint of each genomic range on the summit (i.e. position with the highest amount of reads) of a specific enrichment.",
+	title="Center the genomic ranges on summits",
+	text=list("If 'Yes', set the midpoint of each genomic range on the summit (i.e. position with the highest amount of reads) of a specific enrichment.
+			The ranges shown in heatmaps will be centered on this summits.",
 		tags$br(),
 		tags$br(),
 		Warning("You need to import enrichment files for this operation")
@@ -731,8 +736,7 @@ help_roimanual_overlaps_strandspecific<-list(
 #resize
 help_roimanual_resize<-list(
 	title="Resize ROI boundaries",
-	text=list("Change the width of the genomic ranges present in a ROI. The center of each genomic range 
-		is used as reference point, except when promoters are chosen: in this case, the center of the genomic ranges will correspond to the TSS (transcription start site)",
+	text=list("Change the width of the genomic ranges present in a ROI.",
 		tags$br(),
 		tags$br(),
 		Warning("The new ROI won't keep the enrichments associated to the old ROI")
@@ -898,7 +902,7 @@ help_roimanual_subsample<-list(
 
 #filter for width
 help_roimanual_filterwidth<-list(
-	title="Subset a ROI based on the width of its ranges",
+	title="Subset a ROI based on the width of its genomic ranges",
 	text=list("ROIs can be subsetted according to the width of their genomic ranges. Only genomic ranges above/below certain width thresholds
 				will be considered."
 
@@ -1020,7 +1024,7 @@ help_roimanual_reorderenrich_index <-list(
 msg_singleEvaluation_parameters<-list(
 	title="Parameters for single ROI evaluation",
 	text=list(
-		"View the genomic distribution of the genomic ranges of a ROI (and its enrichments)",
+		"Set parameters to view the genomic distribution of the genomic ranges of a ROI (and its enrichments)",
 		tags$br(),
 		tags$br(),
 		Warning("A genome assembly must be loaded. To load a genome assembly, go to the 'Assembly' section")
@@ -1338,7 +1342,8 @@ msg_digitalHeatmap_heatmap<-list(
 	title="Position-based heatmap",
 	text=list(
 		"An interactive heatmap that shows, for each genomic range of the master ROI selected (each row) 
-		the overlap of the other ROI(s) selected. Note that overlaps are calculated for each bin of the genomic ranges. Overlapping regions are displayed as colored. 
+		the overlap of the other ROI(s) selected. Note that overlaps are calculated for each bin of the genomic ranges.
+		Genomic ranges of the ROIs selected are displayed as colors.
 		The fraction of the overlapping genomic range for each ROI compared to the total ranges of the master 
 		ROI is displayed on the names in the x axis. Clusters are shown on the left side of the heatmap, as colored bars.",
 		tags$br(),
@@ -1399,7 +1404,7 @@ msg_digitalHeatmap_overlapBias<-list(
 		tags$br(),
 		tags$br(),
 		Tip("1. To obtain a sharper profile of the plot, increase the number of bins.<br>
-			2. You can choose to show the fraction of overlapping ranges instead of the absolute number 
+			2. You can choose to show the fraction of overlapping genomic ranges instead of the absolute number 
 			by checking '<b>positional overlap %</b>' option in parameters. This is useful when comparing multiple master 
 			ROIs (it normalizes for the number of genomic ranges of each master ROI)",plural=T)
 
@@ -1922,7 +1927,7 @@ help_goAnalysis_parameters_maxsize<-list(
 
 help_goAnalysis_parameters_generatio<-list(
 	title="gene ratio threshold",
-	text="All the hits below this gene ratio threshold are hiddenon from the plot. Gene ratio is defined as: genes associated to the 
+	text="All the hits below this gene ratio threshold are hidden from the plot. Gene ratio is defined as: genes associated to the 
 			ROI or in the custom gene list / all the genes in the signature"
 )
 

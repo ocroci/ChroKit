@@ -58,8 +58,10 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,
 sidebar<- dashboardSidebar(
   sidebarMenu(style = "position: fixed; overflow: visible;",
     HTML("&nbsp© Ottavio Croci<br><br>"),
-    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
     actionButton("loadExampleData", "Load example data"),
+    HTML("<br>"),
+    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
+    
     menuItem("ROIs", tabName = "BEDblock", icon = icon("file-excel-o")),
 
     menuItem("Enrichment files", tabName = "BAMblock", icon = icon("file-o")),
@@ -73,7 +75,7 @@ sidebar<- dashboardSidebar(
     HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>3) Data visualization</b>"),
     menuItem("Genomics", tabName = "GENOMICSblock", icon = icon("chart-area")),
     HTML("<br>"),
-    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
+    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
     shinySaveButton("saveWork",label="Save session","Save working environment in rds file...",icon=icon("fas fa-file-import"),filetype=list(rds="rds")),
     #menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
     HTML("<br><br>"),
