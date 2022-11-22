@@ -2186,9 +2186,15 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
               par(mar = c(0,0,0,0))
               image(0:nrow(matrix_like), 0:ncol(matrix_like),matrix_like,col=color_distinct_cluster,axes = FALSE, xlab = "", ylab = "",ylim=c(0,ncol(matrix_like)))               
             })
+            output$textNameClustDigitalHeat<-renderPlot({
+              par(mar = rep(0, 4))
+              plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")     
+              text(x=0.5,labels="clusters",y=0.5,srt=90,cex=1.4)           
+            })  
 
           }else{
             output$clustersImageLeftDigital<-renderPlot({NULL})
+            output$textNameClustDigitalHeat<-renderPlot({NULL})
             toplot$digital$color_distinct_cluster=NULL
             toplot$digital$clusternumbermatrix=NULL
             toplot$digital$range_tokeep=NULL
@@ -2199,6 +2205,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
           }
         }else{
           output$clustersImageLeftDigital<-renderPlot({NULL})
+          output$textNameClustDigitalHeat<-renderPlot({NULL})
           toplot$digital$color_distinct_cluster=NULL
           toplot$digital$clusternumbermatrix=NULL
           toplot$digital$range_tokeep=NULL
@@ -2210,6 +2217,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
 
       }else{
         output$clustersImageLeftDigital<-renderPlot({NULL})
+        output$textNameClustDigitalHeat<-renderPlot({NULL})
         toplot$digital$clusternumbermatrix=NULL
         toplot$digital$color_distinct_cluster=NULL
         toplot$digital$range_tokeep=NULL
@@ -2455,6 +2463,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
       toplot$digital$matlistTotal=NULL 
       toplot$digital$clusternumbermatrix=NULL
       output$clustersImageLeftDigital<-renderPlot({NULL})
+      output$textNameClustDigitalHeat<-renderPlot({NULL})
       toplot$digital$range_tokeep=NULL
       toplot$digital$bams_tokeep=NULL
       toplot$digital$keyvals_tokeep=NULL
@@ -2489,6 +2498,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
     toplot$digital$matlistTotal=NULL
     toplot$digital$clusternumbermatrix=NULL
     output$clustersImageLeftDigital<-renderPlot({NULL})
+    output$textNameClustDigitalHeat<-renderPlot({NULL})
     toplot$digital$range_tokeep=NULL
     toplot$digital$bams_tokeep=NULL
     toplot$digital$keyvals_tokeep=NULL
@@ -2607,17 +2617,17 @@ output$saveheatmapDigitalbutton<- downloadHandler(
 
 
       if(!is.null(toplot$digital$clusternumbermatrix)){
-        par(mar = c(12,12,0,0))
+        par(mar = c(20,12,0,0))
         image(0:nrow(toplot$digital$clusternumbermatrix), 0:ncol(toplot$digital$clusternumbermatrix),toplot$digital$clusternumbermatrix,col=toplot$digital$color_distinct_cluster,axes = FALSE, xlab = "", ylab = "",ylim=c(0,ncol(trasp)))
         axis( 2,at=pos_vertical,labels=paste(rev(toplot$digital$ROImaster),"\n",labels_vert),las=1,tick=FALSE)
         axis(1,0.5,labels="cluster",las= 2,tick=FALSE)
-        par(mar = c(12,0,0,0))
+        par(mar = c(20,0,0,0))
         image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
         #REMOVE x,y lim if cordinates don't match
               ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp))   
               )            
       }else{
-        par(mar = c(12,12,0,0))
+        par(mar = c(20,12,0,0))
         image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
         #REMOVE x,y lim if cordinates don't match
               ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp))   
@@ -3492,9 +3502,15 @@ observeEvent(input$confirmUpdateAnalogHeat,{
                 output$clustersImageLeft<-renderPlot({
                   par(mar = c(0,0,0,0))
                   image(0:nrow(matrix_like), 0:ncol(matrix_like),matrix_like,col=color_distinct_cluster,axes = FALSE, xlab = "", ylab = "",ylim=c(0,ncol(matrix_like)))
-                })              
+                }) 
+                output$textNameClustAnalogHeat<-renderPlot({
+                  par(mar = rep(0, 4))
+                  plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")     
+                  text(x=0.5,labels="clusters",y=0.5,srt=90,cex=1.4)           
+                })             
               }else{
                 output$clustersImageLeft<-renderPlot({NULL}) 
+                output$textNameClustAnalogHeat<-renderPlot({NULL})
               }
 
 
@@ -3761,8 +3777,6 @@ observeEvent(input$confirmUpdateAnalogHeat,{
 
 
 
-
-
               #plot color scale of heatmap
               output$colorScaleAnalogHeat<-renderPlot({
                 brk=201
@@ -3789,6 +3803,22 @@ observeEvent(input$confirmUpdateAnalogHeat,{
                 }
 
               })
+
+              #when pressing the button (new analysis), all profiles/boxes will be reset
+              output$profileAnalogHeat<-renderPlot({NULL})
+              output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+              output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+              output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+              output$saveprofileAnalogHeat=renderUI({NULL})
+              output$boxplotByROIAnalogHeat<-renderPlot({NULL})
+              output$saveboxplotByROIAnalogHeat=renderUI({NULL})
+              output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
+              output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
+              output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
+              output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+              output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+              output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
+
 
 
             }else{
@@ -3819,6 +3849,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
               output$textfractionelementsAnalogHeat<-renderText({NULL})
               output$colorScaleAnalogHeat<-renderPlot({NULL})
               output$textNameAnalogHeat <- renderPlot({NULL})
+              output$textNameClustAnalogHeat<-renderPlot({NULL})
               toplot$analogic$finalrange=NULL
               toplot$analogic$finalbam=NULL
               toplot$analogic$finalkey=NULL
@@ -3855,6 +3886,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
             output$corAnalogHeat<-renderPlot({NULL})
             output$pcorAnalogHeat<-renderPlot({NULL})
             output$saveprofileAnalogHeat=renderUI({NULL})
+            output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
               output$savecorAnalogHeat=renderUI({NULL})
@@ -3910,6 +3942,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
           output$corAnalogHeat<-renderPlot({NULL})
           output$pcorAnalogHeat<-renderPlot({NULL})
           output$saveprofileAnalogHeat=renderUI({NULL})
+          output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
               output$savecorAnalogHeat=renderUI({NULL})
@@ -3963,6 +3996,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
         output$corAnalogHeat<-renderPlot({NULL})
         output$pcorAnalogHeat<-renderPlot({NULL})
         output$saveprofileAnalogHeat=renderUI({NULL})
+        output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
               output$savecorAnalogHeat=renderUI({NULL})
@@ -4010,6 +4044,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
       output$corAnalogHeat<-renderPlot({NULL})
       output$pcorAnalogHeat<-renderPlot({NULL})
       output$saveprofileAnalogHeat=renderUI({NULL})
+      output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
               output$savecorAnalogHeat=renderUI({NULL})
@@ -4058,6 +4093,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
     output$corAnalogHeat<-renderPlot({NULL})
     output$pcorAnalogHeat<-renderPlot({NULL})
     output$saveprofileAnalogHeat=renderUI({NULL})
+    output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
               output$savecorAnalogHeat=renderUI({NULL})
@@ -4232,17 +4268,17 @@ output$saveheatmapAnalogbutton<- downloadHandler(
           
 
           if(!is.null(toplot$analogic$clusternumbermatrix)){
-            par(mar = c(12,12,0,0))
+            par(mar = c(17,12,0,0))
             image(0:nrow(toplot$analogic$clusternumbermatrix), 0:ncol(toplot$analogic$clusternumbermatrix),toplot$analogic$clusternumbermatrix,col=toplot$analogic$color_distinct_cluster,axes = FALSE, xlab = "", ylab = "",ylim=c(0,ncol(trasp)))
             axis( 2,at=pos_vertical,labels=paste(rev(heatvariables$ROIsForAnalogHeat),"\n",labels_vert),las=1,tick=FALSE)
             axis(1,0.5,labels="cluster",las= 2,tick=FALSE)
-            par(mar = c(12,0,0,0))
+            par(mar = c(17,0,0,0))
             image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
             #REMOVE x,y lim if cordinates don't match
                   ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp))   
                   )            
           }else{
-            par(mar = c(12,12,0,0))
+            par(mar = c(17,12,0,0))
             image(0:nrow(trasp), 0:ncol(trasp),trasp[,ncol(trasp):1,drop=FALSE],axes = FALSE, xlab = "", ylab = "",col=palette
             #REMOVE x,y lim if cordinates don't match
                   ,xlim=c(0,nrow(trasp)*factormult),ylim=c(0,ncol(trasp))   
@@ -7845,7 +7881,7 @@ observe({
       output$tableGOdownloadButton<-renderUI({downloadButton('saveGOdataTable', 'Download data')})
       
     }else{
-      output$plotOntology<-renderPlot({NULL})
+      output$plotOntology<-renderPlot({plot_text(text="There are no significant results,\nor thresholds (p adjusted, gene ratio) are too stringent.\nTry to relax them.",cex=1.4)})
       output$tableOntology <- renderDataTable({NULL})
       output$textNameGO <- renderPlot({NULL})
       output$tableGOdownloadButton<-renderUI({NULL})

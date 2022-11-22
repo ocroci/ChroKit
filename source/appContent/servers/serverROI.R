@@ -500,7 +500,7 @@ observeEvent(input$resizeROI,{
               sendSweetAlert(
                 session = session,
                 title = "Bad choice",
-                text = "You cannot resize transcripts using their midpoint",
+                text = "You cannot resize transcripts",
                 type = "error"
               )            
             }
@@ -2614,7 +2614,7 @@ observeEvent(input$PrepareROIpredefPipeline,{
     sendSweetAlert(
       session = session,
       title = "Bad choice",
-      text = "Transcripts cannot be used, because they cannot be resized around their midpoint",
+      text = "Transcripts cannot be used, because they cannot be resized",
       type = "error"
     )     
     return() 

@@ -597,7 +597,7 @@ observeEvent(input$fileGENELISTS, {
         sendSweetAlert(
           session = session,
           title = "Annotated elements not found",
-          text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Database' section and choose a genome assembly",
+          text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Assembly' section and choose a genome assembly",
           type = "error"
         )       
       }
@@ -781,7 +781,7 @@ observeEvent(input$createGENELISTSfrompath, {
             sendSweetAlert(
               session = session,
               title = "Annotated elements not found",
-              text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Database' section and choose a genome assembly",
+              text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Assembly' section and choose a genome assembly",
               type = "error"
             )             
           }
@@ -952,7 +952,7 @@ observeEvent(input$createGENELISTSfrompaste,{
           sendSweetAlert(
             session = session,
             title = "Annotated elements not found",
-            text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Database' section and choose a genome assembly",
+            text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Assembly' section and choose a genome assembly",
             type = "error"
           )         
         }
@@ -1199,7 +1199,7 @@ observeEvent(input$ExtractPatternROI2,{
       sendSweetAlert(
         session = session,
         title = "Missing database",
-        text = "You must select a genome assembly. Go to 'Database' section to import a genome assembly",
+        text = "You must select a genome assembly. Go to 'Assembly' section to import a genome assembly",
         type = "error"
       )       
     }
@@ -1208,7 +1208,7 @@ observeEvent(input$ExtractPatternROI2,{
     sendSweetAlert(
       session = session,
       title = "Missing Elements",
-      text = "You must select a genome assembly. Go to 'Database' section to import a genome assembly",
+      text = "You must select a genome assembly. Go to 'Assembly' section to import a genome assembly",
       type = "error"
     )      
   }

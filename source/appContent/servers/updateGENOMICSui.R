@@ -213,7 +213,7 @@ observe({
         #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp1<-renderUI({ 
-          list( list(HTML("<b>Choose enrichment-1:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich1")),
+          list( list(HTML("<b>Choose enrichment of ROI-1:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich1")),
                 selectInput(inputId="BAM1chooseCmp", label=NULL,choices=getbam1) ) })
         #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=getbam1)
       }
@@ -232,7 +232,7 @@ observe({
         #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp2<-renderUI({ 
-          list(list(HTML("<b>Choose enrichment-2:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich2")),
+          list(list(HTML("<b>Choose enrichment of ROI-2:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_enrich2")),
                 selectInput(inputId="BAM2chooseCmp", label=NULL,choices=getbam2) ) })
         #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=getbam2)
       }

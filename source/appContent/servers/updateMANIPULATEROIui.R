@@ -1107,17 +1107,37 @@ observe({
 #observer for type of resize
 observe({
   input$chooseResizeType
+  if (!isvalid(input$selectROItoresize)){
+    output$show_choosePointResize<-renderUI({NULL})
+    return()
+  }
+  ROI=isolate(input$selectROItoresize)
+  nomi=unlist(lapply(isolate(ROIvariables$listROI),getName))
+  pos=match(ROI,nomi)
+  roi=isolate(ROIvariables$listROI)[[pos]] 
+
+  nameroi=getName(roi)
+  flag=getFlag(roi) #transcriptFlag, Pattern, normalFlag
+
+  if (flag=="Pattern"){
+    toput="pattern"
+  }else if (grepl("promoters",nameroi) | nameroi=="promoters"){
+    toput="TSS"
+  }else{
+    toput="midpoint"
+  }
   if (!isvalid(input$chooseResizeType)){
     output$show_choosePointResize<-renderUI({NULL})
     return()
   }
   if (input$chooseResizeType=="fixedVal"){
     output$show_choosePointResize<-renderUI({
-      radioButtons("choosePointResize",label="Choose fixed point for resize:",choices=c(
-                              "From midpoint/TSS"="fromMid",
-                              "From starts"="fromStart",
-                              "From ends"="fromEnd"
-                            ),selected="fromMid"
+      radioButtons("choosePointResize",label="Choose fixed point for resize:",
+                      choiceNames=list(
+                              paste("From",toput),
+                              "From starts",
+                              "From ends"
+                            ),choiceValues=list("fromMid","fromStart","fromEnd"),selected="fromMid"
       )
     })
 
@@ -1232,9 +1252,9 @@ observe({
       output$show_absoluteFiltersWIDTH<-renderUI({
         list(
           fluidRow(
-            column(width=4,list(HTML("<b>MIN width</b>"),htmlhelp("","help_roimanual_filterwidth_min"))  ),
+            column(width=4,list(HTML("<b>MIN width (bp)</b>"),htmlhelp("","help_roimanual_filterwidth_min"))  ),
             column(width=4),
-            column(width=4,list(HTML("<b>MAX width</b>"),htmlhelp("","help_roimanual_filterwidth_max"))   )
+            column(width=4,list(HTML("<b>MAX width (bp)</b>"),htmlhelp("","help_roimanual_filterwidth_max"))   )
           ),
           fluidRow(
             column(width=4,
@@ -1283,9 +1303,9 @@ observe({
       output$show_absoluteFiltersWIDTH<-renderUI({
         list(
           fluidRow(
-            column(width=4,list(HTML("<b>MIN width</b>"),htmlhelp("","help_roimanual_filterwidth_min"))),
+            column(width=4,list(HTML("<b>MIN width (bp)</b>"),htmlhelp("","help_roimanual_filterwidth_min"))),
             column(width=4),
-            column(width=4,list(HTML("<b>MAX width</b>"),htmlhelp("","help_roimanual_filterwidth_max")))
+            column(width=4,list(HTML("<b>MAX width (bp)</b>"),htmlhelp("","help_roimanual_filterwidth_max")))
           ),
           fluidRow(
             column(width=4,

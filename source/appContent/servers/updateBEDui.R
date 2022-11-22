@@ -116,45 +116,64 @@ observe({
 
       })
     }else if(input$importROImainchoice=="fromgenelist"){
-      output$importROIwindowToShow<-renderUI({
-        list(
-          column(width=6,  
-            HTML("<h3>Genes to import</h3>"),
 
-            radioButtons("loadGenelistsource",NULL,choices=c(
-                                                      "Paste IDs/symbols"="paste",
-                                                      "Choose gene list from filesystem"="filesystem",
-                                                      "Manually type the path of the file"="path"
-                                                            ),selected="paste"),
-            uiOutput("loadGenelistsource")
-          ),
-          column(width=6,
-            HTML("<h3>Parameters</h3>"),
-            HTML("<br>"),
-            radioButtons("symbolORid",label=list("What kind of identifiers are you importing?",htmlhelp("","help_BED_kindofID")),choices=c(
-                                                      "ENTREZ IDs"="entrez",
-                                                      "ENSEMBL IDs"="ensembl",
-                                                      "Symbols"="symbol",
-                                                      "RefSeq IDs"="refseq"
-                                                            ),selected="symbol"),
-            HTML("<br>"),
-            list(HTML("<b>Max length for transcripts:</b>"),htmlhelp("","help_BED_maxtranscriptlen")),
-            numericInput(inputId = 'thresholdTranscripts',label=NULL,min = 0, step = 100000,value=200000)       
+      #check existence of TXDB database
+      nomi=unlist(lapply(ROIvariables$listROI,getName))
+      if("promoters"%in% nomi & "transcripts" %in% nomi & "TES" %in% nomi & length(DATABASEvariables$currentASSEMBLY)>0 ){
+
+        output$importROIwindowToShow<-renderUI({
+          list(
+            column(width=6,  
+              HTML("<h3>Genes to import</h3>"),
+
+              radioButtons("loadGenelistsource",NULL,choices=c(
+                                                        "Paste IDs/symbols"="paste",
+                                                        "Choose gene list from filesystem"="filesystem",
+                                                        "Manually type the path of the file"="path"
+                                                              ),selected="paste"),
+              uiOutput("loadGenelistsource")
+            ),
+            column(width=6,
+              HTML("<h3>Parameters</h3>"),
+              HTML("<br>"),
+              radioButtons("symbolORid",label=list("What kind of identifiers are you importing?",htmlhelp("","help_BED_kindofID")),choices=c(
+                                                        "ENTREZ IDs"="entrez",
+                                                        "ENSEMBL IDs"="ensembl",
+                                                        "Symbols"="symbol",
+                                                        "RefSeq IDs"="refseq"
+                                                              ),selected="symbol"),
+              HTML("<br>"),
+              list(HTML("<b>Max length for transcripts:</b>"),htmlhelp("","help_BED_maxtranscriptlen")),
+              numericInput(inputId = 'thresholdTranscripts',label=NULL,min = 0, step = 100000,value=200000)       
+            )
           )
-        )
-      })
+        })
+      }else{
+        output$importROIwindowToShow<-renderUI({HTML("<font color='red'>You need to select a genome Assembly to import gene lists. Go to 'Assembly' to select the correct genome assembly.</font>")})
+      }
+
+
+
     }else{
-      output$importROIwindowToShow<-renderUI({
-        list(
-          #warning in case BSgenome DB not present (copy of what seen in extract pattern from modifyROI)
-          uiOutput("showWarningBSgenome2"),
-          #motif text input (copy of that in motifyROI)
-          textInput("PatternToSearch2",label=list("Select pattern (IUPAC nomenclature)",htmlhelp("","help_BED_IUPACpattern")),placeholder="ATCNYGG"),
-          #new ROI name
-          textInput("ROInamePattern2",label="Name of the ROI",placeholder="type new ROI name here"),
-          actionButton("ExtractPatternROI2","Create ROI") 
-        )
-      })
+            #check existence of TXDB database
+      nomi=unlist(lapply(ROIvariables$listROI,getName))
+      if("promoters"%in% nomi & "transcripts" %in% nomi & "TES" %in% nomi & length(DATABASEvariables$currentASSEMBLY)>0 ){
+
+        output$importROIwindowToShow<-renderUI({
+          list(
+            #warning in case BSgenome DB not present (copy of what seen in extract pattern from modifyROI)
+            uiOutput("showWarningBSgenome2"),
+            #motif text input (copy of that in motifyROI)
+            textInput("PatternToSearch2",label=list("Select pattern (IUPAC nomenclature)",htmlhelp("","help_BED_IUPACpattern")),placeholder="ATCNYGG"),
+            #new ROI name
+            textInput("ROInamePattern2",label="Name of the ROI",placeholder="type new ROI name here"),
+            actionButton("ExtractPatternROI2","Create ROI") 
+          )
+        })
+      }else{
+        output$importROIwindowToShow<-renderUI({HTML("<font color='red'>You need to select a genome Assembly to extract sequence patterns. Go to 'Assembly' to select the correct genome assembly.</font>")})
+      }
+
     }
   }else{
     output$importROIwindowToShow<-renderUI({NULL})
