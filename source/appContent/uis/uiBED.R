@@ -31,10 +31,11 @@ tabBED <- tabItem(tabName = "BEDblock",
       box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
         title=boxHelp(ID="msg_deleteRois_deleteRois",title="Loaded ROIs"),
 
-        HTML("<b>ROI to delete:</b>"),
+        HTML("<b>Available ROIs:</b>"),
         wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; background-color: #ffffff;",
           checkboxGroupInput("selectedCustomROItoRemove",NULL,NULL)
         ),
+        HTML("Select ROIs to delete<br><br>"),
         actionButton("deleteROI", "Delete")
       )     
     )   

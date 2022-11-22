@@ -8,7 +8,7 @@ tabTXDB <- tabItem(tabName = "TXDBblock",
       fluidRow(
         #box to select 
         box(width=9,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-          title=boxHelp(ID="msg_databases_extractAnnotatedElements",title="Extract annotated elements from database"),
+          title=boxHelp(ID="msg_databases_extractAnnotatedElements",title="Select an assembly"),
 
           HTML("<b>Choose assembly to use from those available on the system:</b>"),
           fluidRow(
@@ -73,7 +73,7 @@ tabTXDB <- tabItem(tabName = "TXDBblock",
 
         box(width=3,collapsible = TRUE,status = "primary",solidHeader = TRUE,
 
-          title=boxHelp(ID="msg_databases_downloadDatabases",title="Download databases"),
+          title=boxHelp(ID="msg_databases_downloadDatabases",title="... or download an assembly"),
           
           HTML("<b>Choose missing assembly to download from bioconductor:</b>"),
           # fluidRow(

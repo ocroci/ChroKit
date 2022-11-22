@@ -243,7 +243,8 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 column(width=9,#style='padding:0px;',
                   fluidRow(
                     column(width=1,
-                      plotOutput("clustersImageLeftDigital",click="rowdendrogram_click_Digital")
+                      plotOutput("clustersImageLeftDigital",click="rowdendrogram_click_Digital"),
+                      plotOutput("textNameClustDigitalHeat",height=200)
                     ),
                     column(width=11,
                       plotOutput("heatmapDigital",click="heatmapDigital_click",brush=brushOpts(id="heatmapDigital_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),
@@ -349,7 +350,8 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 column(width=9,#style='padding:0px;',
                   fluidRow(
                     column(width=1,
-                      plotOutput("clustersImageLeft",click="rowdendrogram_click_Analog")
+                      plotOutput("clustersImageLeft",click="rowdendrogram_click_Analog"),
+                      plotOutput("textNameClustAnalogHeat",height=200),
                     ),
                     column(width=11,
                       plotOutput("heatmapAnalog",click="heatmap_click",brush=brushOpts(id="heatmap_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),#,height=750,width=600),

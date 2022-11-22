@@ -27,10 +27,11 @@ tabBAM <- tabItem(tabName = "BAMblock",
     box(width=4,collapsible = TRUE,status = "primary",solidHeader = TRUE,
       title=boxHelp(ID="msg_enrichmentFiles_deleteEnrichment",title="Opened enrichment files"),
 
-      HTML("<b>Select file references to be deleted:</b>"),
+      HTML("<b>Available enrichment files:</b>"),
       wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 450px; background-color: #ffffff;",
         checkboxGroupInput("selectedBAMtoRemove",NULL,NULL)
       ),
+      HTML("Select file references to delete<br>"),
       HTML("<br><br>"),
       actionButton("deleteBAM", "Delete")
     ),
