@@ -1475,6 +1475,11 @@ observeEvent(input$help_digitalHeatmap_parameters_strandspecific, { boxHelpServe
 observeEvent(input$help_digitalHeatmap_parameters_randomsample, { boxHelpServer(help_digitalHeatmap_parameters_randomsample)})
 observeEvent(input$help_digitalHeatmap_parameters_positionaloverlap, { boxHelpServer(help_digitalHeatmap_parameters_positionaloverlap)})
 
+observeEvent(input$help_digitalHeatmap_clickinfo, { boxHelpServer(help_digitalHeatmap_clickinfo)})
+observeEvent(input$help_digitalHeatmap_fractionranges, { boxHelpServer(help_digitalHeatmap_fractionranges)})
+observeEvent(input$help_digitalHeatmap_extractROI, { boxHelpServer(help_digitalHeatmap_extractROI)})
+
+
 
 
 
@@ -2009,13 +2014,13 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
       output$textselectedelementsDigitalHeat<-renderText({NULL})
 
       #displays the number of random elements used for the heatmap. If all pssible selected, green
-      output$textfractionelementsDigitalHeat<-renderText({
+      output$textfractionelementsDigitalHeat<-renderUI({
         if(samplerandom==length(finalrange)){
           color="'green'"
         }else{
           color="'red'"
         }
-        paste("Intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange),"</font>",sep="")
+        list(HTML(paste("Genomics intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_digitalHeatmap_fractionranges"))
       })
 
 
@@ -2190,11 +2195,16 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
               par(mar = rep(0, 4))
               plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")     
               text(x=0.5,labels="clusters",y=0.5,srt=90,cex=1.4)           
+            })
+
+            output$show_clickmessage_digital<-renderUI({
+              list(HTML("<h3>Click clusters' bars!"),htmlhelp("","help_digitalHeatmap_clickinfo"),HTML("</h3>"))
             })  
 
           }else{
             output$clustersImageLeftDigital<-renderPlot({NULL})
             output$textNameClustDigitalHeat<-renderPlot({NULL})
+            output$show_clickmessage_digital<-renderUI({NULL})
             toplot$digital$color_distinct_cluster=NULL
             toplot$digital$clusternumbermatrix=NULL
             toplot$digital$range_tokeep=NULL
@@ -2206,6 +2216,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
         }else{
           output$clustersImageLeftDigital<-renderPlot({NULL})
           output$textNameClustDigitalHeat<-renderPlot({NULL})
+          output$show_clickmessage_digital<-renderUI({NULL})
           toplot$digital$color_distinct_cluster=NULL
           toplot$digital$clusternumbermatrix=NULL
           toplot$digital$range_tokeep=NULL
@@ -2218,6 +2229,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
       }else{
         output$clustersImageLeftDigital<-renderPlot({NULL})
         output$textNameClustDigitalHeat<-renderPlot({NULL})
+        output$show_clickmessage_digital<-renderUI({NULL})
         toplot$digital$clusternumbermatrix=NULL
         toplot$digital$color_distinct_cluster=NULL
         toplot$digital$range_tokeep=NULL
@@ -2460,6 +2472,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
       output$JaccardDigital<-renderPlot({NULL})  
       output$saveJaccardDigital=renderUI({NULL})
       output$showoptioncolorsforDigitalHeat<-renderUI({NULL})
+      output$show_clickmessage_digital<-renderUI({NULL})
       toplot$digital$matlistTotal=NULL 
       toplot$digital$clusternumbermatrix=NULL
       output$clustersImageLeftDigital<-renderPlot({NULL})
@@ -2471,7 +2484,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
       toplot$digital$fix_tokeep=NULL
       output$newROIfromDigitalHeat_out<-renderUI({NULL})
       output$frequencyDigitalHeat_options<-renderUI({NULL})
-      output$textfractionelementsDigitalHeat<-renderText({NULL})
+      output$textfractionelementsDigitalHeat<-renderUI({NULL})
       output$frequencyOvDigitalHeat <- renderPlot({NULL})
       output$savefrequencyOvDigitalHeat=renderUI({NULL})
       sendSweetAlert(
@@ -2499,6 +2512,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
     toplot$digital$clusternumbermatrix=NULL
     output$clustersImageLeftDigital<-renderPlot({NULL})
     output$textNameClustDigitalHeat<-renderPlot({NULL})
+    output$show_clickmessage_digital<-renderUI({NULL})
     toplot$digital$range_tokeep=NULL
     toplot$digital$bams_tokeep=NULL
     toplot$digital$keyvals_tokeep=NULL
@@ -2506,7 +2520,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
     toplot$digital$fix_tokeep=NULL
     output$newROIfromDigitalHeat_out<-renderUI({NULL})
     output$frequencyDigitalHeat_options<-renderUI({NULL})
-    output$textfractionelementsDigitalHeat<-renderText({NULL})
+    output$textfractionelementsDigitalHeat<-renderUI({NULL})
     output$showoptioncolorsforDigitalHeat<-renderUI({NULL})
     output$frequencyOvDigitalHeat <- renderPlot({NULL})
     output$savefrequencyOvDigitalHeat=renderUI({NULL})
@@ -2870,6 +2884,18 @@ observeEvent(input$help_analogicHeatmap_parameters_nbins, {boxHelpServer(help_an
 observeEvent(input$help_analogicHeatmap_parameters_subsample, {boxHelpServer(help_analogicHeatmap_parameters_subsample)})
 observeEvent(input$help_analogicHeatmap_parameters_uniform, {boxHelpServer(help_analogicHeatmap_parameters_uniform)})
 observeEvent(input$help_analogicHeatmap_parameters_individual, {boxHelpServer(help_analogicHeatmap_parameters_individual)})
+
+observeEvent(input$help_analogicHeatmap_extractROI, {boxHelpServer(help_analogicHeatmap_extractROI)})
+observeEvent(input$help_analogicHeatmap_extractROI2, {boxHelpServer(help_analogicHeatmap_extractROI)})
+observeEvent(input$help_analogicHeatmap_clickinfo, {boxHelpServer(help_analogicHeatmap_clickinfo)})
+observeEvent(input$help_analogicHeatmap_clickinfoonlyselection, {boxHelpServer(help_analogicHeatmap_clickinfoonlyselection)})
+observeEvent(input$help_analogicHeatmap_fractionranges, {boxHelpServer(help_analogicHeatmap_fractionranges)})
+
+
+
+
+
+
 
 
 #heatmap
@@ -3508,10 +3534,17 @@ observeEvent(input$confirmUpdateAnalogHeat,{
                   par(mar = rep(0, 4))
                   plot(c(0, 1), c(0, 1), ann = F, bty = 'n', type = 'n', xaxt = 'n', yaxt = 'n',xaxs="i")     
                   text(x=0.5,labels="clusters",y=0.5,srt=90,cex=1.4)           
+                }) 
+
+                output$show_clickmessage_analogic<-renderUI({
+                  list(HTML("<h3>Click clusters' bars or select a heatmap area!"),htmlhelp("","help_analogicHeatmap_clickinfo"),HTML("</h3>"))
                 })             
               }else{
                 output$clustersImageLeft<-renderPlot({NULL}) 
                 output$textNameClustAnalogHeat<-renderPlot({NULL})
+                output$show_clickmessage_analogic<-renderUI({
+                  list(HTML("<h3>Select a heatmap area!"),htmlhelp("","help_analogicHeatmap_clickinfoonlyselection"),HTML("</h3>"))
+                })
               }
 
 
@@ -3739,13 +3772,13 @@ observeEvent(input$confirmUpdateAnalogHeat,{
 
 
               #output of the number of heatmap elements as fraction. In red if not taken all:
-              output$textfractionelementsAnalogHeat<-renderText({
+              output$textfractionelementsAnalogHeat<-renderUI({
                 if(samplerandom==length(finalrange)){
                   color="'green'"
                 }else{
                   color="'red'"
                 }
-                paste("Intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange),"</font>",sep="")
+                list(HTML(paste("Genomic intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_analogicHeatmap_fractionranges"))
               })
 
 
@@ -3847,7 +3880,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
               output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
               output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
               output$showcolorsheat<-renderUI({NULL})
-              output$textfractionelementsAnalogHeat<-renderText({NULL})
+              output$textfractionelementsAnalogHeat<-renderUI({NULL})
               output$colorScaleAnalogHeat<-renderPlot({NULL})
               output$textNameAnalogHeat <- renderPlot({NULL})
               output$textNameClustAnalogHeat<-renderPlot({NULL})
@@ -3863,6 +3896,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
               output$newROIfromAnalogHeat_out<-renderUI({NULL})
               output$textselectedelementsAnalogHeat<-renderText({NULL}) 
               toplot$analogic$chooseOrderingAnalogHeat=NULL
+              output$show_clickmessage_analogic<-renderUI({NULL})
               #reset color scheme. Put it to global with reset parameters
               updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
               sendSweetAlert(
@@ -3901,7 +3935,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
             output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
             output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
             output$showcolorsheat<-renderUI({NULL})
-            output$textfractionelementsAnalogHeat<-renderText({NULL})
+            output$textfractionelementsAnalogHeat<-renderUI({NULL})
             output$colorScaleAnalogHeat<-renderPlot({NULL})
             output$textNameAnalogHeat <- renderPlot({NULL})
             toplot$analogic$finalrange=NULL
@@ -3916,12 +3950,13 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
             output$newROIfromAnalogHeat_out<-renderUI({NULL})
             output$textselectedelementsAnalogHeat<-renderText({NULL})
             toplot$analogic$chooseOrderingAnalogHeat=NULL
+            output$show_clickmessage_analogic<-renderUI({NULL})
             updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
 
             sendSweetAlert(
               session = session,
               title = "Too few samples",
-              text = "Increase the random sample (advanced parameters tab), because some ROI with few ranges disappeared",
+              text = "Increase the random sample, because some ROI with few ranges disappeared",
               type = "error"
             )             
           }
@@ -3958,7 +3993,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
           output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
           output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
           output$showcolorsheat<-renderUI({NULL})
-          output$textfractionelementsAnalogHeat<-renderText({NULL})
+          output$textfractionelementsAnalogHeat<-renderUI({NULL})
           output$colorScaleAnalogHeat<-renderPlot({NULL})
           output$textNameAnalogHeat <- renderPlot({NULL})
           toplot$analogic$finalrange=NULL
@@ -3973,6 +4008,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
           output$newROIfromAnalogHeat_out<-renderUI({NULL})
           output$textselectedelementsAnalogHeat<-renderText({NULL})
           toplot$analogic$chooseOrderingAnalogHeat=NULL
+          output$show_clickmessage_analogic<-renderUI({NULL})
           updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
 
           sendSweetAlert(
@@ -4013,7 +4049,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
         output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
         output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
         output$showcolorsheat<-renderUI({NULL})
-        output$textfractionelementsAnalogHeat<-renderText({NULL})
+        output$textfractionelementsAnalogHeat<-renderUI({NULL})
         output$colorScaleAnalogHeat<-renderPlot({NULL})
         output$textNameAnalogHeat <- renderPlot({NULL})
         toplot$analogic$finalrange=NULL
@@ -4028,6 +4064,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
         output$newROIfromAnalogHeat_out<-renderUI({NULL})
         output$textselectedelementsAnalogHeat<-renderText({NULL})
         toplot$analogic$chooseOrderingAnalogHeat=NULL
+        output$show_clickmessage_analogic<-renderUI({NULL})
         updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
         sendSweetAlert(
           session = session,
@@ -4062,7 +4099,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
       output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
       output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
       output$showcolorsheat<-renderUI({NULL})
-      output$textfractionelementsAnalogHeat<-renderText({NULL})
+      output$textfractionelementsAnalogHeat<-renderUI({NULL})
       output$colorScaleAnalogHeat<-renderPlot({NULL})
       output$textNameAnalogHeat <- renderPlot({NULL})
       toplot$analogic$finalrange=NULL
@@ -4072,6 +4109,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
       toplot$analogic$finalfixes=NULL
       heatvariables$matlist=NULL
       toplot$analogic$chooseOrderingAnalogHeat=NULL
+      output$show_clickmessage_analogic<-renderUI({NULL})
       #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">Number of bins is > than width of smallest range. Decrease number of bins or filter range based on width<br></font>'
       sendSweetAlert(
         session = session,
@@ -4112,7 +4150,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
     output$showchooseQuantileMethodAnalogHeat<-renderUI({NULL})
     output$showquantileThreshAnalogHeat<-renderUI({NULL}) 
     output$showcolorsheat<-renderUI({NULL})
-    output$textfractionelementsAnalogHeat<-renderText({NULL})
+    output$textfractionelementsAnalogHeat<-renderUI({NULL})
     output$colorScaleAnalogHeat<-renderPlot({NULL})
     output$textNameAnalogHeat <- renderPlot({NULL})
     toplot$analogic$finalrange=NULL
@@ -4127,6 +4165,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
     output$newROIfromAnalogHeat_out<-renderUI({NULL})
     output$textselectedelementsAnalogHeat<-renderText({NULL})
     toplot$analogic$chooseOrderingAnalogHeat=NULL
+    output$show_clickmessage_analogic<-renderUI({NULL})
     updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
     sendSweetAlert(
       session = session,
@@ -5357,11 +5396,15 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
                         cormethod=cormethod)
         })
         
+        output$show_clickmessage_cor<-renderUI({HTML("<h4>Click a cell in the heatmap!</h4>")})
+
+
+
 
 
         #PDF download button for cor matrix
         output$savecorProfilesAndBox=renderUI({downloadButton('savecorProfilesAndBoxbutton', 'Get PDF')})
-        output$scatterProfilesAndBox<-renderPlot({plot_text(text="click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
+        output$scatterProfilesAndBox<-renderPlot({plot_text(text="Click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
 
 
 
@@ -5408,14 +5451,16 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
   
           #PDf download button for partial correlation
           output$savepcorProfilesAndBox=renderUI({downloadButton('savepcorProfilesAndBoxbutton', 'Get PDF')})
-
+          
+          output$show_clickmessage_pcor<-renderUI({HTML("<h4>Click a cell in hte heatmap!</h4>")})
 
         }else{
         	output$pcorProfilesAndBox <-renderPlot({plot_text(text="you need to select a single ROI\nwith at least\n3 enrichment files associated",cex=1.4)})
           output$savepcorProfilesAndBox=renderUI({NULL})
-          output$scatterProfilesAndBox<-renderPlot({plot_text(text="click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
+          output$scatterProfilesAndBox<-renderPlot({plot_text(text="Click a cell in the correlation or\npartial correlation heatmap\nto view the scatterlpot",cex=1.4)})
 	        toplot$profileAndBoxes$px=NULL
 	        toplot$profileAndBoxes$py=NULL
+          output$show_clickmessage_pcor<-renderUI({NULL})
         }
 
 
@@ -5433,6 +5478,8 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
         toplot$profileAndBoxes$y=NULL
         toplot$profileAndBoxes$px=NULL
         toplot$profileAndBoxes$py=NULL
+        output$show_clickmessage_pcor<-renderUI({NULL})
+        output$show_clickmessage_cor<-renderUI({NULL})
       }
     }else{
       output$profileProfilesAndBox<-renderPlot({NULL})
@@ -5464,6 +5511,8 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       toplot$profileAndBoxes$y=NULL
       toplot$profileAndBoxes$px=NULL
       toplot$profileAndBoxes$py=NULL
+      output$show_clickmessage_pcor<-renderUI({NULL})
+      output$show_clickmessage_cor<-renderUI({NULL})
       sendSweetAlert(
         session = session,
         title = "Too many bins",
@@ -5501,6 +5550,8 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     toplot$profileAndBoxes$y=NULL
     toplot$profileAndBoxes$px=NULL
     toplot$profileAndBoxes$py=NULL
+    output$show_clickmessage_pcor<-renderUI({NULL})
+    output$show_clickmessage_cor<-renderUI({NULL})
     sendSweetAlert(
       session = session,
       title = "ROI or enrichment not selected",
@@ -7256,6 +7307,9 @@ observeEvent(input$help_goAnalysis_parameters_maxsize, {boxHelpServer(help_goAna
 observeEvent(input$help_goAnalysis_parameters_generatio, {boxHelpServer(help_goAnalysis_parameters_generatio)})
 observeEvent(input$help_goAnalysis_parameters_padjthresh, {boxHelpServer(help_goAnalysis_parameters_padjthresh)})
 
+observeEvent(input$help_goAnalysis_clickinfoheat, {boxHelpServer(help_goAnalysis_clickinfoheat)})
+observeEvent(input$help_goAnalysis_clickinfobar, {boxHelpServer(help_goAnalysis_clickinfobar)})
+
 
 
 
@@ -7801,6 +7855,9 @@ observe({
 
         })
         output$saveheatmapGO<-renderUI({downloadButton('saveheatmapGObutton', 'Get PDF')})
+
+
+        output$show_clickmessage_GO<-renderUI({  list(HTML("<h3>Click a cell in the heatmap!"),htmlhelp("","help_goAnalysis_clickinfoheat"),HTML("</h3>"))   })
       
 
       }else{
@@ -7843,6 +7900,7 @@ observe({
 
         #no color scale if barplot
         output$colorScaleGO<-renderPlot({NULL})
+        output$show_clickmessage_GO<-renderUI({list(HTML("<h3>Click a bar!"),htmlhelp("","help_goAnalysis_clickinfobar"),HTML("</h3>"))})
         output$saveheatmapGO<-renderUI({downloadButton('savebarplotGObutton', 'Get PDF')})
       }
 
@@ -7897,6 +7955,7 @@ observe({
       output$saveheatmapGO<-renderUI({NULL})
       output$show_colorScaleGO<-renderUI({NULL})
       output$show_scaleQuantileGO<-renderUI({NULL})
+      output$show_clickmessage_GO<-renderUI({NULL})
 
     }    
   }else{
@@ -7909,6 +7968,7 @@ observe({
     output$saveheatmapGO<-renderUI({NULL})
     output$show_colorScaleGO<-renderUI({NULL})
     output$show_scaleQuantileGO<-renderUI({NULL})
+    output$show_clickmessage_GO<-renderUI({NULL})
 
   }
   

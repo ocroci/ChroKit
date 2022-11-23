@@ -405,7 +405,7 @@ observe({
 
       output$sampleRandomROIDigital<-renderUI({
         list(
-          list(HTML("<b>Random sample of genomic ranges to show:</b>"),htmlhelp("","help_digitalHeatmap_parameters_randomsample")),
+          list(HTML("<b>Random sample of genomic ranges:</b>"),htmlhelp("","help_digitalHeatmap_parameters_randomsample")),
           numericInput(inputId = 'sampleRandomDigitalHeat',label=NULL,min = minim, max = lbr, step = 1000,value=valshown)
         )
       })
@@ -690,13 +690,13 @@ observeEvent(input$rowdendrogram_click_Digital,{
 
       ##create the text input and button
       output$newROIfromDigitalHeat_out<-renderUI({
-        list(textInput("newROIfromDigitalHeat",label="New ROI from selection",value="",placeholder = "type new ROI name here"),
+        list(textInput("newROIfromDigitalHeat",label=list("Extract new ROI from cluster",htmlhelp("","help_digitalHeatmap_extractROI")),value="",placeholder = "type new ROI name here"),
           actionButton("confirmImportROIfromDigitalHeat", "Import ROI"))
       })
 
       ##create the text to say the cluster number and the number of intervals selected
-      output$textselectedelementsDigitalHeat<-renderText({
-        paste("Cluster selected: ",value," (",(ytop-ybottom)+1," regions)",sep="")
+      output$textselectedelementsDigitalHeat<-renderUI({
+        HTML(paste("<h4>Cluster selected: ",value," (",(ytop-ybottom)+1," regions)</h4>",sep=""))
       })      
 
       ## use this block if you want to update the plots in the digital or do something else
@@ -726,12 +726,12 @@ observeEvent(input$rowdendrogram_click_Digital,{
     }else{
       #clustering not valid in some way, remove new ROI button and do nothing
       output$newROIfromDigitalHeat_out<-renderUI({NULL})
-      output$textselectedelementsDigitalHeat<-renderText({NULL})
+      output$textselectedelementsDigitalHeat<-renderUI({NULL})
     }
   }else{
     #remove new ROI button and do nothing
     output$newROIfromDigitalHeat_out<-renderUI({NULL})
-    output$textselectedelementsDigitalHeat<-renderText({NULL})
+    output$textselectedelementsDigitalHeat<-renderUI({NULL})
   }
 
 })
@@ -1306,7 +1306,7 @@ observe({
     }
 
     output$showsampleRandomAnalogHeat<-renderUI({
-      numericInput(inputId = 'sampleRandomAnalogHeat',label=list("Random sample of:",htmlhelp("","help_analogicHeatmap_parameters_subsample")),min = minim, max = lbr, step = 1000,value=valshown)
+      numericInput(inputId = 'sampleRandomAnalogHeat',label=list("Random sample of genomic ranges:",htmlhelp("","help_analogicHeatmap_parameters_subsample")),min = minim, max = lbr, step = 1000,value=valshown)
     })
     
   }else{
@@ -1514,14 +1514,14 @@ observeEvent(input$heatmap_brush,{
       toplot$gadgetanalogic$bamname=bamselected[xleft:xright]
 
       #output of the number of selected elements within brushed area:
-      output$textselectedelementsAnalogHeat<-renderText({
-        paste("Intervals selected: ",(ytop-ybottom)+1,sep="")
+      output$textselectedelementsAnalogHeat<-renderUI({
+        HTML(paste("<h4>Intervals selected: ",(ytop-ybottom)+1," regions </h4>",sep=""))
       })
 
 
       ##create the text input and button
       output$newROIfromAnalogHeat_out<-renderUI({
-        list(textInput("newROIfromAnalogHeat",label="New ROI from selection",value="",placeholder = "type new ROI name here"),
+        list(textInput("newROIfromAnalogHeat",label=list("Extract new ROI from selection",htmlhelp("","help_analogicHeatmap_extractROI2")),value="",placeholder = "type new ROI name here"),
           actionButton("confirmImportROIfromAnalogHeat", "Import ROI"))
       })
 
@@ -1838,7 +1838,7 @@ observeEvent(input$heatmap_brush,{
       #   output$savepcorAnalogHeat=renderUI({NULL})
       # }
     }else{
-      output$textselectedelementsAnalogHeat<-renderText({NULL})
+      output$textselectedelementsAnalogHeat<-renderUI({NULL})
       output$newROIfromAnalogHeat_out<-renderUI({NULL})
       #output$confirmImportROIfromAnalogHeat<-renderUI({NULL})
       output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
@@ -1860,7 +1860,7 @@ output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
     } 
   }else{
     #output of the number of selected elements within brushed area:
-    output$textselectedelementsAnalogHeat<-renderText({NULL})
+    output$textselectedelementsAnalogHeat<-renderUI({NULL})
     output$newROIfromAnalogHeat_out<-renderUI({NULL})
     #output$confirmImportROIfromAnalogHeat<-renderUI({NULL})
     output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
@@ -2076,14 +2076,14 @@ observeEvent(input$rowdendrogram_click_Analog,{
         toplot$gadgetanalogic$bamname=bamselected
 
         #output of the number of selected elements within brushed area:
-        output$textselectedelementsAnalogHeat<-renderText({
-          paste("Cluster selected: ",value," (",(ytop-ybottom)+1," regions)",sep="")
+        output$textselectedelementsAnalogHeat<-renderUI({
+          HTML(paste("<h4>Cluster selected: ",value," (",(ytop-ybottom)+1," regions)</h4>",sep=""))
         })
 
 
         ##create the text input and button
         output$newROIfromAnalogHeat_out<-renderUI({
-          list(textInput("newROIfromAnalogHeat",label="New ROI from selection",value="",placeholder = "type new ROI name here"),
+          list(textInput("newROIfromAnalogHeat",label=list("Extract new ROI from cluster",htmlhelp("","help_analogicHeatmap_extractROI")),value="",placeholder = "type new ROI name here"),
             actionButton("confirmImportROIfromAnalogHeat", "Import ROI"))
         })
 
@@ -2400,7 +2400,7 @@ observeEvent(input$rowdendrogram_click_Analog,{
         #   output$savepcorAnalogHeat=renderUI({NULL})
         # }
       }else{
-        output$textselectedelementsAnalogHeat<-renderText({NULL})
+        output$textselectedelementsAnalogHeat<-renderUI({NULL})
         output$newROIfromAnalogHeat_out<-renderUI({NULL})
         #output$confirmImportROIfromAnalogHeat<-renderUI({NULL})
         output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
