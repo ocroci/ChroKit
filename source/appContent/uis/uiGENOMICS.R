@@ -240,15 +240,20 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
               title=boxHelp(ID="msg_digitalHeatmap_heatmap",title="Heatmap"),
               #mini-fluid page which puts together heatmap, color scale....
               fluidRow(
+                column(width=12,
+                  uiOutput("show_clickmessage_digital")
+                )
+              ),
+              fluidRow(
                 column(width=9,#style='padding:0px;',
                   fluidRow(
                     column(width=1,
                       plotOutput("clustersImageLeftDigital",click="rowdendrogram_click_Digital"),
-                      plotOutput("textNameClustDigitalHeat",height=200)
+                      plotOutput("textNameClustDigitalHeat",height=250)
                     ),
                     column(width=11,
                       plotOutput("heatmapDigital",click="heatmapDigital_click",brush=brushOpts(id="heatmapDigital_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),
-                      plotOutput("textNameDigitalHeat",height=200),
+                      plotOutput("textNameDigitalHeat",height=250),
 
                       fluidRow(
                         column(width=6,
@@ -263,12 +268,12 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 ),
                 column(width=3,#style='padding:0px;',
                   #here put specific graphical options for heat (colors(global/custom) and menu)
-                  htmlOutput("textfractionelementsDigitalHeat"),
+                  uiOutput("textfractionelementsDigitalHeat"),
+                  uiOutput("textselectedelementsDigitalHeat"),
+                  uiOutput("newROIfromDigitalHeat_out"),
+                  HTML("<br><br>"),
                   uiOutput("showoptioncolorsforDigitalHeat"),
-                  uiOutput("showcolorsDigitalheat"),
-                  htmlOutput("textselectedelementsDigitalHeat"),
-                  uiOutput("newROIfromDigitalHeat_out")
-
+                  uiOutput("showcolorsDigitalheat")
                 )  
               )
             )
@@ -344,18 +349,25 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
           fluidRow(
             box(width=12,solidHeader = TRUE,status = "primary",collapsible = TRUE,
               title=boxHelp(ID="msg_analogicHeatmap_heatmap",title="Heatmap"),
-
+              fluidRow(
+                column(width=10,
+                  uiOutput("show_clickmessage_analogic")
+                ),
+                column(width=2,
+                  plotOutput("colorScaleAnalogHeat",height=80)
+                )                
+              ),
               #mini-fluid page which puts together heatmap, color scale....
               fluidRow(
                 column(width=9,#style='padding:0px;',
                   fluidRow(
                     column(width=1,
                       plotOutput("clustersImageLeft",click="rowdendrogram_click_Analog"),
-                      plotOutput("textNameClustAnalogHeat",height=200),
+                      plotOutput("textNameClustAnalogHeat",height=250),
                     ),
                     column(width=11,
                       plotOutput("heatmapAnalog",click="heatmap_click",brush=brushOpts(id="heatmap_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),#,height=750,width=600),
-                      plotOutput("textNameAnalogHeat",height=200),
+                      plotOutput("textNameAnalogHeat",height=250),
                       fluidRow(
                         column(width=6,
                           htmlOutput("saveheatmapAnalog")
@@ -369,15 +381,18 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                   )
                 ),
                 column(width=3,#style='padding:0px;',
-                  htmlOutput("textfractionelementsAnalogHeat"),
-                  plotOutput("colorScaleAnalogHeat",height=90),
+                  
+                  
+                  uiOutput("textfractionelementsAnalogHeat"),
+                  uiOutput("textselectedelementsAnalogHeat"),
+                  uiOutput("newROIfromAnalogHeat_out"),
+                  HTML("<br><br>"),
                   uiOutput("showoptioncolorsforAnalogHeat"),                
                   uiOutput("showcolorsheat"),
                   uiOutput("showchooseQuantileMethodAnalogHeat"),
-                  uiOutput("showquantileThreshAnalogHeat"),
+                  uiOutput("showquantileThreshAnalogHeat")
 
-                  htmlOutput("textselectedelementsAnalogHeat"),
-                  uiOutput("newROIfromAnalogHeat_out")
+
                 )  
               )
             )
@@ -554,12 +569,23 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
 
                 column(width=9,
+
                   tabBox(width=12,#height=400,
                     tabPanel("Cor-Heatmap",
+                      fluidRow(
+                        column(width=12,
+                          uiOutput("show_clickmessage_cor")
+                        )
+                      ),
                       plotOutput("corProfilesAndBox",click="cor_click"),
                       htmlOutput("savecorProfilesAndBox")
                     ),
                     tabPanel("Pcor-Heatmap",
+                      fluidRow(
+                        column(width=12,
+                          uiOutput("show_clickmessage_pcor")
+                        )
+                      ),
                       plotOutput("pcorProfilesAndBox",click="pcor_click"),
                       htmlOutput("savepcorProfilesAndBox")
                     )            
@@ -774,6 +800,11 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             #put plot (barplot/heatmap)
             box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
               title=boxHelp(ID="msg_goAnalysis_goPlot",title="GO plot"),
+              fluidRow(
+                column(width=12,
+                  uiOutput("show_clickmessage_GO")
+                )
+              ),
 
               fluidRow(
                 column(width=9,#style='padding:0px;',
