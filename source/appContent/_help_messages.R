@@ -1365,6 +1365,45 @@ msg_digitalHeatmap_heatmap<-list(
 )
 
 
+#help for cluster, fraction ranges and extract from cluster
+help_digitalHeatmap_clickinfo<-list(
+	title="Click clusters to get info and extract ROIs",
+	text=list("Click one of the coloured blocks in the cluster bar. On the right, you will see how many genomic regions 
+		constitute the selected cluster and you can extract a new ROI having these genomic ranges.",
+		tags$br(),
+		tags$br(),
+		Tip("Use this to extract ROIs with interesting overlapping patterns for downstream analyses, for example the gene ontology.")	
+	)	
+)
+
+help_digitalHeatmap_fractionranges<-list(
+	title="The number of genomic ranges displayed",
+	text=list("This is the number of genomic ranges shown in the heatmap / the total genomic ranges (the sum of 
+			ranges of all the master ROI(s) selected).",
+		tags$br(),
+		tags$br(),			
+		Comment("This is set in 'Random sample of genomic ranges' parameter. These numbers are green when all the available ranges
+			in the master ROI(s) are shown.")
+	)
+)
+
+help_digitalHeatmap_extractROI<-list(
+	title="Extract new ROIs",
+	text=list("Here you can import a new ROI from the genomic ranges in the selected cluster.",
+		tags$br(),
+		tags$br(),	
+		Comment("1. To extract new ROI, it's strongly suggested to use all the ranges of the master ROI ('Random sample of genomic ranges' parameter).
+				In this way, no ranges are randomly lost for downstream analyses.<br>
+				2. The new ROI will preserve all the enrichments associated to the master ROI, if present.")
+
+	)
+)
+
+
+
+
+
+
 #Jaccard idx
 msg_digitalHeatmap_jaccardIdx<-list(
 	title="Shows the heatmap of Jaccard index ",
@@ -1574,6 +1613,67 @@ msg_analogicHeatmap_heatmap<-list(
 
 	)
 )
+
+
+
+#help for cluster, fraction ranges and extract from cluster
+help_analogicHeatmap_clickinfo<-list(
+	title="Click clusters/heatmap area to get info and extract ROIs",
+	text=list("Select an area of interest in the heatmap by dragging and dropping the mouse,
+		 or click one of the coloured blocks in the cluster bar. On the right, you will see how many genomic regions 
+		constitute the selection and you can extract a new ROI having these genomic ranges. On the bottom, enrichments of the selected area will
+		be shown as profiles and boxplots, and updated on the fly if you change the selected area.",
+		tags$br(),
+		tags$br(),
+		Tip("Use this to extract ROIs with interesting enrichment patterns for downstream analyses, for example the gene ontology.")	
+	)	
+)
+
+
+help_analogicHeatmap_clickinfoonlyselection<-list(
+	title="Select a heatmap area to get info and extract ROIs",
+	text=list("Select an area of interest in the heatmap by dragging and dropping the mouse. On the right, you will see how many genomic regions 
+		constitute the selection and you can extract a new ROI having these genomic ranges. On the bottom, enrichments of the selected area will
+		be shown as profiles and boxplots, and updated on the fly if you change the selected area.",
+		tags$br(),
+		tags$br(),
+		Tip("Use this to extract ROIs with interesting enrichment patterns for downstream analyses, for example the gene ontology.")	
+	)	
+)
+
+help_analogicHeatmap_fractionranges<-list(
+	title="The number of genomic ranges displayed",
+	text=list("This is the number of genomic ranges shown in the heatmap / the total genomic ranges (the sum of 
+			ranges of all the ROI(s) selected).",
+		tags$br(),
+		tags$br(),			
+		Comment("This is set in 'Random sample of genomic ranges' parameter. These numbers are green when all the available ranges
+			in the master ROI(s) are shown.")
+	)
+)
+
+help_analogicHeatmap_extractROI<-list(
+	title="Extract new ROIs",
+	text=list("Here you can import a new ROI from the genomic ranges in the selected cluster or area.",
+		tags$br(),
+		tags$br(),	
+		Comment("1. It's strongly suggested to use all the ranges of the ROI ('Random sample of genomic ranges' parameter).
+				In this way, no ranges are randomly lost for downstream analyses.<br>
+				2. The new ROI will preserve all the enrichments associated to the reference ROI, if present.")
+
+	)
+)
+
+
+
+
+
+
+
+
+
+
+
 #Profiles
 msg_analogicHeatmap_profiles<-list(
 	title="Enrichment profiles",
@@ -1942,14 +2042,6 @@ help_goAnalysis_parameters_padjthresh<-list(
 
 
 
-
-
-
-
-
-
-
-
 #GO plot
 msg_goAnalysis_goPlot<-list(
 	title="Gene ontology plot",
@@ -1961,6 +2053,24 @@ msg_goAnalysis_goPlot<-list(
 		Comment("The p adjusted dispayed is the level of significance of the hypergeometric test.")	
 	)
 )
+
+
+
+help_goAnalysis_clickinfoheat<-list(
+	title="Click cells in the heatmap to get info",
+	text=list("Click one of the cells in the heatmap. On the right, you will see the ontological term, the ROI and all the genes
+			that are both annotated to the ROI and belonging to the ontological term.")
+)
+
+
+help_goAnalysis_clickinfobar<-list(
+	title="Click bars in the barplot get info",
+	text=list("Click one of the bars. On the right, you will see the ontological term and all the genes given
+			in the input that belong to that ontological term.")
+)
+
+
+
 
 #GO table
 msg_goAnalysis_goTable<-list(
