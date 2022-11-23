@@ -2905,6 +2905,7 @@ observeEvent(input$confirmUpdateAnalogHeat,{
   toplot$analogic$ROIsForAnalogHeat=input$ROIsForAnalogHeat
   toplot$analogic$binsAnalogHeat=input$binsAnalogHeat
   toplot$analogic$BAMsForAnalogHeat=input$BAMsForAnalogHeat
+  toplot$analogic$chooseOrderingAnalogHeat=input$chooseOrderingAnalogHeat
 
   ################################################################################################
   ##here, if reorder BAM, act here to change the order of enrichments in toplot$analogic$BAMsForAnalogHeat variable
@@ -3861,6 +3862,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
               output$showsaveAnalogHeatdata=renderUI({NULL})
               output$newROIfromAnalogHeat_out<-renderUI({NULL})
               output$textselectedelementsAnalogHeat<-renderText({NULL}) 
+              toplot$analogic$chooseOrderingAnalogHeat=NULL
               #reset color scheme. Put it to global with reset parameters
               updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
               sendSweetAlert(
@@ -3913,6 +3915,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
             output$showsaveAnalogHeatdata=renderUI({NULL})
             output$newROIfromAnalogHeat_out<-renderUI({NULL})
             output$textselectedelementsAnalogHeat<-renderText({NULL})
+            toplot$analogic$chooseOrderingAnalogHeat=NULL
             updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
 
             sendSweetAlert(
@@ -3969,6 +3972,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
           output$showsaveAnalogHeatdata=renderUI({NULL})
           output$newROIfromAnalogHeat_out<-renderUI({NULL})
           output$textselectedelementsAnalogHeat<-renderText({NULL})
+          toplot$analogic$chooseOrderingAnalogHeat=NULL
           updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
 
           sendSweetAlert(
@@ -4023,6 +4027,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
         output$showsaveAnalogHeatdata=renderUI({NULL})
         output$newROIfromAnalogHeat_out<-renderUI({NULL})
         output$textselectedelementsAnalogHeat<-renderText({NULL})
+        toplot$analogic$chooseOrderingAnalogHeat=NULL
         updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
         sendSweetAlert(
           session = session,
@@ -4066,6 +4071,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
       toplot$analogic$finalnorm=NULL
       toplot$analogic$finalfixes=NULL
       heatvariables$matlist=NULL
+      toplot$analogic$chooseOrderingAnalogHeat=NULL
       #logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">Number of bins is > than width of smallest range. Decrease number of bins or filter range based on width<br></font>'
       sendSweetAlert(
         session = session,
@@ -4120,6 +4126,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
     output$showsaveAnalogHeatdata=renderUI({NULL})
     output$newROIfromAnalogHeat_out<-renderUI({NULL})
     output$textselectedelementsAnalogHeat<-renderText({NULL})
+    toplot$analogic$chooseOrderingAnalogHeat=NULL
     updateRadioButtons(session,inputId="optioncolorsforAnalogHeat",label="Select colors:",choiceNames=c("global color","custom colors"),choiceValues=c("global","custom"),selected="global")
     sendSweetAlert(
       session = session,

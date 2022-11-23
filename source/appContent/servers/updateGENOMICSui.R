@@ -1989,7 +1989,6 @@ observe({
 observeEvent(input$rowdendrogram_click_Analog,{
   #check coordinates. If not in the last (and only the last) column (use x coord), only if
   #clustering is activated, do the stuff, otherwise do nothing
-
   x=round(as.numeric(input$rowdendrogram_click_Analog$x))
   y=as.integer(input$rowdendrogram_click_Analog$y)
   y=y+1 #because is 0-based
@@ -2003,7 +2002,7 @@ observeEvent(input$rowdendrogram_click_Analog,{
     #and clustering must exist
     #& length(isolate(input$BAMsForClusteringAnalogHeat))>0 & length(isolate(input$ROIsForAnalogHeat)) ==1
     #are FALSE, but becayse every input field is reset. For this, keep all
-    if(isolate(input$chooseOrderingAnalogHeat)=="clustering" & length(heatvariables$ROIsForAnalogHeat)==1){
+    if(isolate(toplot$analogic$chooseOrderingAnalogHeat)=="clustering" & length(heatvariables$ROIsForAnalogHeat)==1){
       if(!is.na(heatvariables$clustnumAnalogHeat) & heatvariables$clustnumAnalogHeat<=433 & heatvariables$clustnumAnalogHeat>0){
         #selection is valid. So, clear the brush
         session$resetBrush("heatmap_brush")
