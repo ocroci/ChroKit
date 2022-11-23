@@ -236,7 +236,7 @@ help_BED_viewoptions<-list(
 msg_deleteRois_deleteRois<-list(
 	title="Remove ROIs",
 	text=list(
-		"Delete one or more ROIs",
+		"Displays all the ROIs in the current session. Click to select the ROIs to be deleted.",
 		tags$br(),
 		tags$br(),
 		Tip("Remove unnecessary ROIs if your session becomes too heavy (too many ROIs with too many enrichments associated to them). This 
