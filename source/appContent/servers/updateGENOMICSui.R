@@ -178,7 +178,17 @@ observe({
         }
         names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
         updateSelectInput(session,inputId="ROI2chooseCmp",label=NULL,
-                                    choices = historylist)    
+                                    choices = historylist)   
+
+        #more than 2 ROIs valid, put number of bins
+        output$show_minoverlapcmp<-renderUI({
+          list(
+            list(HTML("<b>Minimum number of bp for overlap:</b>"),htmlhelp("","help_pairwiseOverlaps_parameters_minbpoverlap")),
+            numericInput(inputId = 'minOverlapCmp',label=NULL,min = 1, step = 5,value=1)
+          )
+        })
+
+
       }else{
         nomi=NULL
         historylist=as.list(nomi)
@@ -186,6 +196,7 @@ observe({
         names(historylist)=paste(nomi,lens)
         updateSelectInput(session,inputId="ROI2chooseCmp",label=NULL,
                                     choices = historylist)
+        output$show_minoverlapcmp<-renderUI({NULL})
       }
 
 })

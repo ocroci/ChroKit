@@ -6,6 +6,37 @@
 #these functions cannot read or modify reactiveValues (outside the scope) but give useful info
 #on how to do that
 
+
+#function for the indicator "Loading...". This function was taken from
+#xiaodaigh and dcurrier (https://github.com/AnalytixWare/ShinySky/blob/master/R/busy-indicator.r)
+#and corrected. Maybe the real time is inside setInterval function
+.busyIndicator <- function(text = "Processing..."
+                        , image = "http://i.giphy.com/l3V0EQrPMh1nnfbFe.gif"
+                        , wait=1000) {
+  tagList(
+    singleton(tags$head(
+      tags$link(rel = "stylesheet"
+        , type = "text/css" 
+        ,href = file.path("panel","inst","extdata","busyIndicator.css")
+      )))
+    ,div(class = "mybusyindicator",p(text),img(src=image))
+    ,tags$script(sprintf(
+    " setInterval(function(){
+       if ($('html').hasClass('shiny-busy')) {
+        setTimeout(function() {
+          if ($('html').hasClass('shiny-busy')) {
+            $('div.mybusyindicator').show()
+          }
+        }, %d)          
+      } else {
+        $('div.mybusyindicator').hide()
+      }
+    },1000)
+    ",wait)
+    )
+  ) 
+}
+
 getEnrichList<-function(ROIname) {
 	nome=ROIname
 	pos=match(nome,names(Enrichlist$rawcoverage))

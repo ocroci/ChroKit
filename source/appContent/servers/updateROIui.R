@@ -32,12 +32,45 @@ observe({
   names(historylist)[getwdth]=paste(names(historylist)[getwdth],"(fixed size)")
 
   #those 2 have been moved in uiBED, but kept here
-  updateCheckboxGroupInput(session,inputId="selectedCustomROItoRemove",label=NULL,
-                                  choices = historylist)  
+
   
-      
-  updateCheckboxGroupInput(session,"confirmviewROI", label=NULL,choices=historylist) 
-  updateSelectInput(session,"listgetROI",NULL,choices=historylist)
+  output$show_selectedCustomROItoRemove<-renderUI({
+    wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; background-color: #ffffff;",
+      checkboxGroupInput(inputId="selectedCustomROItoRemove",label=NULL,
+                                choices = historylist)
+    )
+  })
+
+  
+  output$show_confirmviewROI<-renderUI({
+    list(
+      HTML("<b>Select ROI to view:</b>"),
+      wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; max-width: 300px; background-color: #ffffff;",
+        checkboxGroupInput("confirmviewROI", label=NULL,choices=historylist) 
+      )
+    )
+  })
+
+
+  output$show_choosegetROImenu<-renderUI({
+    list(
+      HTML("<b>Select ROI:</b>"),
+      selectInput("listgetROI",NULL,choices=historylist),
+      radioButtons("choosegetROItype",label=NULL,
+                        choiceNames=list(
+                          htmlhelp("Features for each genomic range","help_BED_getroi_eachGR"),
+                          htmlhelp("Gene list inside genomic window","help_BED_getroi_genomicWindow")
+                        ),
+                        choiceValues=list(
+                          "eachRange",
+                          "genesWindow"
+                        ),selected="eachRange")
+    )
+  })
+
+
+
+  
  
   #show current updated ROI list also in coordinate files section
   output$showBEDfiles<-renderText({paste(historylist,collapse="<br>")})
@@ -77,6 +110,9 @@ observe({
   ROIcompleteList=ROIvariables$listROI
   #find and show all possible fatures of the ROI in CheckboxGroupInput, interactively
   #if a ROI is selected
+  if (!isvalid(ROIcompleteList)|!isvalid(input$listgetROI)){
+    return()
+  }
 
   if(  !(!is.null(input$listgetROI)&length(input$listgetROI)>0 & input$listgetROI!="" & length(ROIcompleteList)>0 )   )  {
     output$showROIoptionsToGET<-renderUI({

@@ -24,9 +24,23 @@ output$fileHead <- renderDataTable({
 
 
 #show current file opened
-output$showcurrentfile<-renderText({
-  paste("File content: <b>",BEDvariables$sfn,"</b>",sep="")
+observe({
+  BEDvariables$sfn
+  if (!isvalid(BEDvariables$sfn)){
+    output$showcurrentfile<-renderText({NULL})
+    output$show_filepreviewtitle<-renderUI({NULL})
+    return()
+  }
+  output$showcurrentfile<-renderText({
+    paste("File content: <b>",BEDvariables$sfn,"</b>",sep="")
+  })  
+
+  output$show_filepreviewtitle<-renderUI({
+    list(HTML("<h3>File preview"),htmlhelp("","help_BED_filepreview"),HTML("</h3>"))
+  })
+
 })
+
 
 
 
@@ -100,7 +114,7 @@ observe({
             
           ),
           column(width=8,
-            list(HTML("<h3>File preview</h3>"),htmlhelp("","help_BED_filepreview")),
+            uiOutput("show_filepreviewtitle"),
             HTML("<br>"),
             htmlOutput("showcurrentfile"),
             dataTableOutput("fileHead"),
@@ -309,6 +323,100 @@ observe({
   ######################################################################################
   ######################################################################################
 
+#observe for get roi and view roi boxes. NULL if no ROI
+observe({
+  ROIvariables$listROI
+  if (!isvalid(ROIvariables$listROI)){
+    output$boxviewroi<-renderUI({NULL})
+    output$boxgetroi<-renderUI({NULL})
+    output$boxdeleteroi<-renderUI({NULL})
+    return()    
+  }
+
+  output$boxviewroi<-renderUI({
+    box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+      title=boxHelp(ID="msg_quickviewROIs",title="Quick ROI preview"),
+      fluidRow(
+        column(width=4,
+          uiOutput("show_confirmviewROI")
+          # HTML("<b>Select ROI to view:</b>"),
+          # wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; max-width: 300px; background-color: #ffffff;",
+          #   checkboxGroupInput("confirmviewROI", label=NULL,choices=NULL)
+          # )
+        ),
+
+        column(width=8,
+          uiOutput("show_chooseROIvisualiz"),
+          plotOutput('viewROImaterial'),
+          htmlOutput("saveviewpeaksROImaterial")
+
+
+        )
+      )
+    )
+  })
+
+  output$boxgetroi<-renderUI({
+    box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+      title=boxHelp(ID="msg_getRois_BOX",title="Download ROI"),
+      fluidRow(
+        column(width=4,
+          uiOutput("show_choosegetROImenu"),
+          uiOutput("showROIoptionsToGET")    
+        ),
+        column(width=8, 
+          htmlOutput("previewROItodownload"),
+          htmlOutput("previewROItodownloadbutton")
+        )
+      )
+    )
+  })
+
+
+  output$boxdeleteroi<-renderUI({
+    box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+      title=boxHelp(ID="msg_deleteRois_deleteRois",title="Loaded ROIs"),
+
+      
+      HTML("<b>Available ROIs:</b>"),
+      uiOutput("show_selectedCustomROItoRemove"),
+
+      HTML("Select ROIs to delete<br><br>"),
+      actionButton("deleteROI", "Delete")
+    ) 
+  })
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #observer for options to view (width distribtion or number of ranges)
 observe({
@@ -330,6 +438,16 @@ observe({
   })
 
 })
+
+
+
+######################################################################################
+#GET ROI box
+######################################################################################
+
+
+
+
 
 
   # observe({
