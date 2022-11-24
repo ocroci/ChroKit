@@ -1121,7 +1121,7 @@ observe({
 
   if (flag=="Pattern"){
     toput="pattern"
-  }else if (grepl("promoters",nameroi) | nameroi=="promoters"){
+  }else if (flag=="promoterFlag"){
     toput="TSS"
   }else{
     toput="midpoint"
