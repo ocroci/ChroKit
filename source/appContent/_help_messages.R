@@ -105,18 +105,15 @@ msg_coordinateFiles_chooseCoordinates<-list(
 
 help_BED_fromfiles<-list(
 	title="Import a ROI from file",
-	text=list("Here you can import a ROI from a bed, gtf or gff file.",
+	text=list(HTML("Here you can import a ROI from a bed, gtf or gff file. It must be a tab-delimited text file with 3 (optionally 4) columns with the format :<br><br>
+					Column 1: <i>chr</i>&emsp;Column 2: <i>start</i>&emsp;Column 3: <i>end</i>&emsp;Column 4: <i>strand</i><br><br>
+					The following is an example of the content of the text file:<br><img src='File_ROI_format.png' alt='Res'><br><br>
+					<i>'chr'</i> column should be in format 'chrN', where 'N' is the number of the chromosome (1,2,...X,Y,M)<br>
+	 				<i>'start, end'</i> columns are numbers indicating the starting and ending point of each genomic range<br>
+	 				<i>'strand'</i> column (optional) is the strand for each genomic range(can be either +, -, or * if strand is not determined)"),
 		tags$br(),	
 		tags$br(),
-		Warning("<b>1</b>. Files must be reachable from the machine on which ChroKit is running.<br>
-	 				<b>2</b>. It must be a tab-delimited text file with 3 (optionally 4) columns with the format :<br><br>
-
-	 				Column 1: <i>chr</i>&emsp;Column 2: <i>start</i>&emsp;Column 3: <i>end</i>&emsp;Column 4: <i>strand</i><br><br>
-					
-	 				<i>'chr'</i> column should be in format 'chrN', where 'N' is the number of the chromosome (1,2,...X,Y,M)<br>
-	 				<i>'start, end'</i> columns are numbers indicating the starting and ending point of each genomic range<br>
-	 				<i>'strand'</i> column (optional) is the strand for each genomic range(can be either +, -, or * if strand is not determined)		
-	 				",plural=T)
+		Warning("Files must be reachable from the machine on which ChroKit is running.")
 
 	)
 )
@@ -639,20 +636,23 @@ help_prepgenelist_enrichmentAssoc<-list(
 #overlaps
 help_roimanual_overlaps<-list(
 	title="Overlap two or more ROIs",
-	text=list("Here you can set the rules for defining overlapping or non-overlapping genomic ranges and generate new ROIs"
+	text=list(HTML("Here you can set the rules for defining overlapping or non-overlapping genomic ranges and generate new ROIs.<br><br>
+		<img src='overlaps.png' alt='Res' width=60% height=60%>")
 	)
 )
 
 
 help_roimanual_overlaps_selectref<-list(
 	title="Select reference ROI",
-	text="The ROI(s) that will be used as reference. If more than one ROI is selected, 
-				a combination of them will be used as starting point for the overlaps.",
+	text=list(HTML("The ROI(s) that will be used as reference. If more than one ROI is selected, 
+				a combination of them will be used as starting point for the overlaps.<br><br>
+				<img src='overlaps_referenceroi.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Comment("1. If multiple ROIs are selected, the program will calculate 
 				the union or intersection of their genomic ranges and will produce a single reference.<br>
 				2. The new ROI will keep the enrichments associated to the reference ROI only if a single reference ROI is selected",plural=T)
+	)
 )
 
 help_roimanual_overlaps_intersectionref<-list(
@@ -674,10 +674,12 @@ help_roimanual_overlaps_unionref<-list(
 
 help_roimanual_overlaps_selectoverlapwith<-list(
 	title="Select overlapping contrast ROI",
-	text="Select ROIs that have to overlap with the reference ROI",
-	tags$br(),
-	tags$br(),	
-	Comment("Only genomic ranges of the reference ROI that overlap with those selected here will be kept")
+	text=list(HTML("Select ROIs that have to overlap with the reference ROI<br><br>
+		<img src='overlaps_overlappingroi.png' alt='Res' width=60% height=60%>"),
+		tags$br(),
+		tags$br(),	
+		Comment("Only genomic ranges of the reference ROI that overlap with those selected here will be kept")
+	)
 )
 
 help_roimanual_overlaps_intersectionoverlapwith<-list(
@@ -695,11 +697,13 @@ help_roimanual_overlaps_unionoverlapwith<-list(
 
 help_roimanual_overlaps_selectnotoverlapwith<-list(
 	title="Select not overlapping contrast ROI",
-	text="Select ROIs that do not have to overlap with the reference ROI",
-	tags$br(),
-	tags$br(),	
-	Comment("The resulting ROI will contain only the genomic ranges of the reference ROI that 
-				do not overlap with those selected here")
+	text=list(HTML("Select ROIs that do not have to overlap with the reference ROI<br><br>
+		<img src='overlaps_notoverlappingroi.png' alt='Res' width=60% height=60%>"),
+		tags$br(),
+		tags$br(),	
+		Comment("The resulting ROI will contain only the genomic ranges of the reference ROI that 
+					do not overlap with those selected here")
+	)
 )
 
 help_roimanual_overlaps_intersectionnotoverlapwith<-list(
@@ -736,7 +740,8 @@ help_roimanual_overlaps_strandspecific<-list(
 #resize
 help_roimanual_resize<-list(
 	title="Resize ROI boundaries",
-	text=list("Change the width of the genomic ranges present in a ROI.",
+	text=list(HTML("Change the width of the genomic ranges present in a ROI.<br><br>
+		<img src='resize.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Warning("The new ROI won't keep the enrichments associated to the old ROI")
@@ -746,10 +751,11 @@ help_roimanual_resize<-list(
 
 help_roimanual_pattern<-list(
 	title="Extract sequence pattern from a ROI",
-	text=list("You can extract user-provided sequence patterns from a ROI.
+	text=list(HTML("You can extract user-provided sequence patterns from a ROI.
 			The output is a new ROI composed of genomic ranges that contain the user-defined pattern. 
 			The new ROI obtained after the pattern search will be strand-specific, based on the pattern found. 
-			The genomic ranges will be centred on the pattern.",
+			The genomic ranges will be centred on the pattern.<br><br>
+			<img src='pattern.png' alt='Res' width=60% height=60%>"),
 			tags$br(),
 			tags$br(),
 			Warning("<b>1</b>. A genome assembly must be loaded to search for patterns. To load a genome assembly, use 'Assembly' section.<br>
@@ -800,8 +806,9 @@ help_roimanual_pattern_strandspecific<-list(
 #summit
 help_roimanual_summit<-list(
 	title="Center a ROI on the summit of an enrichment",
-	text=list("For each genomic range of a ROI, it calculates the summit of a signal enrichment (i.e. the coordinate with the maximum value of pileup reads). 
-		Then, each range of the ROI will be centered on that summit",
+	text=list(HTML("For each genomic range of a ROI, it calculates the summit of a signal enrichment (i.e. the coordinate with the maximum value of pileup reads). 
+		Then, each range of the ROI will be centered on that summit<br><br>
+		<img src='summit_detection.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Warning("<b>1</b>. At least one enrichment must be associated to the ROI<br>
@@ -819,14 +826,16 @@ help_roimanual_summit_enrichmenttouse<-list(
 #association enrichments
 help_roimanual_enrichmentAssoc<-list(
 	title="Associate or remove enrichments to ROI(s)",
-	text=list("Associate one or more enrichments (from BAM/bigWIG files imported) to one or more ROIs",
+	text=list(HTML("Associate one or more enrichments (from BAM/bigWIG files imported) to one or more ROIs"),
 		tags$br(),
 		tags$br(),
 		Comment(		
 		"This operation will calculate the pileup of the reads for each base of each range of each ROI selected.
  		The information of the reads come from the enrichment files (either BAM or bigWIG) selected.
  		This is a computationally intensive task, it may require time (from several seconds to few minutes, depending on the size of the ROIs, 
- 		of the enrichment files and on the number of ROIs). Signals will be normalized only for BAM files: for bigWIG files the normalization coefficient will be 1."),
+ 		the size of the enrichment files, the number of ROIs and the computational power). <br><br>
+ 		<img src='enrichment_association.png' alt='Res' width=80% height=80%>
+ 		<br><br>Signals will be normalized only for BAM files: for bigWIG files, the normalization coefficient will be 1."),
 		tags$br(),
 		tags$br(),
 		Warning("<b>1</b>. You need to import enrichment files for the association<br>
@@ -889,7 +898,8 @@ help_roimanual_enrichmentAssoc_numbercores<-list(
 #ROI sample
 help_roimanual_subsample<-list(
 	title="Random subset a ROI",
-	text=list("Create a new ROI from a random sample of genomic rages of another ROI",
+	text=list(HTML("Create a new ROI from a random sample of genomic rages of another ROI<br><br>
+		<img src='random_sample.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Tip("Subsetting is useful to reduce memory usage. This is strongly suggested if you are 
@@ -903,8 +913,9 @@ help_roimanual_subsample<-list(
 #filter for width
 help_roimanual_filterwidth<-list(
 	title="Subset a ROI based on the width of its genomic ranges",
-	text=list("ROIs can be subsetted according to the width of their genomic ranges. Only genomic ranges above/below certain width thresholds
-				will be considered."
+	text=list(HTML("ROIs can be subsetted according to the width of their genomic ranges. Only genomic ranges above/below certain width thresholds
+				will be considered.<br><br>
+				<img src='filterwidth.png' alt='Res' width=60% height=60%>")
 
 	)
 )
@@ -923,9 +934,10 @@ help_roimanual_filterwidth_max<-list(
 #filter for enrichment
 help_roimanual_filterenrich<-list(
 	title="Subset a ROI based on a specific enrichment",
-	text=list("ROIs can be subsetted by their signal enrichment.
+	text=list(HTML("ROIs can be subsetted by their signal enrichment.
 		Only genomic ranges above/below certain enrichment thresholds
-				will be considered.",
+				will be considered.<br><br>
+				<img src='filterenrichment.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),		
 		Warning("At least one enrichment must be associated to the ROI")
@@ -1368,8 +1380,9 @@ msg_digitalHeatmap_heatmap<-list(
 #help for cluster, fraction ranges and extract from cluster
 help_digitalHeatmap_clickinfo<-list(
 	title="Click clusters to get info and extract ROIs",
-	text=list("Click one of the coloured blocks in the cluster bar. On the right, you will see how many genomic regions 
-		constitute the selected cluster and you can extract a new ROI having these genomic ranges.",
+	text=list(HTML("Click one of the coloured blocks in the cluster bar. On the right, you will see how many genomic regions 
+		constitute the selected cluster and you can extract a new ROI having these genomic ranges.<br><br>
+		<img src='digital_click_cluster.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Tip("Use this to extract ROIs with interesting overlapping patterns for downstream analyses, for example the gene ontology.")	
@@ -1619,10 +1632,11 @@ msg_analogicHeatmap_heatmap<-list(
 #help for cluster, fraction ranges and extract from cluster
 help_analogicHeatmap_clickinfo<-list(
 	title="Click clusters/heatmap area to get info and extract ROIs",
-	text=list("Select an area of interest in the heatmap by dragging and dropping the mouse,
+	text=list(HTML("Select an area of interest in the heatmap by dragging and dropping the mouse,
 		 or click one of the coloured blocks in the cluster bar. On the right, you will see how many genomic regions 
 		constitute the selection and you can extract a new ROI having these genomic ranges. On the bottom, enrichments of the selected area will
-		be shown as profiles and boxplots, and updated on the fly if you change the selected area.",
+		be shown as profiles and boxplots, and updated on the fly if you change the selected area.<br><br>
+		<img src='analog_click_cluster.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Tip("Use this to extract ROIs with interesting enrichment patterns for downstream analyses, for example the gene ontology.")	
@@ -1632,9 +1646,10 @@ help_analogicHeatmap_clickinfo<-list(
 
 help_analogicHeatmap_clickinfoonlyselection<-list(
 	title="Select a heatmap area to get info and extract ROIs",
-	text=list("Select an area of interest in the heatmap by dragging and dropping the mouse. On the right, you will see how many genomic regions 
+	text=list(HTML("Select an area of interest in the heatmap by dragging and dropping the mouse. On the right, you will see how many genomic regions 
 		constitute the selection and you can extract a new ROI having these genomic ranges. On the bottom, enrichments of the selected area will
-		be shown as profiles and boxplots, and updated on the fly if you change the selected area.",
+		be shown as profiles and boxplots, and updated on the fly if you change the selected area.<br><br>
+		<img src='analog_click_area.png' alt='Res' width=60% height=60%>"),
 		tags$br(),
 		tags$br(),
 		Tip("Use this to extract ROIs with interesting enrichment patterns for downstream analyses, for example the gene ontology.")	
@@ -1790,7 +1805,8 @@ msg_enrichmentInRois_correlations<-list(
 	text=list(
 		HTML("Shows the correlation or the partial correlation between enrichments in the selected ROI.<br>
 		Clicking a square in the matrix will show the corresponding scatterplot of the pairwise 
-		(partial)correlation in the box on the right"),
+		(partial)correlation in the box on the right.<br><br>
+		<img src='cormatrix_click.png' alt='Res' width=70% height=70%>"),
 		tags$br(),
 		tags$br(),
 		Field("Cor-Heatmap","Correlation Heatmap of the enrichments in a given ROI"),
@@ -2058,8 +2074,10 @@ msg_goAnalysis_goPlot<-list(
 
 help_goAnalysis_clickinfoheat<-list(
 	title="Click cells in the heatmap to get info",
-	text=list("Click one of the cells in the heatmap. On the right, you will see the ontological term, the ROI and all the genes
-			that are both annotated to the ROI and belonging to the ontological term.")
+	text=list(HTML("Click one of the cells in the heatmap. On the right, you will see the ontological term, the ROI and all the genes
+			that are both annotated to the ROI and belonging to the ontological term.<br><br>
+			<img src='GO_click_heat.png' alt='Res' width=80% height=80%>")
+	)
 )
 
 
