@@ -142,7 +142,7 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
 
               box(width=5,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-                title=boxHelp(ID="msg_singleEvaluation_enrichmentBoxplot",title="Enrichment boxplot"),
+                title=boxHelp(ID="msg_pairwiseOverlaps_box",title="Enrichment boxplot"),
                 column(width=8,
                   title=boxHelp(ID="msg_pairwiseOverlaps_box",title="Overlap and enrichment"),
                   plotOutput('viewBoxplotCmp'),
