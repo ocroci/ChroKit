@@ -578,7 +578,9 @@ observeEvent(input$msg_pairwiseOverlaps_box, {boxHelpServer(msg_pairwiseOverlaps
 observeEvent(input$msg_pairwiseOverlaps_scatter, {boxHelpServer(msg_pairwiseOverlaps_scatter)})
 #overlap + enrichment calibration
 observeEvent(input$msg_pairwiseOverlaps_calibration, {boxHelpServer(msg_pairwiseOverlaps_calibration)})
-
+observeEvent(input$msg_pairwiseOverlaps_box, {
+  boxHelpServer(msg_pairwiseOverlaps_box)
+})
 
 
 #react to parameters help button
@@ -2020,7 +2022,7 @@ observeEvent(input$confirmUpdateDigitalHeat1,{
         }else{
           color="'red'"
         }
-        list(HTML(paste("Genomics intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_digitalHeatmap_fractionranges"))
+        list(HTML(paste("Total genomic intervals displayed in the heatmap: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_digitalHeatmap_fractionranges"))
       })
 
 
@@ -3778,7 +3780,7 @@ observeEvent(input$confirmUpdateAnalogHeat,{
                 }else{
                   color="'red'"
                 }
-                list(HTML(paste("Genomic intervals displayed: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_analogicHeatmap_fractionranges"))
+                list(HTML(paste("Total genomic intervals displayed in the heatmap: <font color=",color,">",samplerandom,"/",length(finalrange)," total</font>",sep="")),htmlhelp("","help_analogicHeatmap_fractionranges"))
               })
 
 
