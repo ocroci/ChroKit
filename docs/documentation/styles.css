@@ -1,0 +1,30 @@
+ol { counter-reset: item; list-style-type: none; }
+ol > li:before { content: counters(item, ".") " "; counter-increment: item }
+ul { list-style-type: disc; }
+
+
+
+h1, h2, h3, h4, h5, h6 {
+    display: inline;
+}
+
+ul { list-style-type: disc; }
+
+img {
+  width="70%";
+  alt='missing';
+}
+
+
+figcaption {
+  line-height:40px;
+}
+
+p {
+  text-align:justify;
+  width: 1000px;
+}
+
+figure {
+  margin:0
+} 
