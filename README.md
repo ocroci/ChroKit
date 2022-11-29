@@ -130,8 +130,8 @@ in the address bar of the browser, where \<IP\> is the IP address of the remote 
 **IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Signatures from MSigDB (Molecular Signature Database) (https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb) are already preloaded. 
 
 
-# Tutorial and documentation
-To learn the basics on how to analyse NGS data with ChroKit, please follow the documentation and the tutorials at this page: https://ocroci.github.io/ChroKit/ using sample data.
+# Tutorial
+To learn the basics on how to analyse NGS data with ChroKit, please follow the tutorials at this page: https://ocroci.github.io/ChroKit/ using sample data.
 
 
 # Credits
