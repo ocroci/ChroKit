@@ -3652,14 +3652,24 @@ observeEvent(input$confirmUpdateAnalogHeat,{
                 }else{
                   maxval=max(matProc_analogic)
                   quantval=quantile(matProc_analogic,quantThresh)
-                  if(quantval>0){
-                    matProc_analogic[matProc_analogic>quantval]=quantval
-                    matProc_analogic=matProc_analogic/quantval
-                  }else{
-                    matProc_analogic[matProc_analogic>quantval]=maxval
-                    matProc_analogic=matProc_analogic/maxval
-                  }
                   
+                  if(!quantval>0){
+                    #if quantval=0, set it to min value different from 0
+                    quantval=min(matProc_analogic[matProc_analogic!=0])
+                  }
+                  #here trick to keep color scale consistent. If nbam>1, color custom and scale global,
+                  #after a certain threshold, max for a column will be <0.99999, so smashing col scale
+                  #in this case, set max value for each matrix as global maximum, should solve problem
+                  if(!optioncolors=="global" & length(toplot$analogic$colorpalettes)>1){
+                    for(i in 1:length(heatvariables$BAMsForAnalogHeat)){
+                        piecematrix=matProc_analogic[, ((i-1)*nbin+1):(i*nbin),drop=FALSE ]
+                        piecematrix[piecematrix==max(piecematrix)]=quantval
+                        piecematrix[piecematrix==min(piecematrix)]=0
+                        matProc_analogic[, ((i-1)*nbin+1):(i*nbin) ]=piecematrix
+                    }        
+                  }
+                  matProc_analogic[matProc_analogic>quantval]=quantval
+                  matProc_analogic=matProc_analogic/quantval
                 }
 
                 #extract the value of color palette, resulting from a complex evaluation
@@ -4201,6 +4211,8 @@ output$saveheatmapAnalogbutton<- downloadHandler(
           }else{
             factormult=1
           }
+                  
+
           #quantThresh should be reactive to the change in color saturation bar
           quantThresh=input$quantileThreshAnalogHeat
           method=input$chooseQuantileMethodAnalogHeat
@@ -4216,7 +4228,21 @@ output$saveheatmapAnalogbutton<- downloadHandler(
               temp_matrix_processed[, ((i-1)*toplot$analogic$binsAnalogHeat+1):(i*toplot$analogic$binsAnalogHeat) ]=piecematrix
             }
           }else{
-            temp_matrix_processed[temp_matrix_processed>quantile(temp_matrix_processed,quantThresh)]=quantile(temp_matrix_processed,quantThresh)
+            quantval=quantile(temp_matrix_processed,quantThresh)
+            if(!quantval>0){
+              #if quantval=0, set it to min value different from 0
+              quantval=min(temp_matrix_processed[temp_matrix_processed!=0])
+            }
+            temp_matrix_processed[temp_matrix_processed>quantval]=quantval
+            if(!isolate(input$optioncolorsforAnalogHeat)=="global" & length(toplot$analogic$colorpalettes)>1){
+              for(i in 1:length(heatvariables$BAMsForAnalogHeat)){
+                piecematrix=temp_matrix_processed[, ((i-1)*nbin+1):(i*nbin),drop=FALSE ]
+                piecematrix[piecematrix==max(piecematrix)]=quantval
+                piecematrix[piecematrix==min(piecematrix)]=0
+                temp_matrix_processed[, ((i-1)*nbin+1):(i*nbin) ]=piecematrix
+              }               
+            }
+            
             temp_matrix_processed=temp_matrix_processed/max(temp_matrix_processed)
           }
 
