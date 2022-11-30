@@ -817,7 +817,7 @@ observe({
       }else{
         output$showBAMsForAnalogHeat<-renderUI({
           list(
-            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to ROIs</font>"),
+            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation' -> 'Prepare ROI for heatmaps' to prepare ROIs for heatmap</font>"),
             checkboxGroupInput("BAMsForAnalogHeat",NULL,choices=NULL)
           )
         })
@@ -2497,7 +2497,7 @@ observe({
       }else{
         output$showBAMsforProfilesAndBox<-renderUI({
           list(
-            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to ROIs</font>"),
+            HTML("<font color='red'>Some of the ROI(s) selected do not have enrichment associated.\nGo to 'ROI preparation'-> 'Prepare ROI for heatmaps' to associate enrichments to ROIs</font>"),
             checkboxGroupInput("BAMsForProfilesAndBox",NULL,choices=NULL)
           )
           
@@ -2981,7 +2981,7 @@ observe({
     }else{
       output$show_BAMforDynamics<-renderUI({
         list(
-          HTML("<font color='red'>Some of genelist(s) selected do not have enrichment associated.\nGo to 'ROI preparation' to associate enrichments to genelists</font>"),
+          HTML("<font color='red'>Some of genelist(s) selected do not have enrichment associated.\nGo to 'ROI preparation'-> 'Prepare genelists for metagene profile' to associate enrichments to genelists</font>"),
           checkboxGroupInput(inputId="BAMforDynamics",label=NULL,choices = NULL)
         )    
       })        

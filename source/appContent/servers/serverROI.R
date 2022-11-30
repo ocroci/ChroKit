@@ -1774,7 +1774,7 @@ observeEvent(input$showgenelistWindowROI,{
 
       }else{
         output$previewROItodownload<-renderUI({
-          paste("require promoters (use a database for this)")
+          paste("require promoters (choose an assembly for this)")
         })  
         output$previewROItodownloadbutton<-renderUI({
           NULL

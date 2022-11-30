@@ -316,8 +316,8 @@ observeEvent(input$plotSingleEval,{
 
       			}else{
       				#roi doesn't have bam...
-              output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
-              output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
+              output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+              output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
               toplot$viewDistributionPieSingleEval$Colors_profile=NULL
               toplot$viewDistributionPieSingleEval$Colors_box=NULL
               toplot$viewDistributionPieSingleEval$bam=NULL
@@ -339,8 +339,8 @@ observeEvent(input$plotSingleEval,{
             output$saveviewDistributionBarSingleEval=renderUI({NULL})
             output$savewidthDistributionSingleEval<-renderUI({NULL})
             output$widthDistributionSingleEval<-renderPlot({NULL})
-            output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
-            output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
+            output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+            output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
       			#logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">ROI not found...<br></font>'
             toplot$viewDistributionPieSingleEval$Colors=NULL
             toplot$viewDistributionPieSingleEval$Colors_density=NULL
@@ -371,13 +371,13 @@ observeEvent(input$plotSingleEval,{
         output$saveviewDistributionBarSingleEval=renderUI({NULL})
         output$savewidthDistributionSingleEval<-renderUI({NULL})
         output$widthDistributionSingleEval<-renderPlot({NULL})
-        output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
-        output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
+        output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+        output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
     		#logvariables$msg[[length(logvariables$msg)+1]]= '<font color="red">promoters/transcripts not found... ask to database<br></font>'
         sendSweetAlert(
           session = session,
           title = "Annotated elements not found",
-          text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Databases' section and choose a genome assembly",
+          text = "Promoters, transcripts and TES of a specific genome assembly not found, but you need them: go to 'Assembly' section and choose a genome assembly",
           type = "error"
         )        
         toplot$viewDistributionPieSingleEval$Colors=NULL
@@ -410,8 +410,8 @@ observeEvent(input$plotSingleEval,{
     output$saveviewDistributionBarSingleEval=renderUI({NULL})
     output$savewidthDistributionSingleEval<-renderUI({NULL})
     output$widthDistributionSingleEval<-renderPlot({NULL})
-    output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file",cex=1.4)})
-    output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file",cex=1.4)})
+    output$enrichmentBoxSingleEval<-renderPlot({plot_text(text="you need to\n associate an \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+    output$TSSprofileSingleEval<-renderPlot({plot_text(text="you need to\n associate an  \nenrichment file (go to 'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
     toplot$viewDistributionPieSingleEval$Colors=NULL
     toplot$viewDistributionPieSingleEval$Colors_density=NULL
     toplot$viewDistributionPieSingleEval$Colors_profile=NULL
@@ -1135,9 +1135,9 @@ observeEvent(input$plotCmp,{
         
     }else{
       #plot enrichment stuff (box & scatter) are NULL
-      output$viewCalibrationCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs",cex=1.4)})
-      output$viewBoxplotCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs",cex=1.4)})
-      output$viewScatterplotCmp<-renderPlot({plot_text(text="you need to associate\ntwo enrichment files for both ROIs",cex=1.4)})
+      output$viewCalibrationCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs (go to \n'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+      output$viewBoxplotCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs (go to \n'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
+      output$viewScatterplotCmp<-renderPlot({plot_text(text="you need to associate\ntwo enrichment files for both ROIs (go to \n'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
       output$saveboxdataCmp=renderUI({NULL})
       output$saveviewBoxplotCmp=renderUI({NULL})
       output$saveScatterdataCmp=renderUI({NULL})
