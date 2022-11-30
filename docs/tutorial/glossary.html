@@ -1,0 +1,32 @@
+<h3><a id="glossary">Gossary</a></h3>
+<p align="justify"> 
+
+<li><b>ROI</b></li>
+ROIs ("Regions Of Interest") are genomic regions defined by their coordinates in the genome: chromosomes, starting and ending positions (and strands). They can derive from any kind of NGS experiment (transcription factor binding sites from ChIP-Seq, accessible regions form ATAC-Seq, R-loops from DRIP-Seq, Replication origins from EdU-Seq, ...).
+
+
+<br><br>
+<li><b>Enrichment files</b></li>
+The enrichment files contain information about aligned reads from any kind of NGS experiment. They are required to perform quantitative analyses and to compute reads enrichment.
+When an enrichment file is imported, ChroKit knows where the file is located (so the link to the file is imported) and uses them to compute the reads enrichment in a specific ROI (see 'Enrichment association').
+
+<br><br>
+<li><b>Gene list</b></li>
+They are lists of genes with any kind of identifiers (symbols, ENTREZ ID, Ref Seq ID, ENSEMBL ID).
+Once imported in the program, a gene list is defined as a triplet of ROIs: promoters, transcripts and TES (transcription end sites) of all the genes composing the gene list. 
+They can derive form any kind of source. As example, they can be a set of UP-regulated genes from an RNA-Seq experiment or a set of genes belonging to a specific pathway.
+
+<br><br>
+<li><b>Assembly</b></li>
+A genome assembly is the union of three ROIs: all the annotated promoters, transcripts, TES of a specific organism. The libraries to import assembly must be installed on the system, or they can be downloaded from bioConductor inside the program. Docker images already have mouse and human libraries pre-installed.
+An assembly is required for various operations, such as importing gene lists or annotating ROIs.
+
+<br><br>
+<li><b>Enrichment association</b></li>
+After importing enrichment files, this operation computes the number of reads aligned for each base pair in genomic ranges of a specific ROI.
+This is required for analyses involving reads enrichment.
+
+
+</p>
+
+<a href="../index.html"><h4>Back to INDEX</h4></a>
