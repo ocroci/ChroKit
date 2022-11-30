@@ -471,8 +471,8 @@ msg_databases_extractAnnotatedElements<-list(
 		Comment("1. The selected assembly will be used to automatically annotate all the ROIs that will be imported later.<br>
 				2. The selected assembly will be used to obtain a set of promoters, transcripts and TES from a custom list of genes ('ROIs' section). <br>
 				3. ROIs already imported into the program will be automatically re-annotated according to the newly selected genome assembly 
-				(except those derived from a previous database, for example the promoters of a list of genes obtained from another database).<br>
-				4. Additional genome assemblies can be downloaded from bioconductor using the 'Download databases' box 
+				(except those derived from a previous assembly, for example the promoters of a list of genes obtained from another assembly).<br>
+				4. Additional genome assemblies can be downloaded from bioconductor using the '... or download an assembly' box 
 				on the right. ",plural=T)
 		
 	)	
@@ -1068,7 +1068,7 @@ msg_singleEvaluation_enrichmentBoxplot<-list(
 		tags$br(),
 		tags$br(),
 		Warning("The enrichment file must be associated to the ROI. To associate enrichments to a ROI, 
-			see 'Associate enrichments' tab in 'ROI management' section")		
+			see 'Associate enrichments' tab in 'ROI preparation' section")		
 	)
 )
 #Peak average profile
@@ -1080,7 +1080,7 @@ msg_singleEvaluation_peakProfile<-list(
 		tags$br(),
 		tags$br(),
 		Warning("The enrichment file must be associated to the selected ROI. To associate enrichments, 
-			see 'Associate enrichments' tab in 'ROI management' section")		
+			see 'Associate enrichments' tab in 'ROI preparation' section")		
 	)
 )
 
