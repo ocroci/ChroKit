@@ -2065,16 +2065,16 @@ observeEvent(input$confirmBAMassociate,{
 	    }else if(input$selectMethodForNorm=="customnorm"){
 	      if(length(input$customNormalizer)>0){
 	        Normmethod="custom"
-	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
+	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))][[1]]
 	        normCtrl=NULL
 	        normCtrlSpike=NULL
 	      }
 	    }else if(input$selectMethodForNorm=="spikein") {
 	      if(length(input$customNormalizer)>0 & length(input$ctrlNormalizer)>0 & input$ctrlSpikeinNormalizer>0){
 	        Normmethod="spikein"
-	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))]
-	        normCtrl=BAMvariables$listBAM[match(input$ctrlNormalizer,names(BAMvariables$listBAM))]
-	        normCtrlSpike=BAMvariables$listBAM[match(input$ctrlSpikeinNormalizer,names(BAMvariables$listBAM))]
+	        normalizer=BAMvariables$listBAM[match(input$customNormalizer,names(BAMvariables$listBAM))][[1]]
+	        normCtrl=BAMvariables$listBAM[match(input$ctrlNormalizer,names(BAMvariables$listBAM))][[1]]
+	        normCtrlSpike=BAMvariables$listBAM[match(input$ctrlSpikeinNormalizer,names(BAMvariables$listBAM))][[1]]
 	      }
 	    }else if(input$selectMethodForNorm=="nonorm"){
 	      Normmethod="no"
@@ -2096,6 +2096,7 @@ observeEvent(input$confirmBAMassociate,{
 
 
     ##here use totallist to parallelize the code. Each iteration has path to enrichment and a ROI
+    
     tryCatch({
 
       #parallelize only if system RAM is very high
