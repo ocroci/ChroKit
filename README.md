@@ -66,7 +66,8 @@ For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 - ***MacOS users***:
   To run ChroKit from within R in a MacOS machine, make sure the Xcode command line tools are properly installed and updated.
   This could be done by simply typing the following command on a terminal:
-  ```xcode-select --install``` \n
+  ```xcode-select --install``` 
+  
   Note: while sleeping, the computer must NOT disconnect from network, otherwise Chrokit will interrupt its execution. This behaviour can be set in the energy savings options (usually you must check the "Prevent computer sleeping automatically when the display is off").
 
 
