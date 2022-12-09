@@ -11,13 +11,12 @@ The wide variety of interactive plots offered by ChroKit can be modified simply 
 ![ Alt text](ChroKit_example.gif)
 
 
-# Install dependencies
 
-## Requirements
+# Requirements
 ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Linux). At least 8 Gb of RAM are recommended. 
 The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
-## From Docker image (recommended)
+# Installation from Docker image (recommended)
 Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed and running (activated) on your system.
 
 To pull the image, use the following command from the terminal:\
@@ -26,11 +25,11 @@ To pull the image, use the following command from the terminal:\
 To run the program, type this command from the terminal:\
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```
 
-In this case the /mnt folder inside the container will mount a folder of the host system (usually, the home directory); change these folders according to your needs.
-
 You have to substitute:\
 **\<home directory\>** : is the directory of your computer containing all your files. This directory will be accessible from the program. Usually, the home directory is fine. In UNIX systems, it can be found with the ```pwd``` command from terminal. Usually, it is "/home/_username_" in Linux or "/Users/_username_" in MacOS systems.\
 **\<port\>** : is an arbitrary port on the host system to use for accessing the docker image; this port must be free. Try a number between 1025 and 65000.
+
+In this case the /mnt folder inside the container will mount a folder of the host system (usually, the home directory); change these folders according to your needs.
 
 An example in MacOS can be:\
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```
@@ -45,11 +44,13 @@ To use the application, open a web browser and
   - if you are using a remote machine, go to:\
     ```<IP>:<port> ```\
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
+    
+**Note for MacOS users**: while sleeping, the computer must NOT disconnect from network, otherwise Chrokit will interrupt its execution. This behaviour can be set in the energy savings options (usually you must check the "Prevent computer sleeping automatically when the display is off").
 
 For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
 
-## From source (using R interpreter)
+# Installation from source (using R interpreter)
 
 ### Install dependencies 
 1) Download and install the R interpreter (suggested version 3.5 or higher) on your computer or on a remote machine
@@ -66,6 +67,7 @@ For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
   To run ChroKit from within R in a MacOS machine, make sure the Xcode command line tools are properly installed and updated.
   This could be done by simply typing the following command on a terminal:
   ```xcode-select --install```
+  Note: while sleeping, the computer must NOT disconnect from network, otherwise Chrokit will interrupt its execution. This behaviour can be set in the energy savings options (usually you must check the "Prevent computer sleeping automatically when the display is off").
 
 
 - ***Windows users***:
