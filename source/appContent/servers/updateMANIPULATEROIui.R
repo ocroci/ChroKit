@@ -811,7 +811,7 @@ observe({
 
     if (!isvalid(input$Assoc_or_deassoc)){
       output$show_selectBAMtoDeassociate<-renderUI({NULL})
-      output$show_selectBAMtoassociate<-renderUI({NULL})
+      output$show_selectBAMtoassociate<-renderUI({checkboxGroupInput("selectBAMtoassociate",NULL,choices=NULL)})
       output$show_coresAndButtonAssociate<-renderUI({NULL}) 
       return()     
     }
@@ -839,11 +839,21 @@ observe({
       }else{
         if (length(allBAMavailable)>0){
           #ROI selected, but all enrichments available already associated to the selected ROIs
-          output$show_selectBAMtoassociate<-renderUI({HTML("<font color='red'>All available enrichments already associated to selected ROI(s)</font>")})
+          output$show_selectBAMtoassociate<-renderUI({
+            list(
+              HTML("<font color='red'>All available enrichments already associated to selected ROI(s)</font>"),
+              checkboxGroupInput("selectBAMtoassociate",NULL,choices=NULL)
+            )   
+          })
           output$show_coresAndButtonAssociate<-renderUI({NULL}) 
           output$show_selectBAMtoDeassociate<-renderUI({NULL})         
         }else{
-          output$show_selectBAMtoassociate<-renderUI({HTML("<font color='red'>No enrichments available for association. Import enrichment files before.</font>")})
+          output$show_selectBAMtoassociate<-renderUI({            
+            list(
+              HTML("<font color='red'>All available enrichments already associated to selected ROI(s)</font>"),
+              checkboxGroupInput("selectBAMtoassociate",NULL,choices=NULL)
+            ) 
+          })
           output$show_coresAndButtonAssociate<-renderUI({NULL})  
           output$show_selectBAMtoDeassociate<-renderUI({NULL})           
         }
@@ -908,6 +918,20 @@ observe({
 
 #observer for normalization menu (spike, no norm, library size...)
 observe({
+  input$selectROItoBAMassociate
+  input$Assoc_or_deassoc
+  if (!isvalid(input$selectROItoBAMassociate)){
+    output$radioForNorm<-renderUI({NULL})
+    return()    
+  }
+  if (!isvalid(input$Assoc_or_deassoc)){
+    output$radioForNorm<-renderUI({NULL})
+    return()
+  }
+  if (input$Assoc_or_deassoc=="deassociate"){
+    output$radioForNorm<-renderUI({NULL})
+    return()
+  }
   input$selectBAMtoassociate
   listbams=isolate(BAMvariables$listBAM)
   pos2=match(input$selectBAMtoassociate,names(listbams))
