@@ -2402,6 +2402,7 @@ observeEvent(input$msg_renameEnrichments_reorderEnrichments, {
 
 #observe to rename a BAM of a specific ROI
 observeEvent(input$renameBAM,{
+
   if (!is.null(ROIvariables$listROI)& length(ROIvariables$listROI)>=1){
     #check if name is set
     if (nchar(input$newBAMname)>=1) {
@@ -2455,10 +2456,11 @@ observeEvent(input$renameBAM,{
 
 #observe to reorder a BAM of a specific ROI
 observeEvent(input$reorderBAM,{
+
   if (!is.null(ROIvariables$listROI) & length(ROIvariables$listROI)>0){
     #find ROI selected and if there are BAM files associated with it
     nomi=unlist(lapply(ROIvariables$listROI,getName))
-    pos=match(input$selectROIforBAMrename,nomi)
+    pos=match(input$selectROIforBAMreorder,nomi)
     roi=ROIvariables$listROI[[pos]]
     ####newenrichimplementation####
     rawvals=Enrichlist$rawcoverage[[pos]]
