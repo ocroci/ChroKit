@@ -3580,7 +3580,7 @@ observeEvent(input$confirmUpdateAnalogHeat,{
 
                 output$showchooseQuantileMethodAnalogHeat<-renderUI({
                   list(
-                    HTML("<b>Quantile threshold</b>"),
+                    HTML("<b>Color scale</b>"),
                     radioButtons("chooseQuantileMethodAnalogHeat",label=NULL,
                         choiceNames=list(
                           htmlhelp("Uniform","help_analogicHeatmap_parameters_uniform"),
