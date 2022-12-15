@@ -568,6 +568,52 @@ observe({
     return()
   }
 
+
+  nomi=unlist(lapply(ROIvariables$listROI,getName))
+  triadsROItoshow=c()
+  allBAMmissings=list()
+  for(i in 1:length(input$selectROIGenelistPipeline)){
+    #change this if in the menu "genelist " is before the actual name of the genelist
+    #selected=strsplit(input$selectROIGenelistPipeline[i],split=" ")[[1]][2]
+    selected=input$selectROIGenelistPipeline[i]
+    pos_promoters= which(paste("promoters_genelist_",selected,sep="")==nomi)
+    pos_transcripts= which(paste("transcripts_genelist_",selected,sep="")==nomi)
+    pos_TES= which(paste("TES_genelist_",selected,sep="")==nomi)
+    triadsROItoshow=c(triadsROItoshow,paste("promoters_genelist_",selected,sep=""),
+                                      paste("transcripts_genelist_",selected,sep=""),
+                                      paste("TES_genelist_",selected,sep=""))
+    pos=c(pos_promoters,pos_transcripts,pos_TES)
+    if (length(pos_promoters)>0 & length(pos_transcripts)>0 & length(pos_TES)>0){
+      rois=ROIvariables$listROI[pos] 
+      allBAMmissing=c()
+      bamblock=Enrichlist$rawcoverage[pos]
+      #in the bampresent=names(getBAMlist(rois[[i]])) can raise an error, not always
+      #it tells that unable to find an inherited method for function ‘getBAMlist’ for signature ‘"NULL"’
+      for (k in 1:length(rois)){
+        bampresent=names(bamblock[[k]])
+        allbams=names(BAMvariables$listBAM)
+        remainingbams=setdiff(allbams,bampresent)
+        allBAMmissing=c(allBAMmissing,remainingbams)
+      }
+      #define the union of them and show in the menu
+      allBAMmissing=unique(allBAMmissing)
+      if(is.null(allBAMmissing)){
+        allBAMmissing=character(0)
+      }
+     
+    }else{
+      allBAMmissing=character(0)
+    }
+
+    allBAMmissings[[i]]=allBAMmissing
+  }
+  allBAMavailableToAssoc=Reduce(union, allBAMmissings)
+
+  if(length(allBAMavailableToAssoc)==0){
+    output$show_buttonGenelistPipeline<-renderUI({NULL})
+    return()    
+  }
+
   output$show_buttonGenelistPipeline<-renderUI({
     actionButton("PrepareROIgenelistPipeline","Prepare genelist")
   })
