@@ -610,7 +610,7 @@ observe({
   allBAMavailableToAssoc=Reduce(union, allBAMmissings)
 
   if(length(allBAMavailableToAssoc)==0){
-    output$show_buttonGenelistPipeline<-renderUI({NULL})
+    output$show_buttonGenelistPipeline<-renderUI({HTML("<font color='red'>All available enrichments already associated to selected genelist(s)</font>")})
     return()    
   }
 
