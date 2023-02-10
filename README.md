@@ -23,7 +23,9 @@ To start with the installation:
 
 1. Open the terminal application (in a Mac operatin system is generally found in HD/applications/utilities)
 2. To pull the docker image, type the following command into the terminal window:\
+\
 ```sudo docker pull ocroci/chrokit:latest```\
+\
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
 
 3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit working directory will be the "/mnt" folder:\
@@ -38,10 +40,14 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 
 4. To use the application, open a web browser and:\
   - if you are using a personal computer, type the following in the address bar:\
+  \
     ```127.0.0.1:<port>```\
+  \
     In \<port\> you have to insert the port number selected in (3.).
   - if you are using a remote machine, go to:\
+  \
     ```<IP>:<port> ```\
+  \
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
     
 **Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and check the "Prevent computer sleeping automatically when the display is off".
