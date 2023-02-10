@@ -43,8 +43,8 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 4. To use the application, open a web browser and:\
 
   - if you are using a personal computer, type the following in the address bar:\
-    ```127.0.0.1:<port>```
-    In <port> you have to insert the port number selected in (3.).
+    ```127.0.0.1:<port>```\
+    In \<port\> you have to insert the port number selected in (3.).
   - if you are using a remote machine, go to:\
     ```<IP>:<port> ```\
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
