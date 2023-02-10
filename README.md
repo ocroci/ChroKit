@@ -26,8 +26,10 @@ To start with the installation:
 ```sudo docker pull ocroci/chrokit:latest```\
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
 
-3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit working directory will be the "/mnt" folder:\\
-```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\\
+3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit working directory will be the "/mnt" folder:\
+\
+```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
+\
 In the previous command you have to:\
 substitute **\<home directory\>** with the path  of the home directory of the user. This directory will be accessible from the program. In UNIX systems, the home directory can be found with the _pwd_ command from terminal. Usually, it is "/home/_username_" in Linux or "/Users/_username_" in MacOS systems.\
 Substitute **\<port\>** with a number between 1025 and 60000. This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free (not used by other programs).\
