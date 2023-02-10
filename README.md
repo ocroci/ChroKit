@@ -17,35 +17,40 @@ ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Li
 The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
 # Installation from Docker image (recommended)
-Docker image is available with pre-installed libraries of human and mouse genome assemblies (https://hub.docker.com/r/ocroci/chrokit). Be sure to have Docker installed and running (activated) on your system.
+The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chrokit. This has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
 
-To pull the image, use the following command from the terminal:\
+To start with the installation:
+
+1. Open the terminal application (in a Mac operatin system is generally found in HD/applications/utilities)
+2. To pull the docker image, type the following command into the terminal window:\
+
 ```sudo docker pull ocroci/chrokit:latest```
 
-To run the program, type this command from the terminal:\
+and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
+
+3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit working directory will be the "/mnt" folder:\
+
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```
 
-You have to substitute:\
-**\<home directory\>** : is the directory of your computer containing all your files. This directory will be accessible from the program. Usually, the home directory is fine. In UNIX systems, it can be found with the ```pwd``` command from terminal. Usually, it is "/home/_username_" in Linux or "/Users/_username_" in MacOS systems.\
-**\<port\>** : is an arbitrary port on the host system to use for accessing the docker image; this port must be free. Try a number between 1025 and 65000.
+In the previous command you have to:
+substitute **\<home directory\>** with the path  of the home directory of the user. This directory will be accessible from the program. In UNIX systems, the home directory can be found with the _pwd_ command from terminal. Usually, it is "/home/_username_" in Linux or "/Users/_username_" in MacOS systems.\
+Substitute **\<port\>** with a number between 1025 and 60000. This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free (not used by other programs).
 
-In this case the /mnt folder inside the container will mount a folder of the host system (usually, the home directory); change these folders according to your needs.
+For instance, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
 
-An example in MacOS can be:\
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```
 
-where "/Users/ocroci" is the home directory on the computer, while "4000" is a free port.
+4. To use the application, open a web browser and:\
 
-
-
-To use the application, open a web browser and
-  - if you are using a personal computer, go to:\
+  - if you are using a personal computer, type the following in the address bar:\
     ```127.0.0.1:<port>```
+    In <port> you have to insert the port number selected in (3.).
   - if you are using a remote machine, go to:\
     ```<IP>:<port> ```\
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
     
-**Note for MacOS users**: while sleeping, the computer must NOT disconnect from network, otherwise Chrokit will interrupt its execution. This behaviour can be set in the energy savings options (usually you must check the "Prevent computer sleeping automatically when the display is off").
+**Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and check the "Prevent computer sleeping automatically when the display is off".
+
 
 For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
