@@ -21,7 +21,7 @@ The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chro
 
 To start with the installation:
 
-1. Open the terminal application (in a Mac operatin system is generally found in HD/applications/utilities)
+1. Open the terminal application (in a Mac operating system is generally found in HD/applications/utilities)
 
 
 2. To pull the docker image, type the following command into the terminal window:\
