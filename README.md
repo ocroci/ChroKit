@@ -89,7 +89,7 @@ Make sure to give enough RAM (at least 4-8 Gb) to the container.
   \
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
     
-For futher help to install the Docker image of ChroKit in windows, please follow this video clip:
+For further help to install the Docker image of ChroKit in Windows, please follow this video clip:
 
 ![ Alt text](windows_installation.gif)
 
