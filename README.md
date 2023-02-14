@@ -44,7 +44,6 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 
 
 4. To use the application, open a web browser and:
-\
   - if you are using a personal computer, type the following in the address bar:\
   \
     ```127.0.0.1:<port>```\
