@@ -19,6 +19,8 @@ The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu M
 # Installation from Docker image (recommended)
 The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chrokit. This has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
 
+##For MacOS and Linux users
+
 To start with the installation:
 
 1. Open the terminal application (in a Mac operating system is generally found in HD/applications/utilities)
