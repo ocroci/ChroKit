@@ -19,9 +19,8 @@ The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu M
 # Installation from Docker image (recommended)
 The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chrokit. This has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
 
-### **For MacOS and Linux users**
 
-To start with the installation:
+### **Installation for MacOS and Linux users**
 
 1. Open the terminal application (in a Mac operating system is generally found in HD/applications/utilities)
 
@@ -59,6 +58,35 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
     
 **Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and check the "Prevent computer sleeping automatically when the display is off".
 
+
+### **Installation for Windows users**
+
+1. Open the command prompt (search for "CMD" application in Windows)
+
+
+2. To pull the docker image, type the following command into the prompt window:\
+\
+```docker pull ocroci/chrokit:latest```\
+\
+and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker Desktop app)
+
+
+3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\_username_\) and a container path (type /mnt). Then, run the image and wait for ChroKit initialization. 
+Note: the port must not be in use by other programs; if you experience problems, try another number.
+In this case use "/mnt" folder when using ChroKit to find all the files in the computer.
+
+
+4. To use the application, open a web browser and:
+  - if you are using a personal computer, type the following in the address bar:\
+  \
+    ```127.0.0.1:<port>```\
+  \
+    In \<port\> you have to insert the port number selected in (3.).
+  - if you are using a remote machine, go to:\
+  \
+    ```<IP>:<port> ```\
+  \
+    where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
 
 For further instructions, go to https://hub.docker.com/r/ocroci/chrokit
 
