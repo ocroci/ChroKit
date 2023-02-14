@@ -22,7 +22,7 @@ The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chro
 
 ### **Installation for MacOS and Linux users**
 
-1. Open the terminal application (in a Mac operating system is generally found in HD/applications/utilities)
+1. Open the terminal application (in a Mac operating system the terminal application is generally found in HD/applications/utilities)
 
 
 2. To pull the docker image, type the following command into the terminal window:\
@@ -32,7 +32,7 @@ The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chro
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
 
 
-3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit working directory will be the "/mnt" folder:\
+3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
 \
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
 \
@@ -56,7 +56,7 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
   \
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
     
-**Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and check the "Prevent computer sleeping automatically when the display is off".
+**Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and tick the checkbox "Prevent computer sleeping automatically when the display is off".
 
 
 ### **Installation for Windows users**
@@ -68,7 +68,7 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 \
 ```docker pull ocroci/chrokit:latest```\
 \
-and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker Desktop app)
+and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker desktop app)
 
 
 3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and wait for ChroKit initialization. 
