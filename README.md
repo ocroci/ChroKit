@@ -71,9 +71,10 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker Desktop app)
 
 
-3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\_username_\) and a container path (type /mnt). Then, run the image and wait for ChroKit initialization. 
+3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and wait for ChroKit initialization. 
 Note: the port must not be in use by other programs; if you experience problems, try another number.\
 In this case use "/mnt" folder when using ChroKit to find all the files in the computer.
+Make sure to give enough RAM (at least 4-8 Gb) to the container.
 
 
 4. To use the application, open a web browser and:
