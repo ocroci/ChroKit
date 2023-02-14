@@ -43,7 +43,8 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```
 
 
-4. To use the application, open a web browser and:\
+4. To use the application, open a web browser and:
+\
   - if you are using a personal computer, type the following in the address bar:\
   \
     ```127.0.0.1:<port>```\
