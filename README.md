@@ -94,7 +94,7 @@ Make sure to give enough RAM (at least 4-8 Gb) to the container.
   \
     ```127.0.0.1:4000```\
   \
-  since we used "4000" for the \<port\>. 
+  since we used "4000" for the port. 
   - if you are using a remote machine, go to:\
   \
     ```<IP>:<port> ```\
