@@ -17,9 +17,9 @@ ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Li
 The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
 # Installation from Docker image (recommended)
-The Docker image of ChroKit is available at https://hub.docker.com/r/ocroci/chrokit. This has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
+The Docker image of ChroKit has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
 Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/.
-If the most recent Docker app is not supported by your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
+If the most recent Docker app is not supported by your operating system or you experience any kind of compatibility problems, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
 
 
 ### **Installation for MacOS and Linux users**
@@ -65,6 +65,8 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
     
 **Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and tick the checkbox "Prevent computer sleeping automatically when the display is off".
 
+From now on, to use the application, open Docker desktop and follow the steps 3) and 4).
+
 
 ### **Installation for Windows users**
 
@@ -100,7 +102,9 @@ Make sure to give enough RAM (at least 4-8 Gb) to the container.
     ```<IP>:<port> ```\
   \
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
-    
+
+From now on, to use the application, open Docker desktop and follow the steps 3) and 4).
+
 For further help to install the Docker image of ChroKit in Windows, please follow this video clip:
 
 ![ Alt text](windows_installation.gif)
