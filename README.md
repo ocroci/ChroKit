@@ -17,8 +17,9 @@ ChroKit is multiplatform and can run on any operating system (Windows, MacOS, Li
 The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu Mate 20.04 and Windows 10; however, other versions of these operating systems should be supported as well.
 
 # Installation from Docker image (recommended)
-The Docker image of ChroKit has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.
-Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/.
+The Docker image of ChroKit has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.\
+Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/.\
+\
 If the most recent Docker app is not supported by your operating system or you experience any kind of compatibility problems, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
 
 
