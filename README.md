@@ -25,17 +25,20 @@ If the most recent Docker app is not supported by your operating system or you e
 
 ### **Installation for MacOS and Linux users**
 
-1. Open the terminal application (in a Mac operating system the terminal application is generally found in HD/applications/utilities)
+1. Open the Docker desktop app
 
 
-2. To pull the docker image, type the following command into the terminal window:\
+2. Open the terminal application (in a Mac operating system the terminal application is generally found in HD/applications/utilities)
+
+
+3. To pull the docker image, type the following command into the terminal window:\
 \
 ```sudo docker pull ocroci/chrokit:latest```\
 \
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
 
 
-3. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
+4. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
 \
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
 \
@@ -46,14 +49,14 @@ For instance, in MacOS, in the following command line "/Users/ocroci" is the hom
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
 \
-After inserting the command in the terminal, press enter, type the password as in step 2) if required and **wait for ChroKit initialization**
+After inserting the command in the terminal, press enter, type the password as you did in step (3.) if required and **wait for ChroKit initialization**
 
-4. To use the application, open a web browser and:
+5. To use the application, open a web browser and:
   - if you are using a personal computer, type the following in the address bar:\
   \
     ```127.0.0.1:<port>```\
   \
-    In \<port\> you have to insert the port number selected in (3.).
+    In \<port\> you have to insert the port number selected in (4.).
     In the example above, the address will be:\
   \
     ```127.0.0.1:4000```\
@@ -67,33 +70,36 @@ After inserting the command in the terminal, press enter, type the password as i
     
 **Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and tick the checkbox "Prevent computer sleeping automatically when the display is off".
 
-From now on, to use the application, open Docker desktop and follow the steps 3) and 4).
+From now on, to use the application, follow again all the steps except step (3.).
 
 
 ### **Installation for Windows users**
 
-1. Open the command prompt (search for "CMD" application in Windows)
+1.  Open the Docker desktop app
+ 
+
+2. Open the command prompt (search for "CMD" application in Windows)
 
 
-2. To pull the docker image, type the following command into the prompt window:\
+3. To pull the docker image, type the following command into the prompt window:\
 \
 ```docker pull ocroci/chrokit:latest```\
 \
 and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker desktop app)
 
 
-3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
+4. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
 Note: the port must not be in use by other programs; if you experience problems, try another number.\
 In this case use "/mnt" folder when using ChroKit to find all the files in the computer.\
 Make sure to give enough RAM (at least 4-8 Gb) to the container.
 
 
-4. To use the application, open a web browser and:
+5. To use the application, open a web browser and:
   - if you are using a personal computer, type the following in the address bar:\
   \
     ```127.0.0.1:<port>```\
   \
-    In \<port\> you have to insert the port number selected in (3.).
+    In \<port\> you have to insert the port number selected in (4.).
     In the example above, the address will be:\
   \
     ```127.0.0.1:4000```\
@@ -105,7 +111,7 @@ Make sure to give enough RAM (at least 4-8 Gb) to the container.
   \
     where \<IP\> is the IP address of the remote machine in which the Docker container is running and the \<port\> is the port selected when running the image.
 
-From now on, to use the application, open Docker desktop and follow the steps 3) and 4).
+From now on, to use the application, follow again all the steps except step (3.).
 
 For further help to install the Docker image of ChroKit in Windows, please follow this video clip:
 
