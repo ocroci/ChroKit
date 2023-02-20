@@ -45,7 +45,8 @@ Substitute **\<port\>** with a number between 1025 and 60000. This number indica
 For instance, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
-Then type the password as in step 2) and *wait for ChroKit initialization*
+\
+After inserting the command in the terminal, press enter, type the password as in step 2) if required and **wait for ChroKit initialization**
 
 4. To use the application, open a web browser and:
   - if you are using a personal computer, type the following in the address bar:\
@@ -81,7 +82,7 @@ From now on, to use the application, open Docker desktop and follow the steps 3)
 and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker desktop app)
 
 
-3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and *wait for ChroKit initialization*. 
+3. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
 Note: the port must not be in use by other programs; if you experience problems, try another number.\
 In this case use "/mnt" folder when using ChroKit to find all the files in the computer.\
 Make sure to give enough RAM (at least 4-8 Gb) to the container.
