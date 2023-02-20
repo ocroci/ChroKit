@@ -35,7 +35,7 @@ If the most recent Docker app is not supported by your operating system or you e
 \
 ```sudo docker pull ocroci/chrokit:latest```\
 \
-and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). Wait until the image is downloaded.
+and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). **Wait until the image is downloaded**.
 
 
 4. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
@@ -85,7 +85,7 @@ From now on, to use the application, follow again all the steps except step (3.)
 \
 ```docker pull ocroci/chrokit:latest```\
 \
-and press enter. Wait until the image is downloaded. (Optionally, you should be able to download the image from within the Docker desktop app)
+and press enter. **Wait until the image is downloaded**. (Optionally, you should be able to download the image from within the Docker desktop app)
 
 
 4. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
