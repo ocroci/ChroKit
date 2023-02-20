@@ -1,5 +1,5 @@
 # ChroKit
-ChroKit (The **Chro**matin Tool**Kit**) is a Shiny-based framework to analyze and visualize interactively genomic data.
+ChroKit (The **Chro**matin Tool**Kit**) is a Shiny-based <style="color:purple;">framework</style> to analyze and visualize interactively genomic data.
 
 This bioinformatics tool can help the researchers to process the data from next generation sequencing (NGS) experiments, such as Chip-Seq, ATAC-Seq and any other NGS experiments aimed at analyzing the enrichment of specific genomic features in particular regions of interest. 
 
