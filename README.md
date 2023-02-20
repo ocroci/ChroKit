@@ -70,6 +70,10 @@ After inserting the command in the terminal, press enter, type the password as y
     
 **Note for MacOS users**: make sure that the computer does NOT disconnect from network when it goes into sleeping, otherwise ChroKit will interrupt its execution. To prevent this go to system preferences/energy savings options and tick the checkbox "Prevent computer sleeping automatically when the display is off".
 
+For further help to install the Docker image of ChroKit in Mac OS, please follow this video clip:
+
+![ Alt text](mac_installation.gif)
+
 From now on, to use the application, follow again all the steps except step (3.).
 
 
