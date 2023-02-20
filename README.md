@@ -40,7 +40,7 @@ and press enter. When prompted, insert the computer administration password and 
 
 4. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
 \
-```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
+```sudo docker run -v ***<home directory>***:/mnt/ -p ***<port>***:6060 -it ocroci/chrokit:latest```\
 \
 In the previous command you have to:\
 substitute **\<home directory\>** with the path of the home directory of the user. This will be accessible from the program. In UNIX systems, the home directory can be found with the *pwd* command from terminal. Usually, it is "/home/*username*" in Linux or "/Users/*username*" in MacOS systems.\
