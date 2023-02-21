@@ -46,7 +46,7 @@ substitute **\<home directory\>** with the path of the home directory of the use
 (In UNIX systems, the home directory can be found with the *pwd* command from terminal.)\
 Substitute **\<port\>** by choosing a number between 1025 and 60000.
 \
-(This number indicates an arbitrary port on the host system (your computer) used for accessing the docker image: it must be free and not used by other programs). \
+(This number indicates an arbitrary port on the host system (your computer) used for accessing the docker image: it must be free and not used by other programs. If you experience problems, try another number). \
 For example, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
