@@ -22,7 +22,7 @@ The Docker image of ChroKit has pre-installed libraries of the human and mouse g
 
 ### **Installation for MacOS and Linux users**
 
-1. Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
+1. Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. (If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/)
 
 
 2. Open the terminal application (in a Mac operating system the terminal application is generally found in HD/applications/utilities)
@@ -76,7 +76,7 @@ From now on, to use the application, follow again all the steps except step (3.)
 
 ### **Installation for Windows users**
 
-1.  Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
+1.  Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. (If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/)
  
 
 2. Open the command prompt (search for "CMD" application in Windows)
