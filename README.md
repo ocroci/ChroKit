@@ -18,14 +18,11 @@ The program has been successfully tested on MacOS 10.14.6 Mojave, Linux Ubuntu M
 
 # Installation from Docker image (recommended)
 The Docker image of ChroKit has pre-installed libraries of the human and mouse genome assemblies. Before you start with the installation, be sure to have Docker installed and running (activated) on your system.\
-Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/.
-\
-If the most recent Docker app is not supported by your operating system or you experience any kind of compatibility problems, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
 
 
 ### **Installation for MacOS and Linux users**
 
-1. Open the Docker desktop app
+1. Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
 
 
 2. Open the terminal application (in a Mac operating system the terminal application is generally found in HD/applications/utilities)
@@ -38,14 +35,14 @@ If the most recent Docker app is not supported by your operating system or you e
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). **Wait until the image is downloaded**.
 
 
-4. To run the program, insert your "home directory" path and the port number in the command shown below. In this case ChroKit's working directory will be the "/mnt" folder:\
+4. To run the program, insert your "home directory" path and the port number in the command shown below. When using ChroKit, you will find the computer files in the "/mnt" folder:\
 \
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
 \
 In the previous command you have to:\
 substitute **\<home directory\>** with the path of the home directory of the user. This will be accessible from the program. In UNIX systems, the home directory can be found with the *pwd* command from terminal. Usually, it is "/home/*username*" in Linux or "/Users/*username*" in MacOS systems.\
-Substitute **\<port\>** with a number between 1025 and 60000. This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free (not used by other programs).\
-For instance, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
+Substitute **\<port\>** by choosing a number between 1025 and 60000. This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free (not used by other programs). \
+For example, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
 \
@@ -79,7 +76,7 @@ From now on, to use the application, follow again all the steps except step (3.)
 
 ### **Installation for Windows users**
 
-1.  Open the Docker desktop app
+1.  Install and open the Docker desktop app. Docker desktop can be downloaded from https://www.docker.com/products/docker-desktop/. If the most recent Docker app is not compatible with your operating system, try to download and install one of the previous Docker releases, according to the version of your operating system at that link: https://docs.docker.com/desktop/release-notes/ or that link: https://docs.docker.com/desktop/previous-versions/archive-mac/
  
 
 2. Open the command prompt (search for "CMD" application in Windows)
@@ -92,7 +89,7 @@ From now on, to use the application, follow again all the steps except step (3.)
 and press enter. **Wait until the image is downloaded**. (Optionally, you should be able to download the image from within the Docker desktop app)
 
 
-4. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
+4. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), choose a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
 Note: the port must not be in use by other programs; if you experience problems, try another number.\
 In this case use "/mnt" folder when using ChroKit to find all the files in the computer.\
 Make sure to give enough RAM (at least 4-8 Gb) to the container.
