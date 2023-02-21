@@ -42,8 +42,10 @@ and press enter. When prompted, insert the computer administration password and 
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
 \
 In the previous command you have to:\
-substitute **\<home directory\>** with the path of the home directory of the user. This will be accessible from the program. In UNIX systems, the home directory can be found with the *pwd* command from terminal. Usually, it is "/home/*username*" in Linux or "/Users/*username*" in MacOS systems.\
-Substitute **\<port\>** by choosing a number between 1025 and 60000. This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free (not used by other programs). \
+substitute **\<home directory\>** with the path of the home directory of the user. Usually, it is "/home/*username*" in Linux or "/Users/*username*" in MacOS systems.\
+(In UNIX systems, the home directory can be found with the *pwd* command from terminal.)\
+Substitute **\<port\>** by choosing a number between 1025 and 60000.\ 
+(This number indicates an arbitrary port on the host system (your computer). This port is used for accessing the docker image. The port you chose must be free and not used by other programs). \
 For example, in MacOS, in the following command line "/Users/ocroci" is the home directory and 4000 is the port:\
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
