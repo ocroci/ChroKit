@@ -37,7 +37,7 @@ The Docker image of ChroKit has pre-installed libraries of the human and mouse g
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). **Wait until the image is downloaded**.
 
 
-4. Make sure to give enough resources to Docker if you plan to use heavy datasets. In the Docker desktop app, open the settings and go to "resources". Give at least 4-8 Gb of memory (RAM) to Docker to avoid crashes of the program when using heavy datasets.
+4. Make sure to give enough resources to Docker if you plan to use heavy datasets. In the Docker desktop app, open the settings and go to "resources". Give at least 4-8 Gb of memory (RAM) to Docker to avoid crashes of the program when using heavy datasets. (for futher instructions, please follow the Docker documentation at https://docs.docker.com/desktop/settings/mac/)
 
 
 5. To run the program, insert your "home directory" path and the port number in the command shown below. When using ChroKit, you will find the computer files in the "/mnt" folder:\
