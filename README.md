@@ -37,7 +37,10 @@ The Docker image of ChroKit has pre-installed libraries of the human and mouse g
 and press enter. When prompted, insert the computer administration password and press enter. (note that when you enter the password the command line cursor will not move and the password will not show). **Wait until the image is downloaded**.
 
 
-4. To run the program, insert your "home directory" path and the port number in the command shown below. When using ChroKit, you will find the computer files in the "/mnt" folder:\
+4. Make sure to give enough resources to Docker if you plan to use heavy datasets. In the Docker desktop app, open the settings and go to "resources". Give at least 4-8 Gb of memory (RAM) to Docker to avoid crashes of the program when using heavy datasets.
+
+
+5. To run the program, insert your "home directory" path and the port number in the command shown below. When using ChroKit, you will find the computer files in the "/mnt" folder:\
 \
 ```sudo docker run -v <home directory>:/mnt/ -p <port>:6060 -it ocroci/chrokit:latest```\
 \
@@ -53,7 +56,7 @@ For example, in MacOS, in the following command line "/Users/ocroci" is the home
 \
 After inserting the command in the terminal, press enter, type the password as you did in step (3.) if required and **wait for ChroKit initialization**
 
-5. To use the application, open a web browser and:
+6. To use the application, open a web browser and:
   - if you are using a personal computer, type the following in the address bar:\
   \
     ```127.0.0.1:<port>```\
@@ -99,7 +102,7 @@ and press enter. **Wait until the image is downloaded**. (Optionally, you should
 4. To run the program, go to the Docker desktop application and run the downloaded image. In the settings, select a name for the container (i.e. chrokit), choose a port (i.e. 4000) and a volume path (for example, select the home directory in C:\Users\\_username_) and a container path (type "/mnt"). Then, run the image and **wait for ChroKit initialization**. 
 Note: the port must not be in use by other programs; if you experience problems, try another number.\
 In this case use "/mnt" folder when using ChroKit to find all the files in the computer.\
-Make sure to give enough RAM (at least 4-8 Gb) to the container.
+Make sure to give enough RAM to the container if you plan to use heavy datasets. Go to the settings, then "resources" and increase the memory (RAM) up to 4-8 Gb.
 
 
 5. To use the application, open a web browser and:
