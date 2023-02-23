@@ -4,7 +4,7 @@ ChroKit (The **Chro**matin Tool**Kit**) is a Shiny-based framework for interacti
 This bioinformatics tool can help the researchers to process the data from next generation sequencing (NGS) experiments, such as Chip-Seq, ATAC-Seq and any other NGS experiments aimed at analyzing the enrichment of specific genomic features in particular regions of interest. 
 
 As input, ChroKit takes aligned reads (BAM or WIG files), genomic ranges (BED or GTF/GFF formats) and lists of genes and performs several operations on them, such as the refinement of ranges boundaries, extraction of sequence patterns, gene ontologies on the annotated genes and the calculation of reads enrichment. The user can then perform logical operations on the genomic regions and unsupervised clustering to create further subsets of regions.
-The wide variety of interactive plots offered by ChroKit can be modified simply by playing with mouse cursor and downloaded as pdf files. Working sessions can be exported as RDS files, allowing data sharing and reproducibility of the analyses.
+The wide variety of interactive plots offered by ChroKit can be modified simply by playing with mouse cursor and downloaded as pdf files. Working sessions can be exported as RDS files, allowing data sharing and reproducibility of the analyses. NOTE: the GIF below highlights some of the key features of Chrokit:
 
 <img src="https://github.com/ocroci/ChroKit/blob/master/logo2.png" height="50%" width="50%">
 
@@ -54,7 +54,7 @@ For example, in MacOS, in the following command line "/Users/ocroci" is the home
 \
 ```sudo docker run -v /Users/ocroci/:/mnt/ -p 4000:6060 -it ocroci/chrokit:latest```\
 \
-After inserting the command in the terminal, press enter, type the password as you did in step (3.) if required and **wait for ChroKit initialization**
+Insert the command in the terminal and press enter. If required, type the password as you did in step (3.). **Wait for ChroKit initialization**
 
 6. To use the application, open a web browser and:
   - if you are using a personal computer, type the following in the address bar:\
