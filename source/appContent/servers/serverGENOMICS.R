@@ -308,6 +308,9 @@ observeEvent(input$plotSingleEval,{
 
               })
 
+              #here create button for single eval statistics of the boxplots
+              output$saveStatisticsBoxSingleEval=renderUI({downloadButton("saveStatisticsBoxSingleEvalbutton", "Get statistics")})
+
               #buttons for PDFs and data
               output$saveboxdataSingleEval=renderUI({downloadButton('saveenrichmentBoxSingleEvaldata', 'Save data')})
               output$saveenrichmentBoxSingleEval=renderUI({downloadButton('saveenrichmentBoxSingleEvalbutton', 'Get PDF')})
@@ -326,6 +329,7 @@ observeEvent(input$plotSingleEval,{
               toplot$viewDistributionPieSingleEval$bam_inter=NULL
               toplot$viewDistributionPieSingleEval$matrixes=NULL
               output$saveboxdataSingleEval=renderUI({NULL})
+              output$saveStatisticsBoxSingleEval=renderUI({NULL})
               output$saveenrichmentBoxSingleEval=renderUI({NULL})
               output$saveenrichmentProfileSingleEval=renderUI({NULL})
               output$boxSingleEval_options<-renderUI({NULL})
@@ -360,6 +364,7 @@ observeEvent(input$plotSingleEval,{
             output$boxSingleEval_options<-renderUI({NULL})
             output$profileSingleEval_options<-renderUI({NULL})
             output$saveboxdataSingleEval=renderUI({NULL})
+            output$saveStatisticsBoxSingleEval=renderUI({NULL})
             output$saveenrichmentBoxSingleEval=renderUI({NULL})
             output$saveenrichmentProfileSingleEval=renderUI({NULL})
       		}
@@ -398,6 +403,7 @@ observeEvent(input$plotSingleEval,{
         output$boxSingleEval_options<-renderUI({NULL})
         output$profileSingleEval_options<-renderUI({NULL})
         output$saveboxdataSingleEval=renderUI({NULL})
+        output$saveStatisticsBoxSingleEval=renderUI({NULL})
         output$saveenrichmentBoxSingleEval=renderUI({NULL})
         output$saveenrichmentProfileSingleEval=renderUI({NULL})
     	}
@@ -426,6 +432,7 @@ observeEvent(input$plotSingleEval,{
     toplot$viewDistributionPieSingleEval$range_inter=NULL
     toplot$viewDistributionPieSingleEval$matrixes=NULL
     output$saveboxdataSingleEval=renderUI({NULL})
+    output$saveStatisticsBoxSingleEval=renderUI({NULL})
     output$piechartSingleEval_options<-renderUI({NULL})
     output$densitySingleEval_options<-renderUI({NULL})
     output$boxSingleEval_options<-renderUI({NULL})
@@ -535,6 +542,62 @@ output$saveenrichmentBoxSingleEvaldata<- downloadHandler(
   } 
   
 )
+
+
+
+
+
+#observer for statistics in enrichment boxplots in single evaluation
+output$saveStatisticsBoxSingleEvalbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    content=list(toplot$viewDistributionPieSingleEval$bam,toplot$viewDistributionPieSingleEval$bam_promo,
+                toplot$viewDistributionPieSingleEval$bam_intra,toplot$viewDistributionPieSingleEval$bam_inter)
+
+    if(toplot$viewDistributionPieSingleEval$normalization_box=="totread"){
+
+      
+    }else{
+
+      content[[1]]=content[[1]]/width(toplot$viewDistributionPieSingleEval$range)
+      content[[2]]=content[[2]]/width(toplot$viewDistributionPieSingleEval$range_promo)
+      content[[3]]=content[[3]]/width(toplot$viewDistributionPieSingleEval$range_intra)
+      content[[4]]=content[[4]]/width(toplot$viewDistributionPieSingleEval$range_inter)
+    }
+    names(content)=c("All ranges","Promoter","Genebody","Intergenic")
+
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        if (!length(content[[i]])==0& !length(content[[k]])==0){
+          pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        }else{
+          pval=NA
+        }
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
+)
+
+
+
+
+
+
+
+
+
+
+
 
 output$saveenrichmentProfileSingleEvalbutton<- downloadHandler(
   filename=function() {
@@ -672,6 +735,9 @@ observeEvent(input$plotCmp,{
       jaccard=round(  length(common)  /length(totalunion),2)
     }
 
+
+
+
     #make the matrix for barplot and barplot of the overlap (the most correct representation)
     matbar=as.matrix(data.frame(n1=c(length(range1_ov),length(range1_notov),0,0),
                       n2=c(0,0,length(range2_ov),length(range2_notov))))
@@ -718,7 +784,6 @@ observeEvent(input$plotCmp,{
       }
       plot_cmp_venn(area1=area1,area2=area2,common=common,n1=n1,n2=n2,colors=Colors)
     })
-
 
     #download button for PDF Barplot of overlap
     output$saveviewBarplotCmp=renderUI({downloadButton('saveviewBarplotCmpbutton', 'Get PDF')})
@@ -875,7 +940,6 @@ observeEvent(input$plotCmp,{
       #as common regions, the signal of BAM1 is the BAM1 signal of range1 inside
       #common areas (the average for each single overlapping area)
       #the same for BAM2: is the average of BAM2 signals inside ranges2 in common areas
-
       output$pairwiseoverlaps_box_options<-renderUI({
                 list(
                   selectInput("chooseColorPaletteCmp_box","Choose color palette:",choices=c(
@@ -945,6 +1009,8 @@ observeEvent(input$plotCmp,{
       })
 
 
+      #here create button for pairwise statistics under the boxplots
+      output$saveStatisticsBoxCmp=renderUI({downloadButton("saveStatisticsBoxCmpbutton", "Get statistics")})
       #pdf button for boxplot
       output$saveviewBoxplotCmp=renderUI({downloadButton('saveviewBoxplotCmpbutton', 'Get PDF')})
       #now the download data button will appear
@@ -1017,7 +1083,6 @@ observeEvent(input$plotCmp,{
       #if both bam files were associated to all the subsets (3) => 2 BAM files for each subset (region1 only, rgion2 only, cmmon regions)
       if(all(!is.na(range2only_bam1)) & all(!is.na(range1only_bam1)) & all(!is.na(range2only_bam2)) & all(!is.na(range1only_bam2)) 
         & all(!is.na(bam1_common)) & all(!is.na(bam2_common)) ){
-         
 
         #######################################################################
         #creation of df for scatterplot, if both bam files are present 
@@ -1139,7 +1204,9 @@ observeEvent(input$plotCmp,{
       output$viewBoxplotCmp<-renderPlot({plot_text(text="you need to associate at least\nan enrichment file to one of\nthe two ROIs (go to \n'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
       output$viewScatterplotCmp<-renderPlot({plot_text(text="you need to associate\ntwo enrichment files for both ROIs (go to \n'ROi preparation'->'Prepare ROI basic')",cex=1.4)})
       output$saveboxdataCmp=renderUI({NULL})
+
       output$saveviewBoxplotCmp=renderUI({NULL})
+      output$saveStatisticsBoxCmp=renderUI({NULL})
       output$saveScatterdataCmp=renderUI({NULL})
       output$saveviewScatterplotCmp=renderUI({NULL})
       output$saveviewCalibrationCmp=renderUI({NULL})
@@ -1156,6 +1223,7 @@ observeEvent(input$plotCmp,{
     output$saveviewVennCmp=renderUI({NULL})
     output$viewBoxplotCmp<-renderPlot({NULL})
     output$saveviewBoxplotCmp=renderUI({NULL})
+    output$saveStatisticsBoxCmp=renderUI({NULL})
     output$saveboxdataCmp=renderUI({NULL})
     output$viewScatterplotCmp<-renderPlot({NULL})
     output$saveScatterdataCmp=renderUI({NULL})
@@ -1357,6 +1425,87 @@ output$saveenrichmentBoxCmpdata<- downloadHandler(
       write.table(arr,file=file,row.names=FALSE,sep="\t",quote=FALSE   ) 
   } 
   
+)
+
+
+
+#observer for statistics in pairwise comparison enrichment boxplots
+output$saveStatisticsBoxCmpbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    range1only_bam1=toplot$cmp$range1only_bam1
+    ov_range1=toplot$cmp$ov_range1
+    range1_notov=toplot$cmp$range1_notov
+    range2_notov=toplot$cmp$range2_notov
+    range2only_bam1=toplot$cmp$range2only_bam1
+    ov_range2=toplot$cmp$ov_range2
+    range2only_bam2=toplot$cmp$range2only_bam2
+    range1only_bam2=toplot$cmp$range1only_bam2
+    range1=toplot$cmp$range1
+    range2=toplot$cmp$range2
+    bam1_common=toplot$cmp$bam1_common
+    bam2_common=toplot$cmp$bam2_common
+
+    if(input$chooseNormalizationCmp_box=="readdensity"){
+      range1only_bam1=range1only_bam1/width(range1_notov)
+      width_range1_common=width(range1[subjectHits(ov_range1)])
+      bam1_common=bam1_common/width_range1_common
+      range2only_bam1=range2only_bam1/width(range2_notov)
+      
+      range2only_bam2=range2only_bam2/width(range2_notov)
+      width_range2_common=width(range2[subjectHits(ov_range2)])
+      bam2_common=bam2_common/width_range2_common
+      range1only_bam2=range1only_bam2/width(range1_notov)  
+    }
+
+    if (!all(is.na(bam1_common))){
+      common_bam1=tapply(bam1_common,queryHits(ov_range1),mean)
+    }else{
+      common_bam1=NA
+    }
+    if (!all(is.na(bam2_common))){
+      common_bam2=tapply(bam2_common,queryHits(ov_range2),mean)
+    }else{
+      common_bam2=NA
+    } 
+    
+    arraytoplot=list(range2only_bam1,range1only_bam1,unname(common_bam1),
+                range1only_bam2,range2only_bam2,unname(common_bam2))
+
+       
+
+    names(arraytoplot)=c(paste(toplot$cmp$n2,"_intervals_only_",toplot$cmp$BAM1chooseCmp,"_enrichment",sep=""),
+                    paste(toplot$cmp$n1,"_intervals_only_",toplot$cmp$BAM1chooseCmp,"_enrichment",sep=""),
+                    paste("common_intervals_",toplot$cmp$BAM1chooseCmp,"_enrichment",sep=""),
+                    paste(toplot$cmp$n1,"_intervals_only_",toplot$cmp$BAM2chooseCmp,"_enrichment",sep=""),
+                    paste(toplot$cmp$n2,"_intervals_only_",toplot$cmp$BAM2chooseCmp,"_enrichment",sep=""),
+                    paste("common_intervals_",toplot$cmp$BAM2chooseCmp,"_enrichment",sep=""))
+    names(arraytoplot)=gsub(" ","_",names(arraytoplot))
+
+
+
+
+    mat=matrix(rep(NA,length(arraytoplot)*length(arraytoplot)),nrow=length(arraytoplot) )
+    rownames(mat)=colnames(mat)=names(arraytoplot)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(arraytoplot)-1) ){
+      for (k in (i+1):length(arraytoplot)){
+        #this gives a warning about the length, but no problem
+        if (!is.na(arraytoplot[[i]])&!is.na(arraytoplot[[k]])){
+          pval=suppressWarnings(wilcox.test(x=arraytoplot[[i]],y=arraytoplot[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        }else{
+          pval=NA
+        }
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
 )
 
 
@@ -3856,6 +4005,7 @@ observeEvent(input$confirmUpdateAnalogHeat,{
               output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
               output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
               output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
               output$boxplotByROIAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$boxplotByBAMAnalogHeat<-renderPlot({NULL})
@@ -3880,6 +4030,7 @@ observeEvent(input$confirmUpdateAnalogHeat,{
               output$corAnalogHeat<-renderPlot({NULL})
               output$pcorAnalogHeat<-renderPlot({NULL})
               output$saveprofileAnalogHeat=renderUI({NULL})
+              output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
 output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
@@ -3934,6 +4085,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
             output$corAnalogHeat<-renderPlot({NULL})
             output$pcorAnalogHeat<-renderPlot({NULL})
             output$saveprofileAnalogHeat=renderUI({NULL})
+            output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
             output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
@@ -3992,6 +4144,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
           output$corAnalogHeat<-renderPlot({NULL})
           output$pcorAnalogHeat<-renderPlot({NULL})
           output$saveprofileAnalogHeat=renderUI({NULL})
+          output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
           output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
@@ -4048,6 +4201,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
         output$corAnalogHeat<-renderPlot({NULL})
         output$pcorAnalogHeat<-renderPlot({NULL})
         output$saveprofileAnalogHeat=renderUI({NULL})
+        output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
         output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
@@ -4098,6 +4252,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
       output$corAnalogHeat<-renderPlot({NULL})
       output$pcorAnalogHeat<-renderPlot({NULL})
       output$saveprofileAnalogHeat=renderUI({NULL})
+      output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
       output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
@@ -4149,6 +4304,7 @@ output$showboxAnalogHeat_groupcolOptions<-renderUI({NULL})
     output$corAnalogHeat<-renderPlot({NULL})
     output$pcorAnalogHeat<-renderPlot({NULL})
     output$saveprofileAnalogHeat=renderUI({NULL})
+    output$saveStatisticsBoxAnalogHeat=renderUI({NULL})  
     output$textNameClustAnalogHeat<-renderPlot({NULL})
               output$saveboxplotByROIAnalogHeat=renderUI({NULL})
               output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
@@ -4413,8 +4569,6 @@ output$saveAnalogHeatdata<-downloadHandler(
 ############OBSERVERS for plots interactive upon analogic heatmap selection######
 
 
-
-
 output$saveprofileAnalogHeatbutton<- downloadHandler(
   filename=function() {
       paste('Profile_analog_heatmap.pdf', sep='')
@@ -4584,6 +4738,40 @@ output$saveboxplotByBAMAnalogHeatbutton<- downloadHandler(
       dev.off()
   } 
 )
+
+
+
+
+#observer for statistics in enrichment boxplots upon analog heat selection
+output$saveStatisticsBoxAnalogHeatbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    
+    content=toplot$gadgetanalogic$portionlist_boxes
+    ##log2 transformation is not influent on wilcox.test
+    # if(input$isLog2_boxAnalogHeat==TRUE){
+    #   content=lapply(content,log2)
+    # }
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
+)
+
+
+
 
 
 
@@ -5356,6 +5544,8 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       })  
 
 
+      #here create button for pairwise statistics under the boxplots
+      output$saveStatisticsBoxProfilesAndBox=renderUI({downloadButton("saveStatisticsBoxProfilesAndBoxbutton", "Get statistics")})
 
 
       #PDF download buttons for boxplots by ROI and by BAM
@@ -5534,6 +5724,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
       output$savepcorProfilesAndBox=renderUI({NULL})
       output$saveprofileProfilesAndBox=renderUI({NULL})
       output$saveboxByROIProfilesAndBox=renderUI({NULL})
+      output$saveStatisticsBoxProfilesAndBox=renderUI({NULL})
       output$saveboxByBAMProfilesAndBox=renderUI({NULL}) 
       toplot$profileAndBoxes$x=NULL
       toplot$profileAndBoxes$y=NULL
@@ -5555,6 +5746,7 @@ observeEvent(input$confirmUpdateProfilesAndBox,{
     output$boxByBAMProfilesAndBox<-renderPlot({NULL})
     output$saveprofileProfilesAndBox=renderUI({NULL})
     output$saveboxByROIProfilesAndBox=renderUI({NULL})
+    output$saveStatisticsBoxProfilesAndBox=renderUI({NULL})
     output$saveboxByBAMProfilesAndBox=renderUI({NULL})
     output$scatterProfilesAndBox<-renderPlot({NULL})
     output$showprofileProfileAndBox_logOptions<-renderUI({NULL})
@@ -5835,6 +6027,41 @@ output$saveboxByBAMProfilesAndBoxbutton<- downloadHandler(
                                     roinumber=toplot$profileAndBoxes$roinumber,bamname=toplot$profileAndBoxes$bamname,
                                     islog=input$isLog2_boxProfileAndBox,ispdf=TRUE)
         dev.off()
+  } 
+)
+
+
+
+#observer for statistics in enrichment boxplots in profiles&box section
+output$saveStatisticsBoxProfilesAndBoxbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    
+    content=toplot$profileAndBoxes$portionlist_boxes
+    ##log2 transformation is not influent on wilcox.test
+    # if(input$isLog2_boxAnalogHeat==TRUE){
+    #   content=lapply(content,log2)
+    # }
+    if(input$normalization_boxProfileAndBox=="readdensity"){
+      for (i in 1:length(content)){
+        content[[i]]=content[[i]]/toplot$profileAndBoxes$lengthROIs_unrolled[[i]]
+      }
+    } 
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
   } 
 )
 
@@ -6387,6 +6614,8 @@ observeEvent(input$plotDynamics,{
       plot_dynamics_box(currentlist=currentlist,islog=islog,ylabel=ylabel,colors=colors,
                     totalnames=totalnames,main="TSS")
     })
+    #here create button for pairwise statistics under the boxplots
+    output$saveStatisticsBoxDynamicsTSS=renderUI({downloadButton("saveStatisticsBoxDynamicsTSSbutton", "Get statistics")})
     #download data of boxplot of TSS
     output$saveboxdatadynamicsTSS=renderUI({downloadButton('saveenrichmentBoxdynamicsTSSdata', 'Download data')})
 
@@ -6443,6 +6672,9 @@ observeEvent(input$plotDynamics,{
                     totalnames=totalnames,main="Genebody")
     })
 
+
+    #here create button for pairwise statistics under the boxplots
+    output$saveStatisticsBoxDynamicsGB=renderUI({downloadButton("saveStatisticsBoxDynamicsGBbutton", "Get statistics")})
     #download data of boxplot of GB
     output$saveboxdatadynamicsGB=renderUI({downloadButton('saveenrichmentBoxdynamicsGBdata', 'Download data')})
 
@@ -6499,6 +6731,9 @@ observeEvent(input$plotDynamics,{
       plot_dynamics_box(currentlist=currentlist,islog=islog,ylabel=ylabel,colors=colors,
                     totalnames=totalnames,main="TES")
     })
+
+    #here create button for pairwise statistics under the boxplots
+    output$saveStatisticsBoxDynamicsTES=renderUI({downloadButton("saveStatisticsBoxDynamicsTESbutton", "Get statistics")})
     #download data of boxplot of TES
     output$saveboxdatadynamicsTES=renderUI({downloadButton('saveenrichmentBoxdynamicsTESdata', 'Download data')})
     
@@ -6738,6 +6973,9 @@ observeEvent(input$plotDynamics,{
     output$saveboxdatadynamicsTSS=renderUI({NULL})
     output$saveboxdatadynamicsGB=renderUI({NULL})
     output$saveboxdatadynamicsTES=renderUI({NULL})
+    output$saveStatisticsBoxDynamicsTSS=renderUI({NULL})
+    output$saveStatisticsBoxDynamicsGB=renderUI({NULL})
+    output$saveStatisticsBoxDynamicsTES=renderUI({NULL})
     output$show_percentageOutlayerCumulPlots<-renderUI({NULL})
     output$show_chooseMetricforDynamics<-renderUI({NULL})
     output$show_islogforDynamics<-renderUI({NULL})
@@ -7109,6 +7347,160 @@ output$saveenrichmentBoxdynamicsTESdata<- downloadHandler(
     write.table(arr,file=file,row.names=FALSE,sep="\t",quote=FALSE   ) 
   } 
 )
+
+
+
+#sonoqui
+#statistics plots of metagene profiles
+
+
+#observer for statistics in enrichment boxplots in TSS of metagene profile
+output$saveStatisticsBoxDynamicsTSSbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    currentlist=toplot$dynamics$totallist_boxplot[[1]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_SI_prom[[i]]
+        }
+      }
+    }
+
+    content=list()
+    #transform 2-order list in 1 order list
+    for(i in 1:length(currentlist)){
+      content=c(content,currentlist[[i]])
+    }
+
+    names(content)=toplot$dynamics$totalnames
+
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        if (!length(content[[i]])==0& !length(content[[k]])==0){
+          pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        }else{
+          pval=NA
+        }
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
+)
+
+
+
+
+
+
+
+
+#observer for statistics in enrichment boxplots in GB of metagene profile
+output$saveStatisticsBoxDynamicsGBbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+    currentlist=toplot$dynamics$totallist_boxplot[[2]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_GB[[i]]
+        }
+      }
+    }
+
+    content=list()
+    #transform 2-order list in 1 order list
+    for(i in 1:length(currentlist)){
+      content=c(content,currentlist[[i]])
+    }
+
+    names(content)=toplot$dynamics$totalnames
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        if (!length(content[[i]])==0& !length(content[[k]])==0){
+          pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        }else{
+          pval=NA
+        }
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
+)
+
+
+#observer for statistics in enrichment boxplots in TES of metagene profile
+output$saveStatisticsBoxDynamicsTESbutton<- downloadHandler(
+  filename=function() {
+      paste('Statistics_Pvalues_Wilcox.xls', sep='')
+  },
+  content=function(file) {
+    #default: mann witney not paired
+
+    currentlist=toplot$dynamics$totallist_boxplot[[3]]
+
+    if(input$chooseNormalizationforDynamics=="readdensity"){
+      for (i in 1:length(currentlist)){
+        for(k in 1:length(currentlist[[i]])){
+          currentlist[[i]][[k]]=currentlist[[i]][[k]]/toplot$dynamics$totallist_lengths_forNorm_box_TES[[i]]
+        }
+      }
+    }
+
+    content=list()
+    #transform 2-order list in 1 order list
+    for(i in 1:length(currentlist)){
+      content=c(content,currentlist[[i]])
+    }
+
+    names(content)=toplot$dynamics$totalnames
+    mat=matrix(rep(NA,length(content)*length(content)),nrow=length(content) )
+    rownames(mat)=colnames(mat)=names(content)
+    #use for loop for pairwise comparisons and wilcox statistics. We are processing few elements, for loop is ok.
+    for (i in 1:(length(content)-1) ){
+      for (k in (i+1):length(content)){
+        if (!length(content[[i]])==0& !length(content[[k]])==0){
+          pval=suppressWarnings(wilcox.test(x=content[[i]],y=content[[k]],alternative = "two.sided",paired = FALSE,exact = FALSE)$p.value)
+        }else{
+          pval=NA
+        }
+        mat[i,k]=pval
+      }
+    }
+    mat[is.na(mat)]=""
+    df=as.data.frame(mat)
+    write.table(df,file=file,row.names=TRUE,col.names=NA,sep="\t",quote=FALSE   ) 
+  } 
+)
+
+
+
+
+
+
+
+
+
 
 
 

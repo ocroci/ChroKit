@@ -220,7 +220,7 @@ observe({
       getbam1=names(rawvals1)
       
       if (is.null(getbam1)){
-        output$BAMmenuchooseCmp1<-renderUI({NULL})
+        output$BAMmenuchooseCmp1<-renderUI({checkboxGroupInput("BAM1chooseCmp",NULL,choices=NULL)})
         #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp1<-renderUI({ 
@@ -230,16 +230,15 @@ observe({
       }
       
     }else{
-      output$BAMmenuchooseCmp1<-renderUI({NULL})
+      output$BAMmenuchooseCmp1<-renderUI({checkboxGroupInput("BAM1chooseCmp",NULL,choices=NULL)})
       #updateSelectInput(session,inputId="BAM1chooseCmp",label=NULL,choices=character(0))
     }
-
 
     if (!is.null(roi2)){
       getbam2=names(rawvals2)
       
       if (is.null(getbam2)){   
-        output$BAMmenuchooseCmp2<-renderUI({NULL})    
+        output$BAMmenuchooseCmp2<-renderUI({checkboxGroupInput("BAM2chooseCmp",NULL,choices=NULL)})  
         #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=character(0))
       }else{
         output$BAMmenuchooseCmp2<-renderUI({ 
@@ -249,14 +248,14 @@ observe({
       }
       
     }else{
-      output$BAMmenuchooseCmp2<-renderUI({NULL})
+      output$BAMmenuchooseCmp2<-renderUI({checkboxGroupInput("BAM2chooseCmp",NULL,choices=NULL)})
       #updateSelectInput(session,inputId="BAM2chooseCmp",label=NULL,choices=character(0))
     }
 
 
   }else{
-    output$BAMmenuchooseCmp1<-renderUI({NULL})
-    output$BAMmenuchooseCmp2<-renderUI({NULL})
+    output$BAMmenuchooseCmp1<-renderUI({checkboxGroupInput("BAM1chooseCmp",NULL,choices=NULL)})
+    output$BAMmenuchooseCmp2<-renderUI({checkboxGroupInput("BAM2chooseCmp",NULL,choices=NULL)})
   }
 
 })
@@ -1765,7 +1764,8 @@ observeEvent(input$heatmap_brush,{
       })  
 
 
-
+      #here create button for pairwise statistics under the boxplots
+      output$saveStatisticsBoxAnalogHeat=renderUI({downloadButton("saveStatisticsBoxAnalogHeatbutton", "Get statistics")})
 
 
       #buttons for download PDF of profile, boxplot by ROI, boxplot by BAM
@@ -1866,8 +1866,9 @@ observeEvent(input$heatmap_brush,{
       output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
       output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
       output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
-        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
-output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+      output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+	  output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+	  output$saveStatisticsBoxAnalogHeat=renderUI({NULL})
     } 
   }else{
     #output of the number of selected elements within brushed area:
@@ -1882,14 +1883,15 @@ output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
     output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
     output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
     output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
-        output$showboxAnalogHeat_logOptions<-renderUI({NULL})
-output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+    output$showboxAnalogHeat_logOptions<-renderUI({NULL})
+	output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
     output$saveboxplotByROIAnalogHeat=renderUI({NULL})
     output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
     output$corAnalogHeat<-renderPlot({NULL})
     output$pcorAnalogHeat<-renderPlot({NULL})
     output$savecorAnalogHeat=renderUI({NULL})
     output$savepcorAnalogHeat=renderUI({NULL})
+    output$saveStatisticsBoxAnalogHeat=renderUI({NULL})
   }
  # paste0("cella x1=", xleft, "\ncella y1=", ybottom,"\ncella x2=", xright, "\ncella y2=",ytop)
 })
@@ -2322,6 +2324,8 @@ observeEvent(input$rowdendrogram_click_Analog,{
 
 
 
+		#here create button for pairwise statistics under the boxplots
+      	output$saveStatisticsBoxAnalogHeat=renderUI({downloadButton("saveStatisticsBoxAnalogHeatbutton", "Get statistics")})
 
 
         #buttons for download PDF of profile, boxplot by ROI, boxplot by BAM
@@ -2420,17 +2424,18 @@ observeEvent(input$rowdendrogram_click_Analog,{
         output$saveprofileAnalogHeat=renderUI({NULL})
         output$showboxAnalogHeat_colorlistOptions<-renderUI({NULL})
         output$showboxAnalogHeat_logOptions<-renderUI({NULL})
-output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
-  output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
+		output$showboxAnalogHeat_colorschemeOptions<-renderUI({NULL})
+  		output$showprofileAnalogHeat_logOptions<-renderUI({NULL})
 
-      output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
-      output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
+      	output$showprofileAnalogHeat_colorschemeOptions<-renderUI({NULL})
+      	output$showprofileAnalogHeat_colorlistOptions<-renderUI({NULL})
         output$saveboxplotByROIAnalogHeat=renderUI({NULL})
         output$saveboxplotByBAMAnalogHeat=renderUI({NULL})
         output$corAnalogHeat<-renderPlot({NULL})
         output$pcorAnalogHeat<-renderPlot({NULL})
         output$savecorAnalogHeat=renderUI({NULL})
-        output$savepcorAnalogHeat=renderUI({NULL})        
+        output$savepcorAnalogHeat=renderUI({NULL}) 
+        output$saveStatisticsBoxAnalogHeat=renderUI({NULL})       
       }  
     } 
   }
