@@ -63,8 +63,19 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 title=boxHelp(ID="msg_singleEvaluation_enrichmentBoxplot",title="Enrichment boxplot"),
                 column(width=8,
                   plotOutput("enrichmentBoxSingleEval"),
-                  htmlOutput("saveenrichmentBoxSingleEval"),
-                  htmlOutput("saveboxdataSingleEval")
+                  #saveStatisticsBoxSingleEvalbutton
+                  fluidRow(
+                    column(width=4,
+                      htmlOutput("saveenrichmentBoxSingleEval")
+                    ),
+                    column(width=4,
+                      htmlOutput("saveboxdataSingleEval")
+                    ),
+                    column(width=4,
+                      htmlOutput("saveStatisticsBoxSingleEval")
+                    )
+                  )
+                
                 ),column(width=4,
                   uiOutput("boxSingleEval_options")
                 )
@@ -146,8 +157,20 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 column(width=8,
                   title=boxHelp(ID="msg_pairwiseOverlaps_box",title="Overlap and enrichment"),
                   plotOutput('viewBoxplotCmp'),
-                  htmlOutput("saveviewBoxplotCmp"),
-                  htmlOutput("saveboxdataCmp")
+                  fluidRow(
+                    column(width=4,
+                      htmlOutput("saveviewBoxplotCmp")
+                    ),
+                    column(width=4,
+                      htmlOutput("saveboxdataCmp")
+                    ),
+                    column(width=4,
+                      htmlOutput("saveStatisticsBoxCmp")
+                    )
+                  )
+
+                  
+                  
                 ),column(width=4,
                   uiOutput("pairwiseoverlaps_box_options")
                 )
@@ -434,7 +457,15 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                   tabBox(width=12,
                     tabPanel("Boxplot by ROI/cluster",
                       plotOutput("boxplotByROIAnalogHeat"),
-                      htmlOutput("saveboxplotByROIAnalogHeat")
+                      fluidRow(
+                        column(width=6,
+                          htmlOutput("saveboxplotByROIAnalogHeat")
+                        ),
+                        column(width=6,
+                          htmlOutput("saveStatisticsBoxAnalogHeat")
+                        )
+                      )
+                      
                     ),
                     tabPanel("Boxplot by enrichment",
                       plotOutput("boxplotByBAMAnalogHeat"),
@@ -531,8 +562,19 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                   tabBox(width=12,height=500,
                     tabPanel("Boxplot by ROI",
                       plotOutput("boxByROIProfilesAndBox"),
-                      htmlOutput("saveboxByROIProfilesAndBox"),
-                      htmlOutput("saveboxdataProfANDbox")
+                      fluidRow(
+                        column(width=4,
+                          htmlOutput("saveboxByROIProfilesAndBox")
+                        ),
+                        column(width=4,
+                          htmlOutput("saveboxdataProfANDbox")
+                        ),
+                        column(width=4,
+                          htmlOutput("saveStatisticsBoxProfilesAndBox")
+                        )
+                      )
+                      
+                      
                     ),
 
                     tabPanel("Boxplot by enrichment",
@@ -671,17 +713,20 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 column(width=4,
                     plotOutput("plotboxTSSDynamics"),
                     htmlOutput("saveboxTSSDynamics"),
-                    htmlOutput("saveboxdatadynamicsTSS")
+                    htmlOutput("saveboxdatadynamicsTSS"),
+                    htmlOutput("saveStatisticsBoxDynamicsTSS")
                 ),
                 column(width=4,
                     plotOutput("plotboxGBDynamics"),
                     htmlOutput("saveboxGBDynamics"),
-                    htmlOutput("saveboxdatadynamicsGB")
+                    htmlOutput("saveboxdatadynamicsGB"),
+                    htmlOutput("saveStatisticsBoxDynamicsGB")
                 ),
                 column(width=4,
                     plotOutput("plotboxTESDynamics"),
                     htmlOutput("saveboxTESDynamics"),
-                    htmlOutput("saveboxdatadynamicsTES")
+                    htmlOutput("saveboxdatadynamicsTES"),
+                    htmlOutput("saveStatisticsBoxDynamicsTES")
                 )
               ),
               HTML('<hr size=3>'),
