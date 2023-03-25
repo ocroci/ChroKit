@@ -1068,7 +1068,7 @@ msg_singleEvaluation_enrichmentBoxplot<-list(
 		tags$br(),
 		tags$br(),
 		Warning("The enrichment file must be associated to the ROI. To associate enrichments to a ROI, 
-			see 'Associate enrichments' tab in 'ROI preparation' section")		
+			go to 'ROI preparation' and select 'Prepare ROI basic'")		
 	)
 )
 #Peak average profile
@@ -1079,8 +1079,8 @@ msg_singleEvaluation_peakProfile<-list(
 		(promoters, genebodies, intergenic regions), centred at the midpoint of the genomic ranges",
 		tags$br(),
 		tags$br(),
-		Warning("The enrichment file must be associated to the selected ROI. To associate enrichments, 
-			see 'Associate enrichments' tab in 'ROI preparation' section")		
+		Warning("The enrichment file must be associated to the selected ROI. To associate enrichments to a ROI, 
+			go to 'ROI preparation' and select 'Prepare ROI basic'")		
 	)
 )
 
