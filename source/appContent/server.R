@@ -245,14 +245,34 @@ shinyServer(function(input, output,session) {
   })
 
 
+  # #every time the ROI list is changing or the enrichments are changins, show the current memory used
+  # #using gc
+  # output$showRAMusageGC<-renderText({
+  #   ROIvariables$listROI
+  #   Enrichlist$rawcoverage
+  #   mem=gc()
+  #   #extract value of vectors used in Mb
+  #   val=unname(mem[,2][2])
+  #   if(length(val)>0){
+  #     paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val,"</b></p>",sep="")
+  #   }else{
+  #     paste("")
+  #   }
+
+  # })
+
+
   #every time the ROI list is changing or the enrichments are changins, show the current memory used
   #using gc
   output$showRAMusageGC<-renderText({
     ROIvariables$listROI
     Enrichlist$rawcoverage
+    toplot$analogic$matrixes_processed
+    toplot$digital$matrixes_processed
     mem=gc()
     #extract value of vectors used in Mb
     val=unname(mem[,2][2])
+    val=round(mem_used()/1000000,1)
     if(length(val)>0){
       paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val,"</b></p>",sep="")
     }else{
@@ -260,7 +280,6 @@ shinyServer(function(input, output,session) {
     }
 
   })
-
 
 
 
