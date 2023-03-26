@@ -7350,7 +7350,6 @@ output$saveenrichmentBoxdynamicsTESdata<- downloadHandler(
 
 
 
-#sonoqui
 #statistics plots of metagene profiles
 
 
@@ -7724,6 +7723,9 @@ observeEvent(input$help_goAnalysis_parameters_signatures, {boxHelpServer(help_go
 observeEvent(input$help_goAnalysis_parameters_orderresults, {boxHelpServer(help_goAnalysis_parameters_orderresults)})
 observeEvent(input$help_goAnalysis_parameters_minsize, {boxHelpServer(help_goAnalysis_parameters_minsize)})
 observeEvent(input$help_goAnalysis_parameters_maxsize, {boxHelpServer(help_goAnalysis_parameters_maxsize)})
+observeEvent(input$help_goAnalysis_parameters_customuniverse, {boxHelpServer(help_goAnalysis_parameters_customuniverse)})
+
+
 observeEvent(input$help_goAnalysis_parameters_generatio, {boxHelpServer(help_goAnalysis_parameters_generatio)})
 observeEvent(input$help_goAnalysis_parameters_padjthresh, {boxHelpServer(help_goAnalysis_parameters_padjthresh)})
 
@@ -7908,6 +7910,37 @@ observeEvent(input$doTheGO,{
       
     }
 
+
+    #here check and import the custom universe, only if selected
+    if (!is.null(input$is_customUniverse_GO)){
+      if (input$is_customUniverse_GO){
+        print("using custom universe")
+        genelist_universe=strsplit(input$customUniverse_GO,split="\n")[[1]]
+        uniquegenelist_universe=unique(genelist_universe)
+        lostinunique=length(genelist_universe)-length(uniquegenelist_universe)
+        print (paste(lostinunique," genes in custom universe lost because duplicated",sep=""))
+        uniquegenelist_universe=toupper(uniquegenelist_universe[!is.na(uniquegenelist_universe)])
+
+        if (length(uniquegenelist_universe)==0){
+          sendSweetAlert(
+            session = session,
+            title = "Empty/not valid genes",
+            text = "I didn't find genes in the text area of universe genes",
+            type = "error"
+          )         
+          return()      
+        }
+
+      }else{
+        uniquegenelist_universe=NULL
+      }
+    }else{
+      uniquegenelist_universe=NULL
+    }
+
+
+
+
     #from here, we have the list of gene symbols to query
     #?parallel GO on elements of inputGeneList
     #read geneSets files and store them in logvariables$temporary_GMTstorage list
@@ -7956,7 +7989,7 @@ observeEvent(input$doTheGO,{
         currentblock=toupper(currentblock)
         if (length(currentblock)>1){
           #do the GO with hypergeometric test
-          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
+          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH",universe=uniquegenelist_universe)
         }else{
           res=NULL
         }
@@ -7969,7 +8002,7 @@ observeEvent(input$doTheGO,{
         currentblock=toupper(currentblock)
         if (length(currentblock)>1){
           #do the GO with hypergeometric test
-          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH")
+          res=GOcalc(gene=currentblock,terms=termsdt,minsize=minsizeGO,maxsize=maxsizeGO,padj_method="BH",universe=uniquegenelist_universe)
         }else{
           res=NULL
         }
@@ -8366,7 +8399,7 @@ observe({
       output$tableGOdownloadButton<-renderUI({downloadButton('saveGOdataTable', 'Download data')})
       
     }else{
-      output$plotOntology<-renderPlot({plot_text(text="There are no significant results,\nor thresholds (p adjusted, gene ratio) are too stringent.\nTry to relax them.",cex=1.4)})
+      output$plotOntology<-renderPlot({plot_text(text="There are no significant results,\nor thresholds (p adjusted, gene ratio) are too stringent.\nTry to relax them.\nIf you selected a custom universe,\ntry to change it.",cex=1.4)})
       output$tableOntology <- renderDataTable({NULL})
       output$textNameGO <- renderPlot({NULL})
       output$tableGOdownloadButton<-renderUI({NULL})

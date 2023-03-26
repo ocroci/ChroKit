@@ -3378,21 +3378,26 @@ observe({
 })
 
 
-
 #observer for min/max size (some signature must be selected)
 observe({
   input$selectedGenesetsGO
   if (!isvalid(input$selectedGenesetsGO) | length(input$selectedGenesetsGO)==0){
     output$show_minmaxSizeGO<-renderUI({NULL})
+    output$show_customUniverse_choice<-renderUI({checkboxGroupInput("is_customUniverse_GO",NULL,choices=NULL)})
+    output$show_customUniverse_genelist<-renderUI({NULL})
     return()
   }
 
   if (input$chooseSourceGO=="fromROI" & length(input$selectROIGO)==0){
     output$show_minmaxSizeGO<-renderUI({NULL})
+    output$show_customUniverse_choice<-renderUI({checkboxGroupInput("is_customUniverse_GO",NULL,choices=NULL)})
+    output$show_customUniverse_genelist<-renderUI({NULL})
     return()    
   }
   if (input$chooseSourceGO=="fromGeneList" & length(input$pastedGenesGO)==0){
     output$show_minmaxSizeGO<-renderUI({NULL})
+    output$show_customUniverse_choice<-renderUI({checkboxGroupInput("is_customUniverse_GO",NULL,choices=NULL)})
+    output$show_customUniverse_genelist<-renderUI({NULL})
     return()    
   }
 
@@ -3405,8 +3410,32 @@ observe({
     )
   })
 
+
+
+  #options for custom universe
+  output$show_customUniverse_choice<-renderUI({
+    checkboxInput("is_customUniverse_GO", label=list("Use a custom universe",htmlhelp("","help_goAnalysis_parameters_customuniverse")),value = FALSE, width = NULL)
+  })
+
+
+
 })
 
+observe({
+  input$is_customUniverse_GO
+  if (!is.null(input$is_customUniverse_GO)){
+    if(input$is_customUniverse_GO){
+      output$show_customUniverse_genelist<-renderUI({
+        list(
+          HTML("<b>Paste symbols here (1 gene per line):</b>"),
+          textAreaInput("customUniverse_GO",NULL,value="",height=150)
+        )
+      })
+    }else{
+      output$show_customUniverse_genelist<-renderUI({NULL})
+    }
+  }
+})
 
 
 
