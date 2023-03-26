@@ -114,8 +114,8 @@ library(bamsignals)
 library(qs)
 #parallel for multi-processing
 library(parallel)
-
-
+#prediction of RAM usage
+library(pryr)
 
 
 #DEFINE all possible loadable or downloadable databases: GLOBAL variables
@@ -188,6 +188,11 @@ source("appContent/_help_messages.R")
 #define the assemblies available at th startup
 availASSEMBLIES=getExistingDB(all_avail_assemblies)$assemblies_we_have
 missingASSEMBLIES=getExistingDB(all_avail_assemblies)$assemblies_we_donthave
+
+#here read pre-calculated DB tables in assemblies/ directory
+availDB=dir(paste("appContent/assemblies/",sep=""),full.names=TRUE)
+names(availDB)=dir(paste("appContent/assemblies/",sep=""))
+
 
 
 #define genesets (MSigDB) in GMT format as global variable to show to the user for GO analyses:
