@@ -2488,11 +2488,13 @@ readGMT<-function(fileName) {
 
 #the code for this function was inspired from enricher_internal function in DOSE package 
 #(author Guangchuang Yu, http://guangchuangyu.github.io)
-GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
+GOcalc<-function(gene,terms,minsize=10,maxsize=500,universe=NULL,padj_method="BH") {
   #gene: list of genes
   #term: a data frame with term->gene associations, resulting from readGMT function
   #       or a combination of different catgories
   #minsize and maxsize: filter of size of genesets to consider
+  #universe: gene symbols to be used as universe in hypergeometric test. NULL if universe=union of genes
+  #         for all terms selected
   #padj_method: method to calculate the padjusted from hypergeometric test
   if(!inherits(gene,"character")  ){
     stop("'gene' must be a character vector with gene symbols")
@@ -2504,6 +2506,11 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   if(!(padj_method%in%c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr", "none"))){
     stop("wrong padj method given")
   }
+  if (!is.null(universe)){
+    if(!inherits(universe,"character")){
+      stop("'universe' must be a character vector with gene symbols")
+    }
+  }
 
   gene=unique(gene)
   gene=gene[!is.na(gene)]
@@ -2511,6 +2518,19 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   if(length(gene)==0){
     stop("gens in query is empty...")
   }
+
+  #retrieve universe (all genes in the term GMT provided)
+  #if universe is custom, put here the universe as INTERSECTION.
+  #in case, intersect also with keyval
+  if (is.null(universe)){
+  	ALLGENES=unique(as.character(terms$gene))
+  }else{
+  	ALLGENES=universe
+  }
+  
+  # if(!is.null(background)){
+  #   allgenes=intersect(allgenes,background)
+  # }
 
   #take only those queried:
   pos=which(as.character(terms$gene)%in%gene)
@@ -2523,13 +2543,9 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   
   queried_terms=terms[pos,]
   keyval=split(as.character(queried_terms[,2]),as.character(queried_terms[,1]))
-  #retrieve universe (all genes in the term GMT provided)
-  #if universe is custom, put here the universe as INTERSECTION.
-  #in case, intersect also with keyval
-  allgenes=unique(as.character(terms$gene))
-  # if(!is.null(background)){
-  #   allgenes=intersect(allgenes,background)
-  # }
+
+
+
   
   #take all genes of terms specified found with at last one of our genes:
   allkeyval=split(as.character(terms[,2]),as.character(terms[,1]))
@@ -2548,20 +2564,37 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   allkeyval=allkeyval[idx]
 
   IDnames=names(keyval)
+
+
+
   
   #do hypergeometric test
   query=sapply(keyval, length)
   totalBG=sapply(allkeyval, length)
-  genes_selected=sum(gene%in%as.character(terms$gene))
+  genes_selected=sum(gene%in%ALLGENES)
+
+  #keyval/query: for each term, genes present both in the term and in the input list of genes
+  #allkeyval/totalBG: for each term, ALL the genes in the term
+  #as.character(terms$gene)/ALLGENES: all the genes (default ALLGENES)
+  #genes_selected: total genes extracted (AND present in the ALLGENES)
   
   #calculate pvalues with hypergeometric model
   HyperGeomTests=sapply(1:length(query),function(i){
-                                  phyper(q=query[i]-1, m=totalBG[i], n=length(allgenes)-totalBG[i], k=genes_selected, lower.tail = FALSE, log.p = FALSE)
+  								#from all genes subtract the genes (setdiff) in the term. => background (black balls)
+  								only_background_genes=setdiff(ALLGENES,allkeyval[[i]])
+  								#if a custom universe, remove genes for that term, ihghlighting only real significance
+  								if (length(only_background_genes)>0){
+                                  return(phyper(q=query[i]-1, m=totalBG[i], n=length(only_background_genes), k=genes_selected, lower.tail = FALSE, log.p = FALSE))
+  								}else{
+  								  return(1)
+  								}                                
+
+
                                 }
                         )
   
   tocalc=lapply(1:length(query),  function(i){
-                lst=list(unname(query[i][1]),unname(genes_selected),unname(totalBG[i]),unname(length(allgenes)))
+                lst=list(unname(query[i][1]),unname(genes_selected),unname(totalBG[i]),unname(length(ALLGENES)))
                 names(lst)=c("overlap","query","geneset","universe")
                 return(lst)
   })
@@ -2569,7 +2602,7 @@ GOcalc<-function(gene,terms,minsize=10,maxsize=500,padj_method="BH") {
   
 
   ## gene ratio: selected genes / genes for each geneset
-  ## background ratio: ratio between all genes in a geneset (regardless the query) and the universe (union of all genes of all genesets used)
+  ## background ratio: ratio between all genes in a geneset (regardless the query) and the universe (union of all genes of all genesets used by default, if not custom)
 
   gene_ratio = unlist(tocalc[,1])/unlist(tocalc[,2])
   background_ratio= unlist(tocalc[,3])/unlist(tocalc[,4])
