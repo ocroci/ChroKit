@@ -2,7 +2,7 @@
 ##update available and not available (missing, for the download)
 ##menus defined in ui TXDB.R
 observe({
-	updateSelectInput(session,"searchASSEMBLYforuse",label=NULL,choices=as.list(DATABASEvariables$availASSEMBLIES))
+	updateSelectInput(session,"searchASSEMBLYforuse",label=NULL,choices=as.list(names(availDB)))
 })
 
 observe({
