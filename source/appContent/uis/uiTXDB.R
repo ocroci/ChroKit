@@ -13,7 +13,7 @@ tabTXDB <- tabItem(tabName = "TXDBblock",
           HTML("<b>Choose assembly to use from those available on the system:</b>"),
           fluidRow(
             column(8,
-              selectInput('searchASSEMBLYforuse', label=NULL,choices=as.list(availASSEMBLIES))
+              selectInput('searchASSEMBLYforuse', label=NULL,choices=as.list(names(availDB)))
             ),
             column(4,
               HTML("")
@@ -69,22 +69,22 @@ tabTXDB <- tabItem(tabName = "TXDBblock",
           HTML("<br><br>"),
           actionButton("confirmASSEMBLYforuse", "Load assembly!")
           
-        ),           
+        )#,           
 
-        box(width=3,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+        # box(width=3,collapsible = TRUE,status = "primary",solidHeader = TRUE,
 
-          title=boxHelp(ID="msg_databases_downloadDatabases",title="... or download an assembly"),
+        #   title=boxHelp(ID="msg_databases_downloadDatabases",title="... or download an assembly"),
           
-          HTML("<b>Choose missing assembly to download from bioconductor:</b>"),
-          # fluidRow(
-          #   column(8,
-              selectInput('searchASSEMBLYfordownload',label=NULL,choices=as.list(missingASSEMBLIES)),
-            # ),
-            # column(4,
-              actionButton("confirmASSEMBLYfordownload", "Download database!")
-          #   )
-          # )
-        )
+        #   HTML("<b>Choose missing assembly to download from bioconductor:</b>"),
+        #   # fluidRow(
+        #   #   column(8,
+        #       selectInput('searchASSEMBLYfordownload',label=NULL,choices=as.list(missingASSEMBLIES)),
+        #     # ),
+        #     # column(4,
+        #       actionButton("confirmASSEMBLYfordownload", "Download database!")
+        #   #   )
+        #   # )
+        # )
 
       )
 
