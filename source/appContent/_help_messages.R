@@ -2039,6 +2039,12 @@ help_goAnalysis_parameters_maxsize<-list(
 )
 
 
+help_goAnalysis_parameters_customuniverse<-list(
+	title="Custom universe genes",
+	text="Paste a list of gene symbols to be used as custom universe for the hypergeometric test in the 
+		gene ontology analysis"
+)
+
 
 
 help_goAnalysis_parameters_generatio<-list(
