@@ -815,7 +815,9 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                 uiOutput("clusterKstartsGO_widget"),
                 uiOutput("clusterKiterationsGO_widget"),
                 uiOutput("show_minmaxSizeGO"),
-            
+            	uiOutput("show_customUniverse_choice"),
+            	uiOutput("show_customUniverse_genelist"),
+
                 uiOutput("show_doTheGO")
               ),
 
