@@ -17,7 +17,8 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             #selectInput("BAMchooseSingleEval", "2) Select enrichment (optional):",NULL),
             uiOutput("BAMmenuchoose_singleeval"),
             HTML("<br>"),
-            actionButton("plotSingleEval","Update plot")
+            uiOutput("showplotSingleEval")
+            
           )
 
         ),
@@ -117,12 +118,13 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
             selectInput("ROI2chooseCmp", "Choose ROI-2:",NULL),
             HTML("<br>"),
             uiOutput("show_minoverlapcmp"),
-
             uiOutput("BAMmenuchooseCmp1"),
             uiOutput("BAMmenuchooseCmp2"),
-
+            uiOutput("ROIuniverseChoice"),
+            uiOutput("ROIforuniverse"),
             HTML("<br>"),
-            actionButton("plotCmp","Update plot")
+            uiOutput("show_plotCmpButton")
+            
           )
 
         ),
