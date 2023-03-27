@@ -11,8 +11,11 @@ x=rownames(installed.packages())
 ####################################################################################
 ####################################################################################
 
-header <- dashboardHeader(title = "ChroKit",disable = FALSE,
+header <- dashboardHeader(title = "ChroKit",disable = FALSE,titleWidth = 180,
     tags$li(class = "dropdown",
+      
+            tags$li(class = "dropdown", actionButton("loadExampleData", "Load example data"),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 20px; color: #fff; font-size:130%;"),
+            tags$li(class = "dropdown", actionButton("gototutorial", "Go to tutorial",onclick ="window.open('https://ocroci.github.io/ChroKit/', '_blank')"),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 20px; color: #fff; font-size:130%;"),
             tags$li(class = "dropdown", htmlOutput("showcurrentASSEMBLY"),style = "padding-top: 10px; padding-bottom: 10px; padding-right: 20px; color: #fff; font-size:130%;")
             )
              
@@ -27,16 +30,16 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,
 ####################################################################################
 
 sidebar<- dashboardSidebar(
-
+   width = 180,
   sidebarMenu(style = "position: fixed; overflow: visible;",
-    HTML("&nbsp© Ottavio Croci<br>"),
-    actionButton("loadExampleData", "Load example data"),
+    HTML("&nbsp&nbsp;&nbsp;&nbsp© Ottavio Croci<br>"),
+    #actionButton("loadExampleData", "Load example data"),
     #HTML("<br>"),
     HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
     
-    menuItem("ROIs", tabName = "BEDblock", icon = icon("file-excel-o")),
+    menuItem("ROIs", tabName = "BEDblock", icon = icon("fas fa-file-text")),
 
-    menuItem("Enrichment files", tabName = "BAMblock", icon = icon("file-o")),
+    menuItem("Enrichment files", tabName = "BAMblock", icon = icon("fas fa-file")),
     menuItem("Assembly", tabName = "TXDBblock", icon = icon("database")),
     shinyFilesButton('loadenv', label='Load session file', 'Select rds session file to load', icon=icon("fas fa-file-export"),FALSE),
     #menuItem("Gene lists", tabName = "GENELISTSblock", icon = icon("list")),
@@ -52,7 +55,7 @@ sidebar<- dashboardSidebar(
     #menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
     HTML("<br>"),
     htmlOutput("showRAMusageGC"),
-    plotOutput("showRAMbar",height="20"),
+    plotOutput("showRAMbar",height="20",width="120"),
     #HTML("<br>"),
     .busyIndicator(text="Loading..." , wait=1000 , image="gif.gif")
    

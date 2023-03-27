@@ -280,7 +280,7 @@ shinyServer(function(input, output,session) {
     RAM_total_Mb=RAM_system*1000
     fraction=round( (as.numeric(val)/RAM_total_Mb)*100,0)
     if(length(val)>0){
-      output$showRAMusageGC<-renderText({paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val," (",fraction,"%)","</b></p>",sep="")})
+      output$showRAMusageGC<-renderText({paste("<p style='font-size:17px'>&nbsp;&nbsp;&nbsp;&nbspRAM usage (Mb): <br>&nbsp;&nbsp;&nbsp;&nbsp<b>",val," (",fraction,"%)","</b></p>",sep="")})
       m_usage=matrix(c(fraction,100-fraction))
       output$showRAMbar<-renderPlot({
         par(mar=c(0,0,0,0))
