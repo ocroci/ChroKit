@@ -1124,6 +1124,13 @@ help_pairwiseOverlaps_parameters_minbpoverlap<-list(
 					used to define the overlap between genomic ranges of the two ROIs."
 )
 
+
+help_pairwiseOverlaps_parameters_ROIuniverse<-list(
+	title="ROI to be used as background",
+	text="Select one or more ROIs to create the background for the computation of the statistics of the overlap.
+			The union of the selected ROI(s) will be used as universe in the hypergeometric test."
+)
+
 help_pairwiseOverlaps_parameters_enrich1<-list(
 	title="Choose enrichment of ROI-1",
 	text="Choose one of the enrichments associated to the first ROI to 
