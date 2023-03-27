@@ -264,22 +264,40 @@ shinyServer(function(input, output,session) {
 
   #every time the ROI list is changing or the enrichments are changins, show the current memory used
   #using gc
-  output$showRAMusageGC<-renderText({
+
+  observe({
     ROIvariables$listROI
     Enrichlist$rawcoverage
     toplot$analogic$matrixes_processed
     toplot$digital$matrixes_processed
-    mem=gc()
-    #extract value of vectors used in Mb
-    val=unname(mem[,2][2])
+    # mem=gc()
+    # #extract value of vectors used in Mb
+    # val=unname(mem[,2][2])
+
     val=round(mem_used()/1000000,1)
+    #calculate percentage:
+    #RAM_system is the total RAM available defined by the user
+    RAM_total_Mb=RAM_system*1000
+    fraction=round( (as.numeric(val)/RAM_total_Mb)*100,0)
     if(length(val)>0){
-      paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val,"</b></p>",sep="")
-    }else{
-      paste("")
-    }
+      output$showRAMusageGC<-renderText({paste("<p style='font-size:20px'>RAM usage (Mb): <br><b>",val," (",fraction,"%)","</b></p>",sep="")})
+      m_usage=matrix(c(fraction,100-fraction))
+      output$showRAMbar<-renderPlot({
+        par(mar=c(0,0,0,0))
+        barplot(m_usage,horiz=TRUE,xaxt="n")
+      })
+
+    }   else{
+      output$showRAMusageGC<-renderText({paste("")})
+      output$showRAMbar<-renderPlot({NULL})
+    } 
+
+
+
+
 
   })
+
 
 
 

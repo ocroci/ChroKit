@@ -27,11 +27,12 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,
 ####################################################################################
 
 sidebar<- dashboardSidebar(
+
   sidebarMenu(style = "position: fixed; overflow: visible;",
-    HTML("&nbsp© Ottavio Croci<br><br>"),
+    HTML("&nbsp© Ottavio Croci<br>"),
     actionButton("loadExampleData", "Load example data"),
-    HTML("<br>"),
-    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
+    #HTML("<br>"),
+    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
     
     menuItem("ROIs", tabName = "BEDblock", icon = icon("file-excel-o")),
 
@@ -45,13 +46,14 @@ sidebar<- dashboardSidebar(
     #menuItem("ROI management", tabName = "ROIblock", icon = icon("sort-amount-down-alt")),
     HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>3) Data visualization</b>"),
     menuItem("Genomics", tabName = "GENOMICSblock", icon = icon("chart-area")),
-    HTML("<br>"),
-    HTML("&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
+    #HTML("<br>"),
+    HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>Save your progress</b>"),
     shinySaveButton("saveWork",label="Save session","Save working environment in rds file...",icon=icon("fas fa-file-import"),filetype=list(rds="rds")),
     #menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
-    HTML("<br><br>"),
+    HTML("<br>"),
     htmlOutput("showRAMusageGC"),
-     HTML("<br>"),
+    plotOutput("showRAMbar",height="20"),
+    #HTML("<br>"),
     .busyIndicator(text="Loading..." , wait=1000 , image="gif.gif")
    
 
