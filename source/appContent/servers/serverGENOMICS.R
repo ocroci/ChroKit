@@ -650,6 +650,7 @@ observeEvent(input$msg_pairwiseOverlaps_box, {
 observeEvent(input$help_pairwiseOverlaps_parameters_enrich1, {boxHelpServer(help_pairwiseOverlaps_parameters_enrich1)})
 observeEvent(input$help_pairwiseOverlaps_parameters_enrich2, {boxHelpServer(help_pairwiseOverlaps_parameters_enrich2)})
 observeEvent(input$help_pairwiseOverlaps_parameters_minbpoverlap, {boxHelpServer(help_pairwiseOverlaps_parameters_minbpoverlap)})
+observeEvent(input$help_pairwiseOverlaps_parameters_ROIuniverse, {boxHelpServer(help_pairwiseOverlaps_parameters_ROIuniverse)})
 
 observeEvent(input$help_singleEvaluation_normalizationtotalread_cmpbox, {boxHelpServer(help_singleEvaluation_normalizationtotalread)})
 observeEvent(input$help_singleEvaluation_normalizationreaddensity_cmpbox, {boxHelpServer(help_singleEvaluation_normalizationreaddensity)})

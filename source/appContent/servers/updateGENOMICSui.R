@@ -48,6 +48,12 @@ observe({
       pos=match(input$ROIchooseSingleEval,nomi)
       roi=ROIvariables$listROI[[pos]]
       if (!is.null(roi)){
+
+        output$showplotSingleEval<-renderUI({
+          actionButton("plotSingleEval","Update plot")
+        })
+
+
         getbam=names(Enrichlist$rawcoverage[[pos]])
         #getbam=names(getBAMlist(roi))
         if (is.null(getbam)){
@@ -188,6 +194,17 @@ observe({
           )
         })
 
+        #show options for ROI universe
+        output$ROIuniverseChoice<-renderUI({
+          checkboxInput("ROIuniverseChoice", label=list("Background ROI for statistics",htmlhelp("","help_pairwiseOverlaps_parameters_ROIuniverse")),value = FALSE, width = NULL)
+        })
+
+        output$show_plotCmpButton<-renderUI({
+          actionButton("plotCmp","Update plot")
+        })
+
+        
+
 
       }else{
         nomi=NULL
@@ -197,12 +214,45 @@ observe({
         updateSelectInput(session,inputId="ROI2chooseCmp",label=NULL,
                                     choices = historylist)
         output$show_minoverlapcmp<-renderUI({NULL})
+        output$show_plotCmpButton<-renderUI({NULL})
+        output$ROIuniverseChoice<-renderUI({checkboxGroupInput("ROIuniverseChoice",NULL,choices=NULL)})
       }
 
 })
 
-#update BAM files available (take info form input$ROI1chooseCmp and input$ROI2chooseCmp)
 
+#update ROI universe list: should this appear? 
+observe({
+  input$ROIuniverseChoice
+  if (!isvalid(input$ROIuniverseChoice)){
+    output$ROIforuniverse<-renderUI({checkboxGroupInput("ROIforuniverse",NULL,choices=NULL)})
+  }else{
+    if (input$ROIuniverseChoice){
+      nomi=unlist(lapply(isolate(ROIvariables$listROI),getName))
+      historylist=as.list(nomi)
+      lens=unlist(lapply(isolate(ROIvariables$listROI),getLength))
+      lens2=paste("(",lens,")",sep="")
+      if(length(nomi)>0){
+        names(historylist)=paste(nomi,lens2)
+      }else{
+        names(historylist)=paste(nomi,lens)
+      }
+      output$ROIforuniverse<-renderUI({
+        list(
+          wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 200px; max-width: 300px; background-color: #ffffff;",
+            checkboxGroupInput("ROIforuniverse",NULL,choices=historylist)
+          )
+        )  
+      })
+    }else{
+      output$ROIforuniverse<-renderUI({checkboxGroupInput("ROIforuniverse",NULL,choices=NULL)})
+    }
+  }
+
+})
+
+
+#update BAM files available (take info form input$ROI1chooseCmp and input$ROI2chooseCmp)
 observe({
   #input$ROI1chooseCmp
 
