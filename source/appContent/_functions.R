@@ -1,6 +1,5 @@
 #####FUNCTIONS#####
 
-##functions for get and set the enrichment blocks in the reactiveVariables ##
 # those values are not part of the ROI object anymore, but contained in
 # Enrichlist<-reactiveValues(rawcoverage=NULL,normfactlist=NULL)
 #these functions cannot read or modify reactiveValues (outside the scope) but give useful info

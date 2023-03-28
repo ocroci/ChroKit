@@ -31,14 +31,13 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,titleWidth = 180,
 
 sidebar<- dashboardSidebar(
    width = 180,
-  sidebarMenu(style = "position: fixed; overflow: visible;",
+  sidebarMenu(#style = "position: fixed; overflow: visible;",
+    style="position: fixed; height: 90vh; overflow-y: auto;",
     HTML("&nbsp&nbsp;&nbsp;&nbsp© Ottavio Croci<br>"),
     #actionButton("loadExampleData", "Load example data"),
     #HTML("<br>"),
     HTML("<br>&nbsp;&nbsp;&nbsp;&nbsp<b>1) Import data</b>"),
-    
     menuItem("ROIs", tabName = "BEDblock", icon = icon("fas fa-file-text")),
-
     menuItem("Enrichment files", tabName = "BAMblock", icon = icon("fas fa-file")),
     menuItem("Assembly", tabName = "TXDBblock", icon = icon("database")),
     shinyFilesButton('loadenv', label='Load session file', 'Select rds session file to load', icon=icon("fas fa-file-export"),FALSE),
@@ -54,10 +53,12 @@ sidebar<- dashboardSidebar(
     shinySaveButton("saveWork",label="Save session","Save working environment in rds file...",icon=icon("fas fa-file-import"),filetype=list(rds="rds")),
     #menuItem("Save/Load", tabName = "SAVELOADblock", icon = icon("save")),
     HTML("<br>"),
+    .busyIndicator(text="Loading..." , wait=1000 , image="gif.gif"),
     htmlOutput("showRAMusageGC"),
     plotOutput("showRAMbar",height="20",width="120"),
     #HTML("<br>"),
-    .busyIndicator(text="Loading..." , wait=1000 , image="gif.gif")
+    
+    menuItem("Log messages", tabName = "LOGSblock",icon = icon("fas fa-book"))
    
 
   )      
@@ -113,7 +114,7 @@ source(file.path("uis","uiGENOMICS.R"),local=TRUE)$value
 ####################################################################################
 # #TAb of save/load
 ####################################################################################
-#source(file.path("uis","uiSAVELOAD.R"),local=TRUE)$value
+source(file.path("uis","uiLOGS.R"),local=TRUE)$value
 
 
 
@@ -126,12 +127,9 @@ body<-dashboardBody(
   tags$head(
     tags$style(HTML("hr {border-top: 1px solid #000000;}"))
   ),
-  tabItems(tabBED,tabBAM,tabTXDB,tabMANIPULATEROI,tabGENOMICS), 
+  tabItems(tabBED,tabBAM,tabTXDB,tabMANIPULATEROI,tabGENOMICS,tabLOGS)
   #everything in common, to show in all the tabs (example: log strings) 
-  HTML("<b><h3>Logs: </h3></b>"),
-  wellPanel(id = "logPanel",style = "overflow-y:scroll; max-height: 250px",
-      htmlOutput("showlogs")
-  )
+  #logs are now in uis/uiBED.R
 
 )
 
