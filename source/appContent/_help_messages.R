@@ -2031,9 +2031,8 @@ help_goAnalysis_parameters_genewindow<-list(
 
 help_goAnalysis_parameters_signatures<-list(
 	title="Select signatures (database)",
-	text=list("Select the gene signatures(s) to use for the gene ontology analysis. If not specified a custom one, the 
-			background for the hypergeometric test (the 'universe')  will be the union of all the genes of 
-			the signatures selected",
+	text=list("Select the gene signatures(s) to use for the gene ontology analysis. If a custom universe is not specified, the union of all the genes of 
+			the signatures selected will be considered as the background for the hypergeometric test.",
 			tags$br(),tags$br(),
 			Comment("The gene signatures are lists of genes in gmt format present in the directory appContent/signatures/ of the program. 
 				Gene signatures can be loaded from the Molecular Signature Database (MSigDB) or similar resources"),
@@ -2041,35 +2040,35 @@ help_goAnalysis_parameters_signatures<-list(
 			#sonoqui
 			HTML("Preloaded gene signatures are:<br>
 			<ul>
-			<li>c1.all.v7.4_symbols.gmt: positional genesets. Gene sets corresponding to human chromosome cytogenetic bands. </li>
-			<li>c2.all.v7.4_symbols.gmt: curated genesets. Gene sets in this collection are curated from various sources, including online pathway databases and the biomedical literature.
+			<li><b>c1.all.v7.4_symbols.gmt</b>: positional genesets. Gene sets corresponding to human chromosome cytogenetic bands. </li>
+			<li><b>c2.all.v7.4_symbols.gmt</b>: curated genesets. Gene sets in this collection are curated from various sources, including online pathway databases and the biomedical literature.
 				<ul>
-				<li>c2.cgp.v7.4_symbols.gmt: Gene sets represent expression signatures of genetic and chemical perturbations. A number of these gene sets come in pairs: xxx_UP (and xxx_DN) gene set representing genes induced (and repressed) by the perturbation.</li>
-				<li>c2.cp.v7.4_symbols.gmt: Gene sets from pathway databases.</li>
+				<li><b>c2.cgp.v7.4_symbols.gmt</b>: Gene sets represent expression signatures of genetic and chemical perturbations. A number of these gene sets come in pairs: xxx_UP (and xxx_DN) gene set representing genes induced (and repressed) by the perturbation.</li>
+				<li><b>c2.cp.v7.4_symbols.gmt</b>: Gene sets from pathway databases.</li>
 				</ul>
 			</li>
-			<li>c3.all.v7.4_symbols.gmt: Gene sets representing potential targets of regulation by transcription factors or microRNAs. The sets consist of genes grouped by elements they share in their non-protein coding regions.</li>
+			<li><b>c3.all.v7.4_symbols.gmt</b>: Gene sets representing potential targets of regulation by transcription factors or microRNAs. The sets consist of genes grouped by elements they share in their non-protein coding regions.</li>
 				<ul>
-				<li>c3.mir.v7.4_symbols.gmt: All miRNA target prediction gene sets.</li>
-				<li>c3.tft.v7.4_symbols.gmt: All transcription factor target prediction gene sets.</li>
+				<li><b>c3.mir.v7.4_symbols.gmt</b>: All miRNA target prediction gene sets.</li>
+				<li><b>c3.tft.v7.4_symbols.gmt</b>: All transcription factor target prediction gene sets.</li>
 				</ul>
-			<li>c4.all.v7.4_symbols.gmt: Computational gene sets defined by mining large collections of cancer-oriented microarray data.</li>
-			<li>c5.all.v7.4_symbols.gmt: Gene sets that contain genes annotated by the same ontology term.</li>
+			<li><b>c4.all.v7.4_symbols.gmt</b>: Computational gene sets defined by mining large collections of cancer-oriented microarray data.</li>
+			<li><b>c5.all.v7.4_symbols.gmt</b>: Gene sets that contain genes annotated by the same ontology term.</li>
 				<ul>
-				<li>c5.go.v7.4_symbols.gmt: Gene sets derived from all the GO processes</li>
-				<li>c5.go.bp.v7.4_symbols.gmt: Gene sets derived from the GO Biological Process ontology.</li>
-				<li>c5.go.cc.v7.4_symbols.gmt: Gene sets derived from the GO Cellular Component ontology.</li>
-				<li>c5.go.mf.v7.4_symbols.gmt: Gene sets derived from the GO Molecular Function ontology.</li>
-				<li>c5.hpo.v7.4_symbols.gmt: Gene sets derived from the Human Phenotype ontology.</li>
+				<li><b>c5.go.v7.4_symbols.gmt</b>: Gene sets derived from all the GO processes</li>
+				<li><b>c5.go.bp.v7.4_symbols.gmt</b>: Gene sets derived from the GO Biological Process ontology.</li>
+				<li><b>c5.go.cc.v7.4_symbols.gmt</b>: Gene sets derived from the GO Cellular Component ontology.</li>
+				<li><b>c5.go.mf.v7.4_symbols.gmt</b>: Gene sets derived from the GO Molecular Function ontology.</li>
+				<li><b>c5.hpo.v7.4_symbols.gmt</b>: Gene sets derived from the Human Phenotype ontology.</li>
 				</ul>
-			<li>c6.all.v7.4_symbols.gmt: Gene sets that represent signatures of cellular pathways which are often dis-regulated in cancer.</li>
-			<li>c7.all.v7.4_symbols.gmt: Gene sets that represent cell states and perturbations within the immune system.</li>
+			<li><b>c6.all.v7.4_symbols.gmt</b>: Gene sets that represent signatures of cellular pathways which are often dis-regulated in cancer.</li>
+			<li><b>c7.all.v7.4_symbols.gmt</b>: Gene sets that represent cell states and perturbations within the immune system.</li>
 				<ul>
-				<li>c7.immunesigdb.v7.4_symbols.gmt: Gene sets representing chemical and genetic perturbations of the immune system generated by manual curation of published studies in human and mouse immunology.</li>
-				<li>c7.vax.v7.4_symbols.gmt: Gene sets curated by the Human Immunology Project Consortium (HIPC) describing human transcriptomic immune responses to vaccinations.</li>
+				<li><b>c7.immunesigdb.v7.4_symbols.gmt</b>: Gene sets representing chemical and genetic perturbations of the immune system generated by manual curation of published studies in human and mouse immunology.</li>
+				<li><b>c7.vax.v7.4_symbols.gmt</b>: Gene sets curated by the Human Immunology Project Consortium (HIPC) describing human transcriptomic immune responses to vaccinations.</li>
 				</ul>
-			<li>c8.all.v7.4_symbols.gmt: Gene sets that contain curated cluster markers for cell types identified in single-cell sequencing studies of human tissue.</li>
-			<li>h.all.v7.4_symbols.gmt: Hallmark gene sets summarize and represent specific well-defined biological states or processes and display coherent expression.</li>
+			<li><b>c8.all.v7.4_symbols.gmt</b>: Gene sets that contain curated cluster markers for cell types identified in single-cell sequencing studies of human tissue.</li>
+			<li><b>h.all.v7.4_symbols.gmt</b>: Hallmark gene sets summarize and represent specific well-defined biological states or processes and display coherent expression.</li>
 			</ul>
 			<br>
 			For further info, go to MSigDB website: https://www.gsea-msigdb.org/gsea/msigdb/human/collections.jsp#C1
