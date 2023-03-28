@@ -13,7 +13,7 @@ tabBED <- tabItem(tabName = "BEDblock",
                                 choiceNames=list(
                                   htmlhelp("Import genomic coordinates (bed/gtf/gff files)","help_BED_fromfiles"),#&nbsp&nbsp<img src='resizeico.png' alt='Res' width='30' height='10'>"),
                                   htmlhelp("Get promoters, transcripts, TES coordinates of a list of genes","help_BED_fromgenelist"),
-                                  htmlhelp("Generate ROI from a sequence pattern in the genome","help_BED_frompatterngenome")
+                                  list(htmlhelp("Generate ROI from a sequence pattern in the genome","help_BED_frompatterngenome"),htmlwarning("","help_BED_frompatterngenome_warning"))
                                 ),
                                 choiceValues=list(
                                   "fromfile",
@@ -47,9 +47,12 @@ tabBED <- tabItem(tabName = "BEDblock",
       uiOutput("boxgetroi")
     )
   )
-
-        
-
-
           
 )
+
+
+
+
+
+
+

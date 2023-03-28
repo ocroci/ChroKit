@@ -106,7 +106,7 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
 
 
     #std cmp...
-    tabPanel("Pairwise overlaps",
+    tabPanel("Pairwise ROI comparison",
 
       fluidRow(
 
