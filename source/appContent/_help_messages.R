@@ -1128,7 +1128,8 @@ help_pairwiseOverlaps_parameters_minbpoverlap<-list(
 help_pairwiseOverlaps_parameters_ROIuniverse<-list(
 	title="ROI to be used as background",
 	text="Select one or more ROIs to create the background for the computation of the statistics of the overlap.
-			The union of the selected ROI(s) will be used as universe in the hypergeometric test."
+			The union of the selected ROI(s) will be added to the union of ROI1 and ROI2 selected as input and used as universe in the hypergeometric test.
+			"
 )
 
 help_pairwiseOverlaps_parameters_enrich1<-list(

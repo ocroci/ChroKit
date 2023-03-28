@@ -154,7 +154,8 @@ plot_cmp_venn<-function(area1,area2,common,n1,n2,colors) {
                 cross.area=length(common),c(n1,n2),cex=1,ext.dist=c(.01,-0.04),
                 ext.line.lwd=0,ext.length=0,ext.pos=90,alpha=c(0.1,0.1),col=c(colors[1],colors[2]),fill=c(colors[1],colors[2]),
                 label.col=c(colors[1],colors[3],colors[4]),cat.pos=c(310,50),cat.dist=c(0.1,0.1),lwd=c(2,2),cat.cex=c(1.2,1.2),
-                cat.col=c(colors[1],colors[4]),margin=0.3,main="Intervals overlap",main.cex=1.2,main.col="black",main.pos=c(1,1),filename=NULL)	
+                cat.col=c(colors[1],colors[4]),margin=0.3,main.cex=1.2,main.col="black",main.pos=c(1,1),filename=NULL)
+  
 }
 
 
