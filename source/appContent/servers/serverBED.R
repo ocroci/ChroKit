@@ -20,6 +20,13 @@ observeEvent(input$help_BED_fromgenelist, {
 observeEvent(input$help_BED_frompatterngenome, {
   boxHelpServer(help_BED_frompatterngenome)
 })
+
+#choose pattern from genome import option, warning computational time
+observeEvent(input$help_BED_frompatterngenome_warning, {
+  boxHelpServer(help_BED_frompatterngenome_warning)
+})
+
+
 #option for kind of IDs
 observeEvent(input$help_BED_kindofID, {
   boxHelpServer(help_BED_kindofID)
