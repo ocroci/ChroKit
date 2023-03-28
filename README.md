@@ -183,6 +183,7 @@ For further help to install the Docker image of ChroKit in Windows, please follo
   - bamsignals
   - qs
   - parallel
+  - pryr
   
   
 If you have problems when installing dependencies, try to install each package from source:
