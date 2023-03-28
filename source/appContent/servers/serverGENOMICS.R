@@ -736,6 +736,55 @@ observeEvent(input$plotCmp,{
       jaccard=round(  length(common)  /length(totalunion),2)
     }
 
+    if (isvalid(input$ROIuniverseChoice)){
+      if (input$ROIuniverseChoice){
+        if (length(input$ROIforuniverse)>0){
+          if ( ! (length(sh)==0&length(qh)==0)  ){
+            #get ROIs from names selected:
+            names_allROI=unlist(lapply(ROIvariables$listROI,getName))
+            pos_BG=match(input$ROIforuniverse,names_allROI)
+            #get ranges of ROIs for universe
+            BG_ROI_ranges=lapply(ROIvariables$listROI[pos_BG],getRange)
+            #union of ROIs selected
+            BG_ROI=Reduce("union",BG_ROI_ranges)
+            #union also ROI1 and ROI2 selected before.
+            BG_ROI=union(BG_ROI,range1)
+            BG_ROI=union(BG_ROI,range2)
+            #test with background
+            #BG ----------     --     -----   --          -------------    ---     ----  -              -----  -----
+            #A      -------           - --           - -------                       -------                      -----
+            #B      ---               -----------                                     -----             ------------------
+            #BG overlap with range1
+            #BG overlap with range2
+            #then retrieve needed data 
+
+            ov_BG_ROI1=countOverlaps(BG_ROI,range1)>0
+            ov_BG_ROI2=countOverlaps(BG_ROI,range2)>0
+            p_=sum(ov_BG_ROI1&ov_BG_ROI2)
+            m_=sum(ov_BG_ROI1)
+            n_=length(BG_ROI)-m_
+            k_=sum(ov_BG_ROI2)
+            overlap_signif=phyper(q=p_-1, m=m_, n=n_, k=k_, lower.tail = FALSE, log.p = FALSE)
+          }else{
+            #no overlap, pval=1
+            overlap_signif=1
+          }
+        }else{
+          sendSweetAlert(
+            session = session,
+            title = "ROIs not selected",
+            text = "You didn't selected any ROI as background for the statistical test of the overlap.",
+            type = "error"
+          )
+          return()
+        }
+
+      }else{
+        overlap_signif=NULL
+      }
+    }else{
+      overlap_signif=NULL
+    }
 
 
 
@@ -748,6 +797,7 @@ observeEvent(input$plotCmp,{
     toplot$cmp$jaccard=jaccard
     toplot$cmp$n1=n1
     toplot$cmp$n2=n2
+    toplot$cmp$overlap_signif=overlap_signif
 
     output$pairwiseoverlaps_overlap_options<-renderUI({
                   selectInput("chooseColorPaletteCmp_overlap","Choose color palette:",choices=c(
@@ -756,13 +806,21 @@ observeEvent(input$plotCmp,{
                                                 ))
     })
 
+
+    
+    if (!is.null(overlap_signif)){
+      jaccard_for_plot=paste0(jaccard," (pval=",signif(overlap_signif,digits=3),")")
+    }else{
+      jaccard_for_plot=jaccard
+    }
+
     output$viewBarplotCmp<-renderPlot({
       if(isvalid(input$chooseColorPaletteCmp_overlap)){
         Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
       }else{
         Colors=strsplit("red_gray_red4_grey20",split="_")[[1]]
       }
-      plot_cmp_barplot(matbar=matbar,n1=n1,n2=n2,colors=Colors,jaccard=jaccard)
+      plot_cmp_barplot(matbar=matbar,n1=n1,n2=n2,colors=Colors,jaccard=jaccard_for_plot)
     })
 
 
@@ -1253,11 +1311,16 @@ output$saveviewBarplotCmpbutton<- downloadHandler(
       paste('Barplot_overlap.pdf', sep='')
   },
   content=function(file) {
+    if (!is.null(toplot$cmp$overlap_signif)){
+      jaccard_for_plot=paste0(toplot$cmp$jaccard," (pval=",signif(toplot$cmp$overlap_signif,digits=3),")")
+    }else{
+      jaccard_for_plot=toplot$cmp$jaccard
+    }
     pdf(file)
     Colors=strsplit(input$chooseColorPaletteCmp_overlap,split="_")[[1]]
     #for PDF, better to split legend to next page
     plot_cmp_barplot(matbar=toplot$cmp$matbar,n1=toplot$cmp$n1,n2=toplot$cmp$n2,colors=Colors,
-                  jaccard=toplot$cmp$jaccard,splitlegend=TRUE)
+                  jaccard=jaccard_for_plot,splitlegend=TRUE)
     dev.off()
   } 
 )
