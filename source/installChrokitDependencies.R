@@ -137,6 +137,14 @@ if(! ("qs" %in% x)){
 	print("qs package already installed...")
 }
 
+#pryr
+if(! ("pryr" %in% x)){
+	print("Installing pryr package...")
+	install.packages('pryr', repos=cranRepo)
+}else{
+	print("pryr package already installed...")
+}
+
 
 ###determine the version of R. if R>=3.5, install BiocManager package
 ###and install packages from bioconductor from this package
