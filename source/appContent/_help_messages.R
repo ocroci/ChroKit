@@ -104,7 +104,7 @@ msg_coordinateFiles_chooseCoordinates<-list(
 		<li>A set of genomic coordinates</li>
 		<li>A list of genes</li><br> 
 		You can import or create new ROIs from files (bed/gtf/gff format), from lists of genes and from sequence pattern occurrences in the genome"),
-		tags$br(),
+		tags$br(),tags$br(),
 		Comment("If an assembly is already loaded, the imported ROI will be automatically annotated with the genes nearest to its genomic ranges")	
 	)
 )
@@ -128,6 +128,7 @@ help_BED_fromfiles<-list(
 help_BED_fromgenelist<-list(
 	title="Import a genelist",
 	text=list("Here you can import a genelist by pasting the gene ID or symbols, or loading a text file containing IDs or symbols.",
+		tags$br(),
 		tags$br(),
 		Comment("When a gene list is loaded, the promoters, transcripts, TES of the genes associated to that gene lists are loaded in memory as new ROIs. 
 				All annotated isoforms are loaded as well"),
@@ -1143,9 +1144,10 @@ help_pairwiseOverlaps_parameters_minbpoverlap<-list(
 
 help_pairwiseOverlaps_parameters_ROIuniverse<-list(
 	title="ROI to be used as background",
-	text="Select one or more ROIs to create the background for the computation of the statistics of the overlap.
-			The union of the selected ROI(s) will be added to the union of ROI1 and ROI2 selected as input and used as universe in the hypergeometric test.
-			"
+	text="The background ROI is needed for the computation of the statistics of the overlap.
+			This background will be the union of the selected ROI(s), plus ROI-1 and ROI-2.
+			The background ROI will be the universe of the hypergeometric test."
+
 )
 
 help_pairwiseOverlaps_parameters_enrich1<-list(
@@ -1541,7 +1543,8 @@ help_analogicHeatmap_parameters_ranking<-list(
 help_analogicHeatmap_parameters_clustering<-list(
 	title="Cluster enrichments",
 	text=list("The order of heatmap rows (genomic ranges) will be calculated with a clustering algorithm. The enrichment
-			that will drive the clustering have to be chosen."
+			that will drive the clustering have to be chosen.",
+			Warning("Depending on your hardware, hierarchical clustering may lead to crashes if you cluster more than 20000 genomic regions")
 	)
 )
 
