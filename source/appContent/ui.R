@@ -16,7 +16,8 @@ header <- dashboardHeader(title = "ChroKit",disable = FALSE,titleWidth = 180,
 
             tags$li(class = "dropdown", htmlOutput("showcurrentASSEMBLY"),style = "padding-top: 10px; padding-bottom: 4px; padding-right: 15px; color: #fff; font-size:100%;"),
             tags$li(class = "dropdown", actionButton("loadExampleData", "Load example data",style='padding:4px; font-size:80%'),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 10px; color: #fff; font-size:100%;"),
-            tags$li(class = "dropdown", actionButton("gototutorial", "Go to tutorial",style='padding:4px; font-size:80%',onclick ="window.open('https://ocroci.github.io/ChroKit/', '_blank')"),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 10px; color: #fff; font-size:100%;")
+            tags$li(class = "dropdown", actionButton("gototutorial", "Go to tutorial",style='padding:4px; font-size:80%',onclick ="window.open('https://ocroci.github.io/ChroKit/', '_blank')"),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 10px; color: #fff; font-size:100%;"),
+            tags$li(class = "dropdown", actionButton("show_overview", "Overview",style='padding:4px; font-size:80%'),style = "padding-top: 8px; padding-bottom: 0px; padding-right: 10px; color: #fff; font-size:100%;")
             
             )
              

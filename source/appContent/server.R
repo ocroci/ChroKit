@@ -245,6 +245,13 @@ shinyServer(function(input, output,session) {
   })
 
 
+
+  #overview help
+  observeEvent(input$show_overview, {
+    boxHelpServer_wide(msg_global_overview)
+  })
+
+
   # #every time the ROI list is changing or the enrichments are changins, show the current memory used
   # #using gc
   # output$showRAMusageGC<-renderText({

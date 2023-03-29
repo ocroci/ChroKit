@@ -104,6 +104,18 @@ boxHelpServer<-function(object) {
   )
 }
 
+boxHelpServer_wide<-function(object) {
+  #object: defined in help_messages.R, list containing a title and text (HTML format)
+  showModal(
+    modalDialog(
+      size="l",
+      object$text,
+      title = object$title,
+      easyClose = TRUE,
+      footer = NULL
+    )
+  )
+}
 
 
 

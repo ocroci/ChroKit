@@ -82,6 +82,25 @@ htmlwarning<-function(text,id) {
 }
 
 
+############################################################
+############################################################
+############################################################
+# Global_overview
+############################################################
+############################################################
+############################################################
+msg_global_overview<-list(
+	title="Global ChroKit overview",
+	text=list(
+		HTML("ChroKit session starts by defining new ROIs. These are genomic coordinates that can be derived from BED/GTF files or from lists of genes.
+			Optionally, enrichment files (bam or bigWig format) can be imported for further analyses. ROIs can be manipulated or filtered, and then a variety of plots can be generated.
+			<br><img src='global_scheme_1.png' alt='Res' width='100%'><br><br>"),
+		HTML("The sidebar menu contains the main ChroKit funcionalities: <br><img src='global_scheme_2.png' alt='Res' width='100%'><br><br>"),
+		HTML("ROIs can be imported, viewed or downloaded: <br><img src='global_scheme_3.png' alt='Res' width='100%'><br><br>"),
+		HTML("Different kind of visualizations can be used for analyse and explore NGS experiments: <br><img src='global_scheme_4.png' alt='Res' width='100%'><br><br>")
+	)
+)
+
 
 
 ############################################################
