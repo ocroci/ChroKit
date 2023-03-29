@@ -1224,11 +1224,11 @@ msg_pairwiseOverlaps_overlap<-list(
 
 msg_pairwiseOverlaps_box<-list(
 	title="Boxplot",
-	text=list("It shows the signal of the selected enrichment (i.e. enrichment-1) in the regions of ROI-1 which 
+	text=list(HTML("It shows the signal of the selected enrichment (i.e. enrichment-1) in the regions of ROI-1 which 
 				either overlap or not with ROI-2.
 				If the enrichment is associated also to ROI-2, it shows also enrichment-1 signals in the genomic ranges 
 				of ROI-2 that are not overlapping with ROI-1. 
-				The same is true for ROI-2 and enrichment-2."
+				The same is true for ROI-2 and enrichment-2: <img src='scheme_enrichment_pairwise.png' alt='Res' width=100% >")
 	)
 
 )
@@ -2059,7 +2059,7 @@ help_goAnalysis_parameters_signatures<-list(
 			Comment("The gene signatures are lists of genes in gmt format present in the directory appContent/signatures/ of the program. 
 				Gene signatures can be loaded from the Molecular Signature Database (MSigDB) or similar resources"),
 			tags$br(),tags$br(),
-			#sonoqui
+			
 			HTML("Preloaded gene signatures are:<br>
 			<ul>
 			<li><b>c1.all.v7.4_symbols.gmt</b>: positional genesets. Gene sets corresponding to human chromosome cytogenetic bands. </li>
