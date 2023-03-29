@@ -237,10 +237,10 @@ shinyServer(function(input, output,session) {
       if(DATABASEvariables$currentASSEMBLY!=FALSE){
         paste("Current assembly: <b>",DATABASEvariables$currentASSEMBLY,"</b>",sep="")
       }else{
-        "No genome assembly loaded..."
+        "No assembly loaded"
       }      
     }else{
-      "No genome assembly loaded..."
+      "No assembly loaded"
     }
   })
 
