@@ -1,0 +1,49 @@
+FROM rocker/r-ver:3.6.3
+
+
+
+# #install needed libraries
+RUN   apt update && \
+	  apt install -y libcurl4-openssl-dev libz-dev libtool python-dev libbz2-dev liblzma-dev libxml2-dev libssl-dev && rm -rf /var/lib/apt/lists/* && \
+	  R -e "install.packages(c('shiny','shinyFiles','shinydashboard','shinyWidgets','fastcluster','VennDiagram','data.table','RColorBrewer','ppcor','Rcpp','BiocManager','RCurl','qs','pryr'),repos='http://cran.us.r-project.org')" && \
+      R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install(version = bioCversion,ask=F)" && \
+      R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('GenomicRanges', version = bioCversion,ask=FALSE)" && \
+      R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('Rsamtools', version = bioCversion,ask=FALSE)" && \
+      R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('rtracklayer', version = bioCversion,ask=FALSE)" && \
+      R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('bamsignals', version = bioCversion,ask=FALSE)"
+    
+# #install database libraries  
+
+ RUN     R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('BSgenome.Mmusculus.UCSC.mm10',version = bioCversion,ask=FALSE)" && \
+         R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('BSgenome.Mmusculus.UCSC.mm9',version = bioCversion,ask=FALSE)" && \
+         R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('BSgenome.Hsapiens.UCSC.hg19',version = bioCversion,ask=FALSE)" && \
+         R -e "bioCversion=as.character(tools:::.BioC_version_associated_with_R_version()); BiocManager::install('BSgenome.Hsapiens.UCSC.hg38',version = bioCversion,ask=FALSE)"
+         
+EXPOSE 6060
+#copy the folder of the source code of ChroKit in the home directory
+COPY ./ChroKit_master/source /home/ChroKit
+
+#the following script (start_chrokit_docker.sh) contains this:
+##! /bin/bash
+#cd /home/ChroKit/
+#echo "$@"
+#Rscript shinyapp.r $@
+
+COPY ./start_chrokit_docker.sh /home/start_chrokit_docker.sh
+RUN ["chmod","+x","/home/start_chrokit_docker.sh"]
+RUN ["chmod","-R","777","/home/"]
+ENTRYPOINT ["/home/start_chrokit_docker.sh"]
+
+
+#this script must be run to create the image with the following command:
+#sudo docker build -f dockerfile_ChroKit -t ocroci/chrokit:latest .
+#and then run the image with something like:
+#sudo docker run -v /host/system/folder/:/mnt/ -p 40000:6060 -it ocroci/chrokit:latest 6060 8 4
+#where "/host/system/folder/" is the folder of the host system that will be seen by the docker machine,
+#"/mnt" is the docker folder in which the host directory will be mounted 
+#"-p 40000:6060": port forwarding: the app in the docker image will run with port 6060, but the app
+#can be accessed by the host system from the browser at 127.0.0.1:40000 address
+#"-it ocroci/chrokit:latest": this is the image that will be run
+#"6060 8 4": these are the CMD line arguments (look at shinyapp.r script). 6060 is the port number for the app,
+#8 is the amount of RAM (in Gb) of the system
+#4 are the number of cores to be used
