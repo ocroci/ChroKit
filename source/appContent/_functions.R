@@ -626,7 +626,13 @@ extractFromDB<-function(assembly,avail_assemblies) {
 }
 
 
-
+extractDBfromFile<-function(assembly) {
+  pos=match(assembly,names(availDB))
+  content=read.table(availDB[pos])
+  gr=makeGRangesFromDataFrame(content)
+  elementMetadata(gr)=content[,c("gene_id","symbol","ensembl_id","refSeq_id")]
+  return(gr)
+}
 
 
 
