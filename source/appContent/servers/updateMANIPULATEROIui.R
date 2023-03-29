@@ -1497,6 +1497,55 @@ observeEvent(input$help_roimanual_pattern_strandspecific, {boxHelpServer(help_ro
 
 
 
+#observer for strand option of extracting pattern from ROI:
+observe({
+  input$selectROItoExtractPattern
+  if(isvalid(input$selectROItoExtractPattern)>0){
+    #find strand. If * => only print text, if + and - , give the choice
+    nomi=unlist(lapply(ROIvariables$listROI,getName))
+    if(isvalid(nomi)){
+      pos=match(input$selectROItoExtractPattern,nomi)
+      if(!is.null(ROIvariables$listROI[[pos]])){
+        range_roi=getRange(ROIvariables$listROI[[pos]])
+        strand_roi=unique(as.character(strand(range_roi)))
+
+        if("*" %in% strand_roi){
+          #pattern search on both strands, because strand not defined
+          output$showStrandOptsPattern<-renderUI({HTML("ROI is not strand-specific: pattern will be searched on both strands<br>")})
+        }else{
+          #stranded (+ and -) => offer the choice
+          output$showStrandOptsPattern<-renderUI({
+            list(
+              HTML("<b>Strand selection:</b><br>"),
+              radioButtons("strandOptsPattern",label=NULL ,
+                                    choiceNames=list(
+                                      htmlhelp("Both strands","help_roimanual_pattern_bothstrands"),
+                                      htmlhelp("Strand-specific","help_roimanual_pattern_strandspecific")
+                                    ),
+                                    choiceValues=list(
+                                      "bothStrands",
+                                      "strandSpecific"
+                                    ),selected="strandSpecific"
+              )
+            )
+          })
+        }          
+      }else{
+        output$showStrandOptsPattern<-renderUI({NULL})
+      }
+      
+    }else{
+      output$showStrandOptsPattern<-renderUI({NULL})
+    }
+  }else{
+    #NULL
+    output$showStrandOptsPattern<-renderUI({NULL})
+  }    
+  
+})
+
+
+
 #find current BSgenome in the installed packages. If not found, put a button for installation.
 #look DATABASEvariables$currentASSEMBLY. If not null, search BSgenome in the package. If 
 #present, import, put in DBvariables$BSgenomeDB and do nothing (maybe print what we are using), 
@@ -1521,6 +1570,15 @@ observe({
     org=sapply(avail_spl,"[[",2)
     asms=sapply(avail_spl,"[[",4)
     pos=match(asm,asms)
+
+    if (is.na(pos)){
+      output$showWarningBSgenome<-renderUI({HTML("<font color='red'>BSegnome not available. It seems that you are using a non-standard genome</font>")})
+      output$show_PatternToSearch<-renderUI({NULL})
+      output$showStrandOptsPattern<-renderUI({NULL})
+      output$show_namebuttonpattern<-renderUI({NULL})      
+      return()
+    }
+
     BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
     x=rownames(installed.packages())
     pos_pkg=match(BSstring,x)
@@ -1579,52 +1637,7 @@ observe({
 
 
 
-#observer for strand option of extracting pattern from ROI:
-observe({
-  input$selectROItoExtractPattern
-  if(isvalid(input$selectROItoExtractPattern)>0){
-    #find strand. If * => only print text, if + and - , give the choice
-    nomi=unlist(lapply(ROIvariables$listROI,getName))
-    if(isvalid(nomi)){
-      pos=match(input$selectROItoExtractPattern,nomi)
-      if(!is.null(ROIvariables$listROI[[pos]])){
-        range_roi=getRange(ROIvariables$listROI[[pos]])
-        strand_roi=unique(as.character(strand(range_roi)))
 
-        if("*" %in% strand_roi){
-          #pattern search on both strands, because strand not defined
-          output$showStrandOptsPattern<-renderUI({HTML("ROI is not strand-specific: pattern will be searched on both strands<br>")})
-        }else{
-          #stranded (+ and -) => offer the choice
-          output$showStrandOptsPattern<-renderUI({
-            list(
-              HTML("<b>Strand selection:</b><br>"),
-              radioButtons("strandOptsPattern",label=NULL ,
-                                    choiceNames=list(
-                                      htmlhelp("Both strands","help_roimanual_pattern_bothstrands"),
-                                      htmlhelp("Strand-specific","help_roimanual_pattern_strandspecific")
-                                    ),
-                                    choiceValues=list(
-                                      "bothStrands",
-                                      "strandSpecific"
-                                    ),selected="strandSpecific"
-              )
-            )
-          })
-        }          
-      }else{
-        output$showStrandOptsPattern<-renderUI({NULL})
-      }
-      
-    }else{
-      output$showStrandOptsPattern<-renderUI({NULL})
-    }
-  }else{
-    #NULL
-    output$showStrandOptsPattern<-renderUI({NULL})
-  }    
-  
-})
 
 
 

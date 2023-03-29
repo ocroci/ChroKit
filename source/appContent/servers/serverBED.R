@@ -1042,6 +1042,18 @@ observeEvent(input$ExtractPatternROI2,{
       org=sapply(avail_spl,"[[",2)
       asms=sapply(avail_spl,"[[",4)
       pos=match(asm,asms)
+
+      if (is.na(pos)){
+        sendSweetAlert(
+          session = session,
+          title = "Missing BSgenome",
+          text = paste("Pattern search is available only for standard assemblies. It seems that ",asm," you are using is a non-standard genome assembly."),
+          type = "error"
+        )         
+        return()
+      }
+
+
       BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
       x=rownames(installed.packages())
       pos_pkg=match(BSstring,x)
@@ -1229,6 +1241,15 @@ observeEvent(input$DownloadBSgenome2,{
   org=sapply(avail_spl,"[[",2)
   asms=sapply(avail_spl,"[[",4)
   pos=match(asm,asms)
+  if (is.na(pos)){
+    sendSweetAlert(
+      session = session,
+      title = "BSgenome database cannot be installed",
+      text = "Problems in downloading the BSgenome package for pattern search. Maybe you are using a non-standard genome.",
+      type = "error"
+    )
+    return()  
+  }
   BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
 
   x=rownames(installed.packages())

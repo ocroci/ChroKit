@@ -35,8 +35,9 @@ observeEvent(input$confirmASSEMBLYforuse,{
 		logvariables$msg[[length(logvariables$msg)+1]]= paste('Defining the promoters, genebodies, TES for ',input$searchASSEMBLYforuse,' assembly databsase<br>',sep="")	
 
 		#defining transcripts with all annotation using extractfromDB function	
-		transc=extractFromDB(assembly=input$searchASSEMBLYforuse,avail_assemblies=all_avail_assemblies)$transcripts
-		
+		#transc=extractFromDB(assembly=input$searchASSEMBLYforuse,avail_assemblies=all_avail_assemblies)$transcripts
+
+		transc=extractDBfromFile(assembly=input$searchASSEMBLYforuse)
 		#remove not conventional chromosomes
 		transc=convertNomenclatureGR(transc,to="UCSC")
 

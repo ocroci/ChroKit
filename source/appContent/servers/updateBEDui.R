@@ -65,6 +65,13 @@ observe({
     org=sapply(avail_spl,"[[",2)
     asms=sapply(avail_spl,"[[",4)
     pos=match(asm,asms)
+    if (is.na(pos)){
+      output$importROIwindowToShow<-renderUI({HTML("<font color='red'>BSegnome not available. It seems that you are using a non-standard genome</font>")})
+
+      return()
+    }
+
+
     BSstring=paste("BSgenome.",org[pos],".UCSC.",asm,sep="")
     x=rownames(installed.packages())
     pos_pkg=match(BSstring,x)
@@ -172,18 +179,28 @@ observe({
             #check existence of TXDB database
       nomi=unlist(lapply(ROIvariables$listROI,getName))
       if("promoters"%in% nomi & "transcripts" %in% nomi & "TES" %in% nomi & length(DATABASEvariables$currentASSEMBLY)>0 ){
+        asm=DATABASEvariables$currentASSEMBLY
+        avail_spl=strsplit(all_avail_assemblies,split="\\.")
+        org=sapply(avail_spl,"[[",2)
+        asms=sapply(avail_spl,"[[",4)
+        pos=match(asm,asms)
+        if (!is.na(pos)){
+          output$importROIwindowToShow<-renderUI({
+            list(
+              #warning in case BSgenome DB not present (copy of what seen in extract pattern from modifyROI)
+              uiOutput("showWarningBSgenome2"),
+              #motif text input (copy of that in motifyROI)
+              textInput("PatternToSearch2",label=list("Select pattern (IUPAC nomenclature)",htmlhelp("","help_BED_IUPACpattern")),placeholder="ATCNYGG"),
+              #new ROI name
+              textInput("ROInamePattern2",label="Name of the ROI",placeholder="type new ROI name here"),
+              actionButton("ExtractPatternROI2","Create ROI") 
+            )
+          })  
 
-        output$importROIwindowToShow<-renderUI({
-          list(
-            #warning in case BSgenome DB not present (copy of what seen in extract pattern from modifyROI)
-            uiOutput("showWarningBSgenome2"),
-            #motif text input (copy of that in motifyROI)
-            textInput("PatternToSearch2",label=list("Select pattern (IUPAC nomenclature)",htmlhelp("","help_BED_IUPACpattern")),placeholder="ATCNYGG"),
-            #new ROI name
-            textInput("ROInamePattern2",label="Name of the ROI",placeholder="type new ROI name here"),
-            actionButton("ExtractPatternROI2","Create ROI") 
-          )
-        })
+        }else{
+          output$importROIwindowToShow<-renderUI({HTML("<font color='red'>BSegnome not available. It seems that you are using a non-standard genome</font>")})
+        }
+
       }else{
         output$importROIwindowToShow<-renderUI({HTML("<font color='red'>You need to select a genome Assembly to extract sequence patterns. Go to 'Assembly' to select the correct genome assembly.</font>")})
       }
@@ -327,78 +344,13 @@ observe({
 observe({
   ROIvariables$listROI
   if (!isvalid(ROIvariables$listROI)){
-    removeTab(inputId = "newROItabset",target="managingROItabPanel")
-    removeTab(inputId = "newROItabset",target="downloadROItabPanel")
+    hideTab(inputId = "newROItabset",target="managingROItabPanel")
+    hideTab(inputId = "newROItabset",target="downloadROItabPanel")
     return()    
   }
 
-
-  appendTab(inputId = "newROItabset",
-    tabPanel("Managing ROIs",value="managingROItabPanel",
-
-      fluidRow(
-        column(width=9,style='padding:0px;',
-          box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-            title=boxHelp(ID="msg_quickviewROIs",title="Quick ROI preview"),
-            fluidRow(
-              column(width=4,
-                uiOutput("show_confirmviewROI")
-                # HTML("<b>Select ROI to view:</b>"),
-                # wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; max-width: 300px; background-color: #ffffff;",
-                #   checkboxGroupInput("confirmviewROI", label=NULL,choices=NULL)
-                # )
-              ),
-
-              column(width=8,
-                uiOutput("show_chooseROIvisualiz"),
-                plotOutput('viewROImaterial'),
-                htmlOutput("saveviewpeaksROImaterial")
-
-
-              )
-            )
-          )
-        ),
-        column(width=3,style='padding:0px;',
-          box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-            title=boxHelp(ID="msg_deleteRois_deleteRois",title="Loaded ROIs"),
-
-            
-            HTML("<b>Available ROIs:</b>"),
-            uiOutput("show_selectedCustomROItoRemove"),
-
-            HTML("Select ROIs to delete<br><br>"),
-            actionButton("deleteROI", "Delete")
-          ) 
-        )
-      )
-    )
-  )
-
-
-
-  appendTab(inputId = "newROItabset",
-    tabPanel("Download ROIs",value="downloadROItabPanel",
-      fluidRow(
-        box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
-          title=boxHelp(ID="msg_getRois_BOX",title="Download ROI"),
-          fluidRow(
-            column(width=4,
-              uiOutput("show_choosegetROImenu"),
-              uiOutput("showROIoptionsToGET")    
-            ),
-            column(width=8, 
-              htmlOutput("previewROItodownload"),
-              htmlOutput("previewROItodownloadbutton")
-            )
-          )
-        )
-      )
-
-    )
-  )
-
-
+  showTab(inputId = "newROItabset",target="managingROItabPanel")
+  showTab(inputId = "newROItabset",target="downloadROItabPanel")
 
 })
 
