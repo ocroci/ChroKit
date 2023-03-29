@@ -126,7 +126,7 @@ x=rownames(installed.packages())
 all_avail_assemblies=c(
 "TxDb.Btaurus.UCSC.bosTau8.refGene",  
 "TxDb.Celegans.UCSC.ce11.refGene",  
-"TxDb.Celegans.UCSC.ce6.ensGene",  #
+#"TxDb.Celegans.UCSC.ce6.ensGene",  #
 "TxDb.Cfamiliaris.UCSC.canFam3.refGene",
 "TxDb.Dmelanogaster.UCSC.dm3.ensGene",  #
 "TxDb.Dmelanogaster.UCSC.dm6.ensGene",  #
@@ -150,7 +150,7 @@ all_avail_assemblies=c(
 names(all_avail_assemblies)=c(
 "org.Bt.eg.db",   
 "org.Ce.eg.db",
-"org.Ce.eg.db",
+#"org.Ce.eg.db",
 "org.Cf.eg.db",
 "org.Dm.eg.db",
 "org.Dm.eg.db",
@@ -190,7 +190,8 @@ availASSEMBLIES=getExistingDB(all_avail_assemblies)$assemblies_we_have
 missingASSEMBLIES=getExistingDB(all_avail_assemblies)$assemblies_we_donthave
 
 #here read pre-calculated DB tables in assemblies/ directory
-availDB=dir(paste("appContent/assemblies/",sep=""),full.names=TRUE)
+availDB=dir(paste("appContent/assemblies/",sep=""))
+availDB=paste0("assemblies/",availDB)
 names(availDB)=dir(paste("appContent/assemblies/",sep=""))
 
 
