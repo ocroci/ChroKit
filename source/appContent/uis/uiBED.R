@@ -34,7 +34,70 @@ tabBED <- tabItem(tabName = "BEDblock",
       )#,
 
 
-    )#,
+    ),
+
+
+    tabPanel("Managing ROIs",value="managingROItabPanel",
+
+      fluidRow(
+        column(width=9,style='padding:0px;',
+          box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+            title=boxHelp(ID="msg_quickviewROIs",title="Quick ROI preview"),
+            fluidRow(
+              column(width=4,
+                uiOutput("show_confirmviewROI")
+                # HTML("<b>Select ROI to view:</b>"),
+                # wellPanel(id = "logPanel",style = "overflow-y:scroll; overflow-x:scroll; max-height: 300px; max-width: 300px; background-color: #ffffff;",
+                #   checkboxGroupInput("confirmviewROI", label=NULL,choices=NULL)
+                # )
+              ),
+
+              column(width=8,
+                uiOutput("show_chooseROIvisualiz"),
+                plotOutput('viewROImaterial'),
+                htmlOutput("saveviewpeaksROImaterial")
+
+
+              )
+            )
+          )
+        ),
+        column(width=3,style='padding:0px;',
+          box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+            title=boxHelp(ID="msg_deleteRois_deleteRois",title="Loaded ROIs"),
+
+            
+            HTML("<b>Available ROIs:</b>"),
+            uiOutput("show_selectedCustomROItoRemove"),
+
+            HTML("Select ROIs to delete<br><br>"),
+            actionButton("deleteROI", "Delete")
+          ) 
+        )
+      )
+    ),
+
+
+    tabPanel("Download ROIs",value="downloadROItabPanel",
+      fluidRow(
+        box(width=12,collapsible = TRUE,status = "primary",solidHeader = TRUE,
+          title=boxHelp(ID="msg_getRois_BOX",title="Download ROI"),
+          fluidRow(
+            column(width=4,
+              uiOutput("show_choosegetROImenu"),
+              uiOutput("showROIoptionsToGET")    
+            ),
+            column(width=8, 
+              htmlOutput("previewROItodownload"),
+              htmlOutput("previewROItodownloadbutton")
+            )
+          )
+        )
+      )
+
+    )
+
+    
 
 
 
