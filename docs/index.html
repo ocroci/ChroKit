@@ -29,6 +29,7 @@ The example data used in this tutorial are ChIP-Seq experiments from GSE83869 (c
 <a href="#glossary"><b>Glossary</b>: the meaning of the terms used in ChroKit</a>
 <h4><b>Import data</b></h4>
 <p align="justify">
+<li><a href="#inputfiles">What files do I need to use ChroKit?</a></li>
 <li><a href="#importBED">I have genomic coordinates in a BED or GTF file, how can I import them as ROIs (regions of interest)?</a></li>
 <li><a href="#importgenelist">I have a list of genes, how can i import their promoters and transcripts as ROIs for analyses?</a></li>
 <li><a href="#enrichments">I have enrichment files from sequencing (bam or bigwig): how can I import them?</a></li>
@@ -124,6 +125,36 @@ This is required for analyses involving reads enrichment.
 
 <br><br><br><br>
 <h2>Import data</h2>
+
+
+<div>
+<h4><a id="inputfiles">What files do I need to use ChroKit?</a></h4>
+<p align="justify"> Three kind of files can be imported in ChroKit:
+<li>BED/GTF files: those files are tab-delimited text files with information about genomic coordinate, containing the chromosome number, start and end positions of the genomic ranges. Optionally, they can contain also the strand information. These files must have the following format:
+<figure>
+    <img src='tutorial_figures/File_ROI_format.png' width="30%" alt='missing' />
+</figure>
+<br><br>
+These files can originate from different sources. For example, they can be he result of a peak caller algorithm in a ChIP-Seq, ATAC-Seq, DRIP-Seq, EdU-Seq experiments. They can be downloaded from published datasets in external repositories, such as GEO (https://www.ncbi.nlm.nih.gov/geo/) or ENCODE (https://www.encodeproject.org/).
+Independently on the source, any kind of genomic coordinates can be used as input for ChroKit.
+</li>
+<br>
+<li>Lists of genes: those are a list of genes IDs or symbols with a particular biological interest. They can be provided directly pasting the symbols/IDs inside the program or by uploading a text file containing one symbol/ID for each row.
+They can be genes belonging to the same pathway, a list of genes upregulated following by a certain treatment or with a particular value of expression. 
+Independently on the source, any list of genes can be used as input. Then, ChroKit will create the promoters, transcripts and transcription end sites corresponding to those genes for genomic analyses.</li>
+<br>
+<li>Enrichment files in .bam or .bigWig format: these files derives from the alignment of reads in NGS experiments. These contain some information about reads, such as the position in the genome and their quality. 
+Enrichment files can be used to compute the number of reads inside specific genomic regions of interest.
+The signal computed from bam files can be easyly normalized by library size or user-defined spike ins, while bigWig files should have been previously normalized before the import.</li>
+
+<br><br>
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
 
 
 <div>
