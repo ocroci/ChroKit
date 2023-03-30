@@ -1975,6 +1975,11 @@ msg_dynamicsOnGenes_profiles<-list(
 		Comment("The metagene plot starts at –30% of transcripts length from TSS and ends at +30% from TES"),
 		tags$br(),
 		tags$br(),
+		HTML("A metagene representation is useful to analyse the behaviour of a signal in a set of genes. Each transcript length is increased by 30% 
+				and divided in an equal number of bins (in the following example, 9 bins). Then, the signals from different genes
+				belonging to the same bin are averaged together to produce the metagene signal. <br><img src='scheme_metagene.png' alt='Res' width=80% height=80%>"),
+		tags$br(),
+		tags$br(),
 		Field("Enrichment boxplots","Shows the the enrichments as boxplots at the promoters, transcripts and TES of the selected gene list(s)."),				
 		Comment("The upstream and downstream limits to define TSS and TES regions are set the 
 				first time the genome assembly is loaded"),
