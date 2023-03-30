@@ -1977,7 +1977,7 @@ msg_dynamicsOnGenes_profiles<-list(
 		tags$br(),
 		HTML("A metagene representation is useful to analyse the behaviour of a signal in a set of genes. Each transcript length is increased by 30% 
 				and divided in an equal number of bins (in the following example, 9 bins). Then, the signals from different genes
-				belonging to the same bin are averaged together to produce the metagene signal. <br><img src='scheme_metagene.png' alt='Res' width=80% height=80%>"),
+				belonging to the same bin are averaged together to produce the metagene signal. <br><img src='scheme_metagene.png' alt='Res' width=100% height=80%>"),
 		tags$br(),
 		tags$br(),
 		Field("Enrichment boxplots","Shows the the enrichments as boxplots at the promoters, transcripts and TES of the selected gene list(s)."),				
