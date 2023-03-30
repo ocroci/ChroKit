@@ -608,7 +608,8 @@ help_ultraeasy_enrichmentAssoc<-list(
 ############################################################
 help_prepheat_subsample<-list(
 	title="Subsample ROI",
-	text=list("This value determines how many of the genomic ranges of the selected ROI will randomly subsampled.")
+	text=list("This value determines how many of the genomic ranges of the selected ROI will be randomly subsampled.
+			For instance, for a ROI of 10000 ranges, by selecting 30% you will generate a random subset of 3000 genomic regions.")
 
 )
 
@@ -1224,11 +1225,11 @@ msg_pairwiseOverlaps_overlap<-list(
 
 msg_pairwiseOverlaps_box<-list(
 	title="Boxplot",
-	text=list(HTML("It shows the signal of the selected enrichment (i.e. enrichment-1) in the regions of ROI-1 which 
-				either overlap or not with ROI-2.
-				If the enrichment is associated also to ROI-2, it shows also enrichment-1 signals in the genomic ranges 
-				of ROI-2 that are not overlapping with ROI-1. 
-				The same is true for ROI-2 and enrichment-2: <img src='scheme_enrichment_pairwise.png' alt='Res' width=100% >")
+	text=list(HTML("It shows the values (number of reads) of the selected enrichments (i.e. enrichment-1 and enrichment-1) within:<br>
+				1) regions of ROI-1 not overlapping with ROI-2 (ROI-1 alone)<br>
+				2) regions of ROI-2 not overlapping with ROI-1 (ROI-2 alone)<br>
+				3) common ROI-1 and ROI-2 regions (ROI-1 overlapping and ROI-2 overlapping) <br>
+				<img src='scheme_enrichment_pairwise.png' alt='Res' width=100% >")
 	)
 
 )
