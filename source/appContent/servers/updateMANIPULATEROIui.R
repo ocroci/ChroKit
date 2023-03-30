@@ -1494,6 +1494,7 @@ observe({
 observeEvent(input$help_roimanual_pattern_IUPAC, {boxHelpServer(help_roimanual_pattern_IUPAC)})
 observeEvent(input$help_roimanual_pattern_bothstrands, {boxHelpServer(help_roimanual_pattern_bothstrands)})
 observeEvent(input$help_roimanual_pattern_strandspecific, {boxHelpServer(help_roimanual_pattern_strandspecific)})
+observeEvent(input$help_BED_frompatterngenome2_warning, {boxHelpServer(help_BED_frompatterngenome_warning)})
 
 
 
@@ -2324,7 +2325,7 @@ observe({
               radioButtons("chooseManualManipulation",label=NULL,choiceNames=list(
                               htmlhelp("Overlaps between ROIs","help_roimanual_overlaps"),
                               htmlhelp("Resize ROI","help_roimanual_resize"),
-                              htmlhelp("Extract sequence pattern","help_roimanual_pattern"),
+                              list(htmlhelp("Extract sequence pattern","help_roimanual_pattern"),htmlwarning("","help_BED_frompatterngenome2_warning")),
                               list(htmlhelp("Center on summit","help_roimanual_summit"),HTML("<br><br><font color='grey'>Enrichment association</font>")),
                               list(htmlhelp("Associate/remove enrichments","help_roimanual_enrichmentAssoc"),HTML("<br><br><font color='grey'>Filtering</font>")),
                               htmlhelp("Random sample","help_roimanual_subsample"),
