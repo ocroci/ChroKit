@@ -199,6 +199,25 @@ Some parameters could be set in the **shinyapp.r** script, such as the listening
 - The variable **RAM_system** specifies the amount of RAM available on the system in Gb. Recommended: 4.
 - The variable **ColsArray** specifies all colors available in the palettes for heatmaps (gradient from white)
 
+
+### Use custom gene signatures for gene ontology (optional for advanced users)
+To add new gene signatures for gene ontology analyses, you must upload their gmt files in the source/appContent/signatures/ folder of the program before launching the app. The GMT format is a tab-delimited text file. Each row has a variable amount of columns, depending on the genes. The first column is the name of the signature, the second column can contain arbitrary information (in the example below, the link to the source) and from the 3rd column, all the gene symbols for that specific signature.
+
+![alt text](gmt_format.png)
+
+Custom .gmt lists can be added and used only when running ChroKit from the R command line (not supported in the Docker version).
+
+
+### Use custom genome assemblies (optional for advanced users)
+Custom genome assemblies can be added in the source/appContent/assemblies/ folder of the program before launching the app, where all the standard genomes are stored.
+To use the "xyz45" custom genome assembly, prepare a table with the following format:
+
+![alt text](assembly_format.png)
+
+which contain the information about the coordinates of the annotated transcripts and gene IDs and symbol for each transcript. This format must match that of the standard genomes already present in the folder (for example, refer to "mm9" file). Rename the file "xyz45" and move it into the folder. ChroKit will find it and shows as one of the assemblies available.
+Custom genome assemblies can be used only when running ChroKit from the R command line (not supported in the Docker version). Pattern search for custom genome assemblies is not supported, as well.
+
+
 ### Launch the program
 Launch the application by typing the following command in the R console (make sure you are in the directory in which ChroKit source code was installed):\
   ```source("shinyapp.r")```
