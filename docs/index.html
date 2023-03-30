@@ -1,3 +1,14 @@
+<head>
+<style>
+div {
+  max-width: 1000px;
+  min-width: 100px;
+}
+</style>
+</head>
+
+
+
 
 
 <h2>Tutorial</h2>
@@ -15,23 +26,23 @@
 The example data used in this tutorial are ChIP-Seq experiments from GSE83869 (chromosome 1)
 <br>
 <br>
-<a href="tutorial/glossary.html"><b>Glossary</b>: the meaning of the terms used in ChroKit</a>
+<a href="#glossary"><b>Glossary</b>: the meaning of the terms used in ChroKit</a>
 <h4><b>Import data</b></h4>
 <p align="justify">
-<li><a href="tutorial/importBED.html">I have genomic coordinates in a BED or GTF file, how can I import them as ROIs (regions of interest)?</a></li>
-<li><a href="tutorial/importgenelist.html">I have a list of genes, how can i import their promoters and transcripts as ROIs for analyses?</a></li>
-<li><a href="tutorial/enrichments.html">I have enrichment files from sequencing (bam or bigwig): how can I import them?</a></li>
+<li><a href="#importBED">I have genomic coordinates in a BED or GTF file, how can I import them as ROIs (regions of interest)?</a></li>
+<li><a href="#importgenelist">I have a list of genes, how can i import their promoters and transcripts as ROIs for analyses?</a></li>
+<li><a href="#enrichments">I have enrichment files from sequencing (bam or bigwig): how can I import them?</a></li>
 </p>
 
 
 
 <h4><b>Qualitative analyses (overlaps) - no enrichments available</b></h4>
 <p align="justify">
-<li><a href="tutorial/singleeval.html">How can I analyse genomic ranges of a ROI (genomic annotation and genomic features)?</a></li>
-<li><a href="tutorial/pairwisecmp.html">How can I view the pairwise overlaps between two ROIs?</a></li>
-<li><a href="tutorial/digitalheat.html">How can I analyse multiple or complex overlaps with a heatmap?</a></li>
-<li><a href="tutorial/ontology.html">How can I perform a gene ontology analysis?</a></li>
-<li><a href="tutorial/sequence_pattern.html">How can I subset ROIs and find sequence patterns?</a></li>
+<li><a href="#singleeval">How can I analyse genomic ranges of a ROI (genomic annotation and genomic features)?</a></li>
+<li><a href="#pairwisecmp">How can I view the pairwise overlaps between two ROIs?</a></li>
+<li><a href="#digitalheat">How can I analyse multiple or complex overlaps with a heatmap?</a></li>
+<li><a href="#ontology">How can I perform a gene ontology analysis?</a></li>
+<li><a href="#sequencepattern">How can I subset ROIs and find sequence patterns?</a></li>
 </p>
 
 
@@ -39,11 +50,11 @@ The example data used in this tutorial are ChIP-Seq experiments from GSE83869 (c
 
 <h4><b>Quantitative analyses - enrichments available</b></h4>
 <p align="justify">
-<li><a href="tutorial/pairwisecmp_enrich.html">How can I compare the enrichments in the overlapping regions between two ROIs?</a></li>
-<li><a href="tutorial/analogheat.html">How can I analyse enrichments in ROIs using interactive heatmaps?</a></li>
-<li><a href="tutorial/enrichmentinrois.html">How can I analyse the correlation between reads enrichment in ROIs?</a></li>
-<li><a href="tutorial/extractroi.html">How to find and extract genomic regions with particular enrichment patterns?</a></li>
-<li><a href="tutorial/metagene.html">How can I analyse a genelist using metagenes?</a></li>
+<li><a href="#pairwisecmp_enrich">How can I compare the enrichments in the overlapping regions between two ROIs?</a></li>
+<li><a href="#analogheat">How can I analyse enrichments in ROIs using interactive heatmaps?</a></li>
+<li><a href="#enrichmentinrois">How can I analyse the correlation between reads enrichment in ROIs?</a></li>
+<li><a href="#extractroi">How to find and extract genomic regions with particular enrichment patterns?</a></li>
+<li><a href="#metagene">How can I analyse a genelist using metagenes?</a></li>
 
 </p>
 
@@ -55,3 +66,481 @@ The example data used in this tutorial are ChIP-Seq experiments from GSE83869 (c
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+
+<h2><a id="glossary">Glossary</a></h2><br>
+<p align="justify"> 
+<div>
+<li><b>ROI</b></li>
+ROIs ("Regions Of Interest") are genomic regions defined by their coordinates in the genome: chromosomes, starting and ending positions (and strands). They can derive from any kind of NGS experiment (transcription factor binding sites from ChIP-Seq, accessible regions form ATAC-Seq, R-loops from DRIP-Seq, Replication origins from EdU-Seq, ...).
+
+
+<br><br>
+<li><b>Enrichment files</b></li>
+The enrichment files contain information about aligned reads from any kind of NGS experiment. They are required to perform quantitative analyses and to compute reads enrichment.
+When an enrichment file is imported, ChroKit knows where the file is located (so the link to the file is imported) and uses them to compute the reads enrichment in a specific ROI (see 'Enrichment association').
+
+<br><br>
+<li><b>Gene list</b></li>
+They are lists of genes with any kind of identifiers (symbols, ENTREZ ID, Ref Seq ID, ENSEMBL ID).
+Once imported in the program, a gene list is defined as a triplet of ROIs: promoters, transcripts and TES (transcription end sites) of all the genes composing the gene list. 
+They can derive form any kind of source. As example, they can be a set of UP-regulated genes from an RNA-Seq experiment or a set of genes belonging to a specific pathway.
+
+<br><br>
+<li><b>Assembly</b></li>
+A genome assembly is the union of three ROIs: all the annotated promoters, transcripts, TES of a specific organism. The libraries to import assembly must be installed on the system, or they can be downloaded from bioConductor inside the program. Docker images already have mouse and human libraries pre-installed.
+An assembly is required for various operations, such as importing gene lists or annotating ROIs.
+
+<br><br>
+<li><b>Enrichment association</b></li>
+After importing enrichment files, this operation computes the number of reads aligned for each base pair in genomic ranges of a specific ROI.
+This is required for analyses involving reads enrichment.
+</p>
+</div>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+
+
+
+
+
+
+
+<br><br><br><br>
+<h2>Import data</h2>
+
+
+<div>
+<h4><a id="importBED">I have genomic coordinates in a BED or GTF file, how can I import them as ROIs (regions of interest)?</a></h4>
+<p align="justify"> Select the file from filesystem (for an example, load YAP_peaks.xls from the ChroKit-master/source/appContent/tutorial_files/ directory. NOTE: if you are running ChroKit using Docker, you will find all the computer files in the folder you chose for mounting, should be the /mnt folder):
+<figure>
+    <img src='tutorial_figures/ROI_import_1.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Preview the file and then confirm the import:
+<figure>
+    <img src='tutorial_figures/ROI_import_2.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+After importing the ROI, new menus and functions will be available:
+<figure>
+    <img src='tutorial_figures/ROI_import_3.png' width="80%" alt='missing' />
+</figure>
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="importgenelist">I have a list of genes, how can i import their promoters and transcripts as ROIs for analyses?</a></h4>
+<p align="justify">
+Import a genome assembly (here mm9) to obtain the coordinates of annotated genomic elements:
+<figure>
+    <img src='tutorial_figures/genelist_import_assembly_1.png' width="90%" alt='missing' />
+</figure>
+<br><br>
+Import the genelist:
+<figure>
+    <img src='tutorial_figures/genelist_import_import_2.png' width="90%" alt='missing' />
+</figure>
+After this step, three ROIs (promoters, transcripts and TES of the imported genes) will be loaded. 
+</p>
+
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="enrichments">I have enrichment files from sequencing (bam or bigwig): how can I import them?</a></h4>
+<p align="justify">
+
+Select the enrichment file(s) to be imported (formats supported: bam or bigWig*. NOTE: if you are running ChroKit using Docker, you will find all the computer files in the folder you chose for mounting, should be the /mnt folder):
+<figure>
+    <img src='tutorial_figures/enrichment_import_1.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Once imported, a file can be renamed or removed:
+<figure>
+    <img src='tutorial_figures/enrichment_import_2.png' width="90%" alt='missing' />
+</figure>
+</p>
+*bigWig files are not supported in Windows operating systems.
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+
+
+
+
+
+<br><br><br><br>
+<h2>Qualitative analyses (overlaps) - no enrichments available</h2>
+
+
+<div>
+<h4><a id="singleeval">How can I analyse genomic ranges of a ROI (genomic annotation and genomic features)? </a></h4>
+<p align="justify"> 
+
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the single evaluation analysis (<b>3</b>) 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROI that you want to analyze in the <b>step 4</b>
+<figure>
+    <img src='tutorial_figures/singleeval_1.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Then look and the plots, adjust their graphical options or download them: 
+<figure>
+    <img src='tutorial_figures/singleeval_2.png' width="90%" alt='missing' />
+</figure>
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+
+<div>
+<h4><a id="pairwisecmp">How can I view the pairwise overlaps between two ROIs?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the pairwise ovelaps tab (<b>3</b>). 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs that you want to analyze (<b>step 4, 5</b>):
+<figure>
+    <img src='tutorial_figures/pairwise_overlaps_1.png' width="90%" alt='missing' />
+</figure>
+
+<br><br>
+Then, visualize the results:
+<figure>
+    <img src='tutorial_figures/pairwise_overlaps_2.png' width="80%" alt='missing' />
+</figure>
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="digitalheat">How can I analyse multiple or complex overlaps with a heatmap?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the 'Position-based heatmap' tab (<b>3</b>).
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs that you want to analyze (<b>step 4, 5</b>):
+<figure>
+    <img src='tutorial_figures/multiple_overlaps_1.png' width="50%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further options:
+<figure>
+    <img src='tutorial_figures/multiple_overlaps_2.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Then, visualize the results and, optionally, extract new ROIs from a particular combination of overlaps:
+<figure>
+    <img src='tutorial_figures/multiple_overlaps_3.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further output boxes:
+<figure>
+    <img src='tutorial_figures/multiple_overlaps_4.png' width="80%" alt='missing' />
+</figure>
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="ontology">How can I perform a gene ontology analysis?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the GO analyses tab (<b>3</b>). 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs or a custom gene list, start from <b>step 2</b> and select the ROIs or genelist that you want to analyze (<b>step 4, 5</b>):
+<figure>
+    <img src='tutorial_figures/GO_1.png' width="90%" alt='missing' />
+</figure>
+
+<br><br>
+Scroll down for further options:
+<figure>
+    <img src='tutorial_figures/GO_2.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Then, visualize or download the results:
+<figure>
+    <img src='tutorial_figures/GO_3.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further output:
+<figure>
+    <img src='tutorial_figures/GO_4.png' width="70%" alt='missing' />
+</figure>
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="sequencepattern">How can I subset ROIs and find sequence patterns?</a></h4>
+<p align="justify"> 
+
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'ROI preparation' (<b>2</b>) and follow the steps to subset ROIs based on overlaps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs to generate the subset (<b>step 5,6</b>) (In the example below, you will find Myc peaks overlapping with promoters).
+
+<figure>
+    <img src='tutorial_figures/motifs_1.png' width="90%" alt='missing' />
+</figure>
+<br><br>
+Then, resize the genomic ranges of the ROI created before (i.e. Myc_promoters), for a better visualization in the heatmap:
+<figure>
+    <img src='tutorial_figures/motifs_2.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Extract the sequence patterns from the ROI created in the previous step (Myc_resized). In the example below, you will find the E-box motif.
+<figure>
+    <img src='tutorial_figures/motifs_3.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Build a heatmap to visualize sequence pattern occurrences within the ROI. Click 'Genomics' (<b>16</b>), go to 'Position-based Heatmap' (<b>17</b>) and follow the steps:
+<figure>
+    <img src='tutorial_figures/motifs_4.png' width="50%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further options:
+<figure>
+    <img src='tutorial_figures/motifs_5.png' width="40%" alt='missing' />
+</figure>
+<br><br>
+Visualize, in a heatmap, the sequence patterns within the ROI:
+<figure>
+    <img src='tutorial_figures/motifs_6.png' width="50%" alt='missing' />
+</figure>
+<br><br>
+For further information about position-based heatmaps, go to <a href="digitalheat.html">How can I analyse multiple or complex overlaps with a heatmap?</a>
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+
+
+
+
+
+
+
+<br><br><br><br>
+<h2>Quantitative analyses - enrichments available</h2>
+
+
+<div>
+<h4><a id="pairwisecmp_enrich">How can I compare the enrichments in the overlapping regions between two ROIs?</a></h4>
+<p align="justify"> 
+
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'ROI preparation' (<b>2</b>) and follow the steps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI and enrichments that you want to analyze (<b>step 4, 5</b>):
+
+<figure>
+    <img src='tutorial_figures/pairwise_withenrichment_1.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Repeat the <b>steps 4, 5, 6</b> for the second ROI (Pol2_peaks_treat.xls):
+<figure>
+    <img src='tutorial_figures/pairwise_withenrichment_bis.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Once the enrichments are associated to ROIs, click 'Genomics' (<b>7</b>) to proceed with the analyses:
+<figure>
+    <img src='tutorial_figures/pairwise_withenrichment_2.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Then, visualize or download the results:
+
+<figure>
+    <img src='tutorial_figures/pairwise_withenrichment_3.png' width="80%" alt='missing' />
+</figure>
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+
+<br><br>
+
+
+
+<div>
+<h4><a id="analogheat">How can I analyse enrichments in ROIs using interactive heatmaps?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'ROI preparation' (<b>2</b>) and follow the steps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI and enrichments that you want to analyze (<b>step 4, 5</b>):
+
+<figure>
+    <img src='tutorial_figures/heatm_enrichment_1.png' width="60%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further options:
+<figure>
+    <img src='tutorial_figures/heatm_enrichment_2.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Then, play interactively with the heatmap by changing the selected area. Visualize or download the results:
+
+<figure>
+    <img src='tutorial_figures/heatm_enrichment_3.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further output boxes:
+<figure>
+    <img src='tutorial_figures/heatm_enrichment_4.png' width="50%" alt='missing' />
+</figure>
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+<div>
+<h4><a id="enrichmentinrois">How can I analyse the correlation between reads enrichment in ROIs?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the steps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI(s) and enrichments that you want to analyze (<b>step 4, 5</b>):
+<figure>
+    <img src='tutorial_figures/enrichment_in_ROI_1.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Output plots will appear on the right:
+<figure>
+    <img src='tutorial_figures/enrichment_in_ROI_2.png' width="90%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further output boxes. To view correlations, play interactively with the correlation heatmap by clicking the desired cells:
+
+<figure>
+    <img src='tutorial_figures/enrichment_in_ROI_3.png' width="90%" alt='missing' />
+</figure>
+
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+
+<br><br>
+
+
+<div>
+<h4><a id="extractroi">How to find and extract genomic regions with particular enrichment patterns?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the steps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI and enrichments that you want to analyze (<b>step 4, 5</b>):
+
+<figure>
+    <img src='tutorial_figures/extract_ROI_1.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further options:
+<figure>
+    <img src='tutorial_figures/extract_ROI_2.png' width="70%" alt='missing' />
+</figure>
+<br><br>
+Then, play interactively with the heatmap by clicking clusters for particular enrichment patterns.
+You can extract ROIs from a specific cluster:
+
+<figure>
+    <img src='tutorial_figures/extract_ROI_3.png' width="60%" alt='missing' />
+</figure>
+
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
+
+<br><br>
+
+
+<div>
+<h4><a id="metagene">How can I analyse a genelist using metagenes?</a></h4>
+<p align="justify"> 
+<b>Option 1: With the example data</b><br>
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the steps. 
+<br><br><b>Option 2: With your own data</b><br>
+Alternatively, if you have your own gene lists and enrichments, start from <b>step 2</b> and select the gene lists and enrichments that you want to analyze (<b>step 4, 5</b>):
+
+<figure>
+    <img src='tutorial_figures/metagene_1.png' width="90%" alt='missing' />
+</figure>
+
+<br><br>
+Then, visualize the results and play with graphical options:
+<figure>
+    <img src='tutorial_figures/metagene_2.png' width="80%" alt='missing' />
+</figure>
+<br><br>
+Scroll down for further output boxes:
+<figure>
+    <img src='tutorial_figures/metagene_3.png' width="80%" alt='missing' />
+</figure>
+
+
+
+</p>
+
+<a href="#INDEX"><h4>Back to INDEX</h4></a>
+</div>
