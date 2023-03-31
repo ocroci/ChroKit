@@ -1228,8 +1228,8 @@ msg_pairwiseOverlaps_box<-list(
 	text=list(HTML("It shows the values (number of reads) of the selected enrichments (i.e. enrichment-1 and enrichment-1) within:<br>
 				1) regions of ROI-1 not overlapping with ROI-2 (ROI-1 alone)<br>
 				2) regions of ROI-2 not overlapping with ROI-1 (ROI-2 alone)<br>
-				3) common ROI-1 and ROI-2 regions (ROI-1 overlapping and ROI-2 overlapping) <br>
-				<img src='scheme_enrichment_pairwise.png' alt='Res' width=100% >")
+				3) common ROI-1 and ROI-2 regions (ROI-1 overlapping and ROI-2 overlapping)<br>
+				<img src='scheme_enrichment_pairwise.png' alt='Res' width=100%>")
 	)
 
 )
@@ -1971,13 +1971,15 @@ msg_dynamicsOnGenes_profiles<-list(
 		tags$br(),
 		tags$br(),
 		Field("Metagene profile","Shows the metagene profile of enrichments in the selected gene list(s).
-		This plot is particularly useful to evaluate RNApol2 distribution along genes"),
-		Comment("The metagene plot starts at –30% of transcripts length from TSS and ends at +30% from TES"),
-		tags$br(),
-		tags$br(),
-		HTML("A metagene representation is useful to analyse the behaviour of a signal in a set of genes. Each transcript length is increased by 30% 
-				and divided in an equal number of bins (in the following example, 9 bins). Then, the signals from different genes
-				belonging to the same bin are averaged together to produce the metagene signal. <br><img src='scheme_metagene.png' alt='Res' width=100% height=80%>"),
+		"),
+
+
+		HTML("A metagene represents the average signal inside a set of genes over a normalized gene length. Within ChroKit, the 
+				normalized gene length is calculated by extending transcripts coordinates by 30% at both TSS and TES. Then, each transcript
+				is binned (in the following example, 9 bins) and the signals from the different genes
+				belonging to the same bin are averaged to produce the metagene signal. This plot is particularly useful to evaluate RNApol2 distribution along genes. <br><img src='scheme_metagene.png' alt='Res' width=100% height=80%>"),
+
+
 		tags$br(),
 		tags$br(),
 		Field("Enrichment boxplots","Shows the the enrichments as boxplots at the promoters, transcripts and TES of the selected gene list(s)."),				
