@@ -1229,7 +1229,7 @@ msg_pairwiseOverlaps_box<-list(
 				1) regions of ROI-1 not overlapping with ROI-2 (ROI-1 alone)<br>
 				2) regions of ROI-2 not overlapping with ROI-1 (ROI-2 alone)<br>
 				3) common ROI-1 and ROI-2 regions (ROI-1 overlapping and ROI-2 overlapping)<br>
-				<img src='scheme_enrichment_pairwise.png' alt='Res' width=100%>")
+				<img src='enrichment_pairwise_scheme.png' alt='Res' width=100%>")
 	)
 
 )
