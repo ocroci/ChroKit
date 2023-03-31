@@ -233,7 +233,7 @@ in the address bar of the browser, where \<IP\> is the IP address of the remote 
 
 ### Tips
 To reset/refresh a working session, please reload the webpage in the browser.\
-If you experience issue with "Figure margins too large" error in plots, please change the zoom of the web page of the browser.
+If you experience "Figure margins too large" error in plots, please change the zoom of the web page of the browser.
 
 
 # Tutorial
