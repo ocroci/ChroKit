@@ -205,7 +205,8 @@ To add new gene signatures for gene ontology analyses, you must upload their gmt
 
 ![alt text](gmt_format.png)
 
-Custom .gmt lists can be added and used only when running ChroKit from the R command line (this option is not supported in the Docker version).
+File names of the signatures must end with **\_symbols.gmt**.
+Custom .gmt files can be added and used only when running ChroKit from the R command line (this option is not supported in the Docker version).
 
 
 ### Use custom genome assemblies (optional for advanced users)
@@ -228,9 +229,6 @@ When you see the message "Listening on http://0.0.0.0:6060" in the R console, it
 in the address bar. If you installed ChroKit on a remote machine, type:
     ```<IP>:6060 ```\
 in the address bar of the browser, where \<IP\> is the IP address of the remote machine, and 6060 is the listening port used by ChroKit.
-
-
-**IMPORTANT**: to carry out gene ontology analyses, you must put gene signatures under the appContent/signatures directory. Those signatures must be in gmt format, and their file name must end with **\_symbols.gmt**. Signatures from MSigDB (Molecular Signature Database) (https://www.gsea-msigdb.org/gsea/downloads.jsp#msigdb) are already preloaded. 
 
 
 # Tutorial
