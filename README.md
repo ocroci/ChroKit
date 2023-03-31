@@ -210,7 +210,7 @@ Custom .gmt lists can be added and used only when running ChroKit from the R com
 
 ### Use custom genome assemblies (optional for advanced users)
 Custom genome assemblies can be added in the source/appContent/assemblies/ folder of the program before launching the app, where all the standard genomes are stored.
-To use the "xyz45" custom genome assembly, prepare a table with the following format:
+To use the "xyz45" custom genome assembly, prepare a tab-delimited text file with the following format:
 
 ![alt text](assembly_format.png)
 
