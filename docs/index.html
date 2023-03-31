@@ -130,7 +130,7 @@ This is required for analyses involving reads enrichment.
 <div>
 <h4><a id="inputfiles">What files do I need to use ChroKit?</a></h4>
 <p align="justify"> Three kind of files can be imported in ChroKit:
-<li>BED/GTF files: those files are tab-delimited text files with information about genomic coordinate, containing the chromosome number, start and end positions of the genomic ranges. Optionally, they can contain also the strand information. These files must have the following format:
+<li>Coordinate files, in BED or GTF format: those files are tab-delimited text files with information about genomic coordinates, containing the chromosome number, start and end positions of the genomic ranges. Optionally, they can contain also the strand information. These files must have the following format:
 <figure>
     <img src='tutorial_figures/File_ROI_format.png' width="30%" alt='missing' />
 </figure>
@@ -143,7 +143,7 @@ Independently on the source, any kind of genomic coordinates can be used as inpu
 They can be genes belonging to the same pathway, a list of genes upregulated following by a certain treatment or with a particular value of expression. 
 Independently on the source, any list of genes can be used as input. Then, ChroKit will create the promoters, transcripts and transcription end sites corresponding to those genes for genomic analyses.</li>
 <br>
-<li>Enrichment files in .bam or .bigWig format: these files derives from the alignment of reads in NGS experiments. These contain some information about reads, such as the position in the genome and their quality. 
+<li>Enrichment files in .bam or .bigWig format: these files derive from the alignment of reads in NGS experiments. These contain some information about reads, such as the position in the genome and their quality. 
 Enrichment files can be used to compute the number of reads inside specific genomic regions of interest.
 The signal computed from bam files can be easyly normalized by library size or user-defined spike ins, while bigWig files should have been previously normalized before the import.</li>
 
