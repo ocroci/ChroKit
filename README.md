@@ -231,6 +231,11 @@ in the address bar. If you installed ChroKit on a remote machine, type:
 in the address bar of the browser, where \<IP\> is the IP address of the remote machine, and 6060 is the listening port used by ChroKit.
 
 
+### Tips
+To reset/refresh a working session, please press the "reload the webpage" or the "Go back" button in the web browser.
+If you experience issue with "Figure margins too large" error in plots, please change the zoom of the web page of the browser.
+
+
 # Tutorial
 To learn the basics on how to analyse NGS data with ChroKit, please follow the tutorials at this page: https://ocroci.github.io/ChroKit/ using sample data.
 
