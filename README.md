@@ -216,7 +216,7 @@ To use the "xxxx" custom genome assembly, prepare a tab-delimited text file with
 
 which contains the information about the coordinates of the annotated transcripts and gene IDs and symbol for each transcript. This format must match that of the standard genomes already present in the folder (for example, refer to "mm9" file). Rename the file "xxxx" and move it into the folder. ChroKit will find it and show as one of the assemblies available.
 Custom genome assemblies can be used only when running ChroKit from the R command line (this option is not supported in the Docker version). 
-Please note: the pattern search for custom genome assemblies is not supported for custom assemblies.
+Please note: Pattern search for custom genome assemblies is not supported.
 
 
 ### Launch the program
