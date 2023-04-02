@@ -144,9 +144,9 @@ These files are 1-based; if a coordinate starts with 0, it will be converted to 
 They can be genes belonging to the same pathway, a list of genes upregulated following by a certain treatment or with a particular value of expression. 
 Independently on the source, any list of genes can be used as input. Then, ChroKit will create the promoters, transcripts and transcription end sites corresponding to those genes for genomic analyses.</li>
 <br>
-<li>Enrichment files in .bam or .bigWig format: these files derive from the alignment of reads in NGS experiments. Bam files are binary files containing some information about reads, such as the position in the genome and their quality, while bigWig files contain information of the signals in the genome (https://genome.ucsc.edu/goldenPath/help/bigWig.html). Bam files are 0-based if directly accessed, but when these files are used by programs the information become 1-based. BigWig files are 1-based. 
+<li>Enrichment files in .bam or .bigWig format: these files derive from the alignment of reads in NGS experiments. Bam files are binary files containing some information about reads, such as the position in the genome and their quality, while bigWig files contain information of the signals in the genome (https://genome.ucsc.edu/goldenPath/help/bigWig.html). Bam files are 0-based if directly accessed, but when these files are used by programs the information becomes 1-based. BigWig files are 1-based. 
 Enrichment files can be used to compute the number of reads inside specific genomic regions of interest.
-The signal computed from bam files can be easyly normalized within ChroKit by library size or user-defined spike ins, while bigWig files should have been previously normalized before the import.</li>
+The signal computed from bam files can be easyly normalized within ChroKit by library size or user-defined spike-ins, while bigWig files should have been previously normalized before the import.</li>
 </ol>
 <br><br>
 
@@ -162,21 +162,21 @@ The signal computed from bam files can be easyly normalized within ChroKit by li
 <h4><a id="importBED">I have genomic coordinates in a BED or GTF file, how can I import them as ROIs (regions of interest)?</a></h4>
 <p align="justify"> Select the file from filesystem (for an example, load YAP_peaks.xls from the ChroKit-master/source/appContent/tutorial_files/ directory. NOTE: if you are running ChroKit using Docker, you will find all the computer files in the folder you chose for mounting, should be the /mnt folder):
 <figure>
-    <img src='tutorial_figures/ROI_import_1.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/ROI_import_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Preview the file and then confirm the import:
 <figure>
-    <img src='tutorial_figures/ROI_import_2.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/ROI_import_2.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 After importing the ROI, new menus and functions will be available in two additional tabs:
 <figure>
-    <img src='tutorial_figures/ROI_import_3.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/ROI_import_3.png' width="120%" alt='missing' />
 </figure>
 <br>
 <figure>
-    <img src='tutorial_figures/ROI_import_4.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/ROI_import_4.png' width="120%" alt='missing' />
 </figure>
 
 </p>
@@ -191,12 +191,12 @@ After importing the ROI, new menus and functions will be available in two additi
 <p align="justify">
 Import a genome assembly (here mm9) to obtain the coordinates of annotated genomic elements:
 <figure>
-    <img src='tutorial_figures/genelist_import_assembly_1.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/genelist_import_assembly_1.png' width="110%" alt='missing' />
 </figure>
 <br><br>
 Import the genelist:
 <figure>
-    <img src='tutorial_figures/genelist_import_import_2.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/genelist_import_import_2.png' width="110%" alt='missing' />
 </figure>
 After this step, three ROIs (promoters, transcripts and TES of the imported genes) will be loaded. 
 </p>
@@ -218,7 +218,7 @@ Select the enrichment file(s) to be imported (formats supported: bam or bigWig*.
 <br><br>
 Once imported, a file can be renamed or removed:
 <figure>
-    <img src='tutorial_figures/enrichment_import_2.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/enrichment_import_2.png' width="110%" alt='missing' />
 </figure>
 </p>
 *bigWig files are not supported in Windows operating systems.
@@ -243,12 +243,12 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the sin
 <br><br><b>Option 2: With your own data</b><br>
 Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROI that you want to analyze in the <b>step 4</b>
 <figure>
-    <img src='tutorial_figures/singleeval_1.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/singleeval_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Then look and the plots, adjust their graphical options or download them: 
 <figure>
-    <img src='tutorial_figures/singleeval_2.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/singleeval_2.png' width="120%" alt='missing' />
 </figure>
 
 </p>
@@ -263,17 +263,17 @@ Then look and the plots, adjust their graphical options or download them:
 <h4><a id="pairwisecmp">How can I view the pairwise overlaps between two ROIs?</a></h4>
 <p align="justify"> 
 <b>Option 1: With the example data</b><br>
-Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the pairwise ovelaps tab (<b>3</b>). 
+Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the pairwise ROI comparison tab (<b>3</b>). 
 <br><br><b>Option 2: With your own data</b><br>
 Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs that you want to analyze (<b>step 4, 5</b>):
 <figure>
-    <img src='tutorial_figures/pairwise_overlaps_1.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/pairwise_overlaps_1.png' width="120%" alt='missing' />
 </figure>
 
 <br><br>
 Then, visualize the results:
 <figure>
-    <img src='tutorial_figures/pairwise_overlaps_2.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/pairwise_overlaps_2.png' width="110%" alt='missing' />
 </figure>
 
 </p>
@@ -291,7 +291,7 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the 'Po
 <br><br><b>Option 2: With your own data</b><br>
 Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs that you want to analyze (<b>step 4, 5</b>):
 <figure>
-    <img src='tutorial_figures/multiple_overlaps_1.png' width="50%" alt='missing' />
+    <img src='tutorial_figures/multiple_overlaps_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further options:
@@ -301,12 +301,12 @@ Scroll down for further options:
 <br><br>
 Then, visualize the results and, optionally, extract new ROIs from a particular combination of overlaps:
 <figure>
-    <img src='tutorial_figures/multiple_overlaps_3.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/multiple_overlaps_3.png' width="110%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further output boxes:
 <figure>
-    <img src='tutorial_figures/multiple_overlaps_4.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/multiple_overlaps_4.png' width="110%" alt='missing' />
 </figure>
 
 
@@ -325,7 +325,7 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and select the GO 
 <br><br><b>Option 2: With your own data</b><br>
 Alternatively, if you have your own ROIs or a custom gene list, start from <b>step 2</b> and select the ROIs or genelist that you want to analyze (<b>step 4, 5</b>):
 <figure>
-    <img src='tutorial_figures/GO_1.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/GO_1.png' width="120%" alt='missing' />
 </figure>
 
 <br><br>
@@ -362,7 +362,7 @@ Load the example data (<b>1</b>), click 'ROI preparation' (<b>2</b>) and follow 
 Alternatively, if you have your own ROIs, start from <b>step 2</b> and select the ROIs to generate the subset (<b>step 5,6</b>) (In the example below, you will find Myc peaks overlapping with promoters).
 
 <figure>
-    <img src='tutorial_figures/motifs_1.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/motifs_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Then, resize the genomic ranges of the ROI created before (i.e. Myc_promoters), for a better visualization in the heatmap:
@@ -382,12 +382,12 @@ Build a heatmap to visualize sequence pattern occurrences within the ROI. Click 
 <br><br>
 Scroll down for further options:
 <figure>
-    <img src='tutorial_figures/motifs_5.png' width="40%" alt='missing' />
+    <img src='tutorial_figures/motifs_5.png' width="60%" alt='missing' />
 </figure>
 <br><br>
 Visualize, in a heatmap, the sequence patterns within the ROI:
 <figure>
-    <img src='tutorial_figures/motifs_6.png' width="50%" alt='missing' />
+    <img src='tutorial_figures/motifs_6.png' width="60%" alt='missing' />
 </figure>
 <br><br>
 For further information about position-based heatmaps, go to <a href="digitalheat.html">How can I analyse multiple or complex overlaps with a heatmap?</a>
@@ -418,23 +418,23 @@ Load the example data (<b>1</b>), click 'ROI preparation' (<b>2</b>) and follow 
 Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI and enrichments that you want to analyze (<b>step 4, 5</b>):
 
 <figure>
-    <img src='tutorial_figures/pairwise_withenrichment_1.png' width="60%" alt='missing' />
+    <img src='tutorial_figures/pairwise_withenrichment_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Repeat the <b>steps 4, 5, 6</b> for the second ROI (Pol2_peaks_treat.xls):
 <figure>
-    <img src='tutorial_figures/pairwise_withenrichment_bis.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/pairwise_withenrichment_bis.png' width="60%" alt='missing' />
 </figure>
 <br><br>
 Once the enrichments are associated to ROIs, click 'Genomics' (<b>7</b>) to proceed with the analyses:
 <figure>
-    <img src='tutorial_figures/pairwise_withenrichment_2.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/pairwise_withenrichment_2.png' width="80%" alt='missing' />
 </figure>
 <br><br>
 Then, visualize or download the results:
 
 <figure>
-    <img src='tutorial_figures/pairwise_withenrichment_3.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/pairwise_withenrichment_3.png' width="120%" alt='missing' />
 </figure>
 
 
@@ -468,12 +468,12 @@ Scroll down for further options:
 Then, play interactively with the heatmap by changing the selected area. Visualize or download the results:
 
 <figure>
-    <img src='tutorial_figures/heatm_enrichment_3.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/heatm_enrichment_3.png' width="110%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further output boxes:
 <figure>
-    <img src='tutorial_figures/heatm_enrichment_4.png' width="50%" alt='missing' />
+    <img src='tutorial_figures/heatm_enrichment_4.png' width="90%" alt='missing' />
 </figure>
 
 
@@ -492,18 +492,18 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the ste
 <br><br><b>Option 2: With your own data</b><br>
 Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI(s) and enrichments that you want to analyze (<b>step 4, 5</b>):
 <figure>
-    <img src='tutorial_figures/enrichment_in_ROI_1.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/enrichment_in_ROI_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Output plots will appear on the right:
 <figure>
-    <img src='tutorial_figures/enrichment_in_ROI_2.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/enrichment_in_ROI_2.png' width="110%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further output boxes. To view correlations, play interactively with the correlation heatmap by clicking the desired cells:
 
 <figure>
-    <img src='tutorial_figures/enrichment_in_ROI_3.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/enrichment_in_ROI_3.png' width="110%" alt='missing' />
 </figure>
 
 
@@ -526,19 +526,19 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the ste
 Alternatively, if you have your own ROIs and enrichments, start from <b>step 2</b> and select the ROI and enrichments that you want to analyze (<b>step 4, 5</b>):
 
 <figure>
-    <img src='tutorial_figures/extract_ROI_1.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/extract_ROI_1.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further options:
 <figure>
-    <img src='tutorial_figures/extract_ROI_2.png' width="70%" alt='missing' />
+    <img src='tutorial_figures/extract_ROI_2.png' width="90%" alt='missing' />
 </figure>
 <br><br>
 Then, play interactively with the heatmap by clicking clusters for particular enrichment patterns.
 You can extract ROIs from a specific cluster:
 
 <figure>
-    <img src='tutorial_figures/extract_ROI_3.png' width="60%" alt='missing' />
+    <img src='tutorial_figures/extract_ROI_3.png' width="80%" alt='missing' />
 </figure>
 
 
@@ -560,18 +560,18 @@ Load the example data (<b>1</b>), click 'Genomics' (<b>2</b>) and follow the ste
 Alternatively, if you have your own gene lists and enrichments, start from <b>step 2</b> and select the gene lists and enrichments that you want to analyze (<b>step 4, 5</b>):
 
 <figure>
-    <img src='tutorial_figures/metagene_1.png' width="90%" alt='missing' />
+    <img src='tutorial_figures/metagene_1.png' width="120%" alt='missing' />
 </figure>
 
 <br><br>
 Then, visualize the results and play with graphical options:
 <figure>
-    <img src='tutorial_figures/metagene_2.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/metagene_2.png' width="120%" alt='missing' />
 </figure>
 <br><br>
 Scroll down for further output boxes:
 <figure>
-    <img src='tutorial_figures/metagene_3.png' width="80%" alt='missing' />
+    <img src='tutorial_figures/metagene_3.png' width="110%" alt='missing' />
 </figure>
 
 
