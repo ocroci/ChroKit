@@ -233,7 +233,8 @@ in the address bar of the browser, where \<IP\> is the IP address of the remote 
 
 ### Tips
 To reset/refresh a working session, please reload the webpage in the browser.\
-If you experience "Figure margins too large" error in plots, please change the zoom of the web page of the browser.
+If you experience "Figure margins too large" error in plots, please change the zoom of the web page of the browser.\
+The use on smartphones is limited by screen size which at time renders visualization of widgets not optimal. Also, the point and drag operations in the Enrichment-based Heatmaps cannot be performed from a smartphone.
 
 
 # Tutorial
