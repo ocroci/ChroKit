@@ -150,7 +150,7 @@ help_BED_fromgenelist<-list(
 		tags$br(),
 		tags$br(),
 		Comment("When a gene list is loaded, the promoters, transcripts, TES of the genes associated to that gene lists are loaded in memory as new ROIs. 
-				All annotated isoforms are loaded as well"),
+				All annotated isoforms are loaded as well. Information on the correctly identified genes is reported in the Log messages."),
 		tags$br(),
 		tags$br(),
 		Warning("<b>1</b>. The file containing the gene list must be a text file in which each row is a gene symbol/gene ID.<br> 
