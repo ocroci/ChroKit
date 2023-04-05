@@ -1414,7 +1414,6 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
 
     #select if wig:
     }else if (substring(signalfile,nchar(signalfile)-2,nchar(signalfile))==".bw" | tolower(substring(signalfile,nchar(signalfile)-6,nchar(signalfile)))==".bigwig"){
-    
       #open wig file only for names and lengths of chromosomes, to find
       #those matching with "Object"
       print ("    Coverage of WIG file...")
@@ -1431,6 +1430,9 @@ GRbaseCoverage2<-function(Object, signalfile,signalfileNorm=NULL,signalControl=N
       chrswig=lengths(wig)
       rm(wig)
       common_chromosomes=intersect(chromosomes,names(chrswig))
+      if (length(common_chromosomes)==0){
+        print("Maybe the enrichment file does not contain reads blonging to any chromosome of the input ROI...")
+      }
       #initialize 0s for all ranges (if wig do not have a chr, the remaining are 0s)
       widths=width(Object)
 
