@@ -152,8 +152,9 @@ isvalid<-function(inputfield) {
 
 availRAM<-function(){
   #predict real amount of usable RAM
-  memused=gc()
-  used=unname(memused[,2][2])
+  used=as.numeric(round(mem_used()/1000000,1))
+  print(paste("RAM used: ",used,"MB"))
+  #used=unname(memused[,2][2])
   #divided by 2 is very stringent. RAM_system is a global parameter, defined in "shinyapp.r"
   realmax=RAM_system/2
   avail=realmax*1000-used
