@@ -508,7 +508,7 @@ observeEvent(input$fileGENELISTS, {
         })  
 
         #findPositionFromGene() function
-        pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
+        pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range_transcripts,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
 
         lostnotfound=pos_match$notfound
         losttoolarge=pos_match$losttoolarge
@@ -692,7 +692,7 @@ observeEvent(input$createGENELISTSfrompath, {
               )               
             })
             #findPositionFromGene() function
-            pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
+            pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range_transcripts,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
 
             lostnotfound=pos_match$notfound
             losttoolarge=pos_match$losttoolarge
@@ -861,7 +861,7 @@ observeEvent(input$createGENELISTSfrompaste,{
           uniquegenelist=unique(genelist)
           lostinunique=length(genelist)-length(uniquegenelist)
           #findPositionFromGene() function
-          pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
+          pos_match=findPositionFromGene(genelist=uniquegenelist,annotatedrange=range_transcripts,kindofID=input$symbolORid,thresh=input$thresholdTranscripts)
 
           lostnotfound=pos_match$notfound
           losttoolarge=pos_match$losttoolarge

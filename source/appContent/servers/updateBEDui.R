@@ -165,7 +165,7 @@ observe({
                                                               ),selected="symbol"),
               HTML("<br>"),
               list(HTML("<b>Max length for transcripts:</b>"),htmlhelp("","help_BED_maxtranscriptlen")),
-              numericInput(inputId = 'thresholdTranscripts',label=NULL,min = 0, step = 100000,value=200000)       
+              numericInput(inputId = 'thresholdTranscripts',label=NULL,min = 0, step = 100000,value=1000000)       
             )
           )
         })
