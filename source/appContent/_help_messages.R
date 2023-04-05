@@ -150,7 +150,22 @@ help_BED_fromgenelist<-list(
 		tags$br(),
 		tags$br(),
 		Comment("When a gene list is loaded, the promoters, transcripts, TES of the genes associated to that gene lists are loaded in memory as new ROIs. 
-				All annotated isoforms are loaded as well. Information on the correctly identified genes is reported in the Log messages."),
+				All annotated isoforms are loaded as well. Information on the correctly identified genes is reported in the Log messages as follows:<br><br>
+				'Created promoters, transcripts and TES in <b>XXX</b> genelist (<b>N</b> original symbol, <b>M</b> lost , <b>K</b> non-unique, 
+							<b>GENE_X;GENE_Y</b> not found, <b>GENE_Z;GENE_T</b> has width > 200000, 
+							some isoforms of <b>GENE_Q;GENE_U</b> has width > 200000), <b>J</b> obtained'<br><br>
+				Where:<br>
+				<li><b>N</b>=total number of input genes</li>
+				<li><b>M</b>=sum of genes I) duplicated II) not found III) with at least one of their isoforms having a width greater than the threshold set by the user</li>
+				<li><b>k</b>=number of duplicated genes</li>
+				<li><b>GENE_X;GENE_Y</b>=genes not identified</li>
+				<li><b>GENE_Z;GENE_T</b>=genes discarded, having the width of all their isoforms greater than the threshold</li>
+				<li><b>GENE_Q;GENE_U</b>=genes having some of their isoforms width greater than the threshold</li>
+				<li><b>J</b>=total number of alternative transcripts associated to the recognized gene symbols </li><br>
+				(Note: with the exception of “lost”, 0 values are not displayed in the message)
+
+
+				"),
 		tags$br(),
 		tags$br(),
 		Warning("<b>1</b>. The file containing the gene list must be a text file in which each row is a gene symbol/gene ID.<br> 
