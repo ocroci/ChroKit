@@ -3470,8 +3470,9 @@ observeEvent(input$PrepareROIgenelistPipeline,{
       title = "Problems in association",
       #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
       text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
-      tags$li(style="text-align: left;",style="text-align: left;","Enrichment file not found. Check the correct path."),  
-      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;",style="text-align: left;","Enrichment file not found (check the correct path)."),
+      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file does not contain reads blonging to any chromosome of the input ROI."),  
+      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file is corrupted."),
       tags$li(style="text-align: left;",style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
       type = "error"
     )
@@ -3482,8 +3483,9 @@ observeEvent(input$PrepareROIgenelistPipeline,{
       title = "Problems in association",
       #text = "BAM or WIG files not associated. Corrupted file, or, if number cores>1, SEGFAULT. Try using less cores or even 1. Maybe enrichment files not found: be sure that correct file path are provided, and files are on the same machine of the running program",
       text=p(style="text-align: left;","Problems in association. This is potentially due to: ",
-      tags$li(style="text-align: left;","Enrichment file not found. Check the correct path."),  
-      tags$li(style="text-align: left;","The enrichment file is corrupted"),
+      tags$li(style="text-align: left;","Enrichment file not found (check the correct path)."),
+      tags$li(style="text-align: left;",style="text-align: left;","The enrichment file does not contain reads blonging to any chromosome of the input ROI."),  
+      tags$li(style="text-align: left;","The enrichment file is corrupted."),
       tags$li(style="text-align: left;","Memory not sufficient. Options: 1) Try to set the number of cores=1 2) Increase the RAM 3) Save the working session, exit from R, re-open the program and load the working session again (should solve memory fragmentation)")), 
       type = "error"
     )          
