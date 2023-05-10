@@ -251,7 +251,6 @@ To learn the basics on how to analyse NGS data with ChroKit, please follow the t
 
 # Citation
 If you use this framework for your project, please cite the following paper:\
-\
 
 **Ottavio Croci, Stefano Campaner. ChroKit: a Shiny-based framework for interactive analysis, visualization and integration of genomic data. _Nucleic Acids Research_. 2023 May 5. https://doi.org/10.1093/nar/gkad345**
 
