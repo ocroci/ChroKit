@@ -863,7 +863,15 @@ tabGENOMICS<-tabItem (tabName = "GENOMICSblock",
                     column(width=9,
                       plotOutput("plotOntology",click="GO_click",brush=brushOpts(id="GO_brush",delayType="debounce",delay=300,resetOnNew=TRUE)),#,height=750,width=600),
                       plotOutput("textNameGO"),
-                      htmlOutput("saveheatmapGO")
+                      fluidRow(
+                        column(width=6,
+                          htmlOutput("saveheatmapGO")
+                        ),
+                        column(width=6,
+                          htmlOutput("saveGOHeatMatrix")
+                        )
+                      )
+                      
                     #width=600),
                     )
                   )
