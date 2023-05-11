@@ -8372,8 +8372,7 @@ observe({
 
         })
         output$saveheatmapGO<-renderUI({downloadButton('saveheatmapGObutton', 'Get PDF')})
-
-
+        output$saveGOHeatMatrix<-renderUI({downloadButton("saveGOHeatMatrixbutton",'Get matrix')})
         output$show_clickmessage_GO<-renderUI({  list(HTML("<h3>Click a cell in the heatmap!"),htmlhelp("","help_goAnalysis_clickinfoheat"),HTML("</h3>"))   })
       
 
@@ -8419,6 +8418,7 @@ observe({
         output$colorScaleGO<-renderPlot({NULL})
         output$show_clickmessage_GO<-renderUI({list(HTML("<h3>Click a bar!"),htmlhelp("","help_goAnalysis_clickinfobar"),HTML("</h3>"))})
         output$saveheatmapGO<-renderUI({downloadButton('savebarplotGObutton', 'Get PDF')})
+        saveGOHeatMatrix<-renderUI({NULL})
       }
 
       #prepare table to show and download
@@ -8470,6 +8470,8 @@ observe({
       output$plotMaterialLeft<-renderPlot({NULL})
       output$colorScaleGO<-renderPlot({NULL})
       output$saveheatmapGO<-renderUI({NULL})
+      output$saveGOHeatMatrix<-renderUI({NULL})
+      
       output$show_colorScaleGO<-renderUI({NULL})
       output$show_scaleQuantileGO<-renderUI({NULL})
       output$show_clickmessage_GO<-renderUI({NULL})
@@ -8483,6 +8485,7 @@ observe({
     output$plotMaterialLeft<-renderPlot({NULL})
     output$colorScaleGO<-renderPlot({NULL})
     output$saveheatmapGO<-renderUI({NULL})
+    output$saveGOHeatMatrix<-renderUI({NULL})
     output$show_colorScaleGO<-renderUI({NULL})
     output$show_scaleQuantileGO<-renderUI({NULL})
     output$show_clickmessage_GO<-renderUI({NULL})
@@ -8580,6 +8583,20 @@ output$saveheatmapGObutton<- downloadHandler(
 
   } 
 )
+
+
+#observer for downloading the matrix for the heatmap
+output$saveGOHeatMatrixbutton<- downloadHandler(
+  filename=function() {
+      paste('GeneOntology_matrix.xls', sep='')
+  },
+  content=function(file) {
+      write.table(toplot$GOvariables$partdfpadj,file=file,row.names=TRUE,sep="\t",quote=FALSE,col.names=NA) 
+  } 
+  
+)
+
+
 
 
 
